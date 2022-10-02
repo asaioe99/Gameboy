@@ -315,6 +315,8 @@ void DisableRAM()
   DataBusAsInput();
 }
 
+// 詳細はpan文書参照
+// 15Byteのタイトル文字列が書き込まれている（16Byteでは？）
 void GetTitle() {
   for (int i = 0x134; i < 0x143; i++) {
     romTitle[i - 0x0134] = GetByte(i);
@@ -382,67 +384,45 @@ void GetRamBanks()
       ramBanks = 0;
   }
 }
-
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void GetType()
-{
-  cartridgeType = GetByte(0x0147);
+// カートリッジタイプの取得
+void GetType() {
+  cartridgeType = GetByte(0x0147); // Cartridge Typeの識別
   
-  switch (cartridgeType)
-  {
+  switch (cartridgeType) {
     case 0x00:
       // NO MBC
     case 0x08:
-      // ROM   
-      // SRAM 
+      // ROM + SRAM
     case 0x09:
-      // ROM
-      // SRAM
-      // BATT
+      // ROM + SRAM + BATT
       mbcType = MBC_NONE;
       break;
     case 0x01:
       // MBC1
     case 0x02:
-      // MBC1
-      // SRAM
+      // MBC1 + SRAM
     case 0x03:
-      // MBC1
-      // SRAM
-      // BATT
+      // MBC1 + SRAM + BATT
     case 0xFF:
       // Hack to accept HuC1 as a MBC1
       mbcType = MBC_1;
       break;
     case 0x05:
-      // MBC2
-      // SRAM
+      // MBC2 + SRAM
     case 0x06:
-      // MBC2
-      // SRAM
-      // BATT
+      // MBC2 SRAM + BATT
       mbcType = MBC_2;
       break;
     case 0x0F:
-      // MBC3
-      // TIMER
-      // BATT
+      // MBC3 + TIMER + BATT
     case 0x10:
-      // MBC3
-      // TIMER
-      // BATT
-      // SRAM
+      // MBC3 + TIMER + BATT + SRAM
     case 0x11:
       // MBC3
     case 0x12:
-      // MBC3
-      // SRAM
+      // MBC3 + SRAM
     case 0x13:
-      // MBC3
-      // BATT
-      // SRAM
+      // MBC3 + BATT + SRAM
     case 0xFC:
       // Game Boy Camera
       mbcType = MBC_3;
@@ -450,45 +430,31 @@ void GetType()
     case 0x19:
       // MBC5
     case 0x1A:
-      // MBC5
-      // SRAM
+      // MBC5 + SRAM
     case 0x1B:
-      // MBC5
-      // BATT
-      // SRAM
+      // MBC5 + BATT + SRAM
     case 0x1C:
       // RUMBLE
     case 0x1D:
-      // RUMBLE
-      // SRAM
+      // RUMBLE + SRAM
     case 0x1E:
-      // RUMBLE
-      // BATT
-      // SRAM
+      // RUMBLE + BATT + SRAM
       mbcType = MBC_5;
       break;
     case 0x0B:
       // MMMO1
     case 0x0C:
-      // MMM01   
-      // SRAM 
+      // MMM01 + SRAM 
     case 0x0D:
-      // MMM01
-      // SRAM
-      // BATT
+      // MMM01 + SRAM + BATT
     case 0x15:
       // MBC4
     case 0x16:
-      // MBC4
-      // SRAM 
+      // MBC4 + SRAM 
     case 0x17:
-      // MBC4
-      // SRAM
-      // BATT
+      // MBC4 + SRAM + BATT
     case 0x22:
-      // MBC7
-      // BATT
-      // SRAM
+      // MBC7 + BATT + SRAM
     case 0x55:
       // GG
     case 0x56:
@@ -648,6 +614,3 @@ void loop() {
   
   Die();
 }
-
-///////////////////////////////////////////
-///////////////////////////////////////////
