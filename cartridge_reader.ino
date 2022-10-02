@@ -33,67 +33,49 @@ void InitSD() {
     Die();
   }
 }
-
-void CreateROMFileInSD()
-{
-  for (uint8_t i = 0; i < 100; i++)
-  {
-    romFileName[4] = i/10 + '0';
-    romFileName[5] = i%10 + '0';
-    if (!SD.exists(romFileName))
-    {
+// ROMファイルのSDカードへの保存
+void CreateROMFileInSD() {
+  for (uint8_t i = 0; i < 100; i++) {
+    romFileName[4] = i/10 + '0'; // 00 01 02 .. 99
+    romFileName[5] = i%10 + '0'; // DUMP01.GB の例
+    if (!SD.exists(romFileName)) { // 同名のファイルがない場合にSDカードに保存
       dumpFile = SD.open(romFileName, FILE_WRITE);
       break;
     }
   }
  
-  if (!dumpFile)
-  {
+  if (!dumpFile) {
     Serial.println("ROM FILE FAILED!");
     Die();
   }
 }
-
-///////////////////////////////////////////
-
-void CreateRAMFileInSD()
-{
-  for (uint8_t i = 0; i < 100; i++)
-  {
+// RAMがある場合、これのSDカードへの保存
+void CreateRAMFileInSD() {
+  for (uint8_t i = 0; i < 100; i++) {
     ramFileName[4] = i/10 + '0';
     ramFileName[5] = i%10 + '0';
-    if (!SD.exists(ramFileName))
-    {
+    if (!SD.exists(ramFileName)) {
       dumpFile = SD.open(ramFileName, FILE_WRITE);
       break;
     }
   }
  
-  if (!dumpFile)
-  {
+  if (!dumpFile) {
     Serial.println("RAM FILE FAILED!");
     Die();
   }
 }
 
-///////////////////////////////////////////
-
-void DataBusAsInput()
-{
+void DataBusAsInput() {
   DDRF = B00000000;
 }
 
-///////////////////////////////////////////
-
-void DataBusAsOutput()
-{
+void DataBusAsOutput() {
   DDRF = B11111111; 
 }
 
-///////////////////////////////////////////
-
-byte GetByte(word address)
-{
+// 指定アドレスから1Byte読み出し　とても重要
+byte GetByte(word address) {
   WriteAddress(address);
   PORTL = B00000101;
   delayMicroseconds(10);
@@ -103,10 +85,7 @@ byte GetByte(word address)
   return result;
 }
 
-///////////////////////////////////////////
-
-byte GetRAMByte(word address)
-{
+byte GetRAMByte(word address) {
   WriteAddress(address);
   PORTL = B00000001;
   delayMicroseconds(10);
@@ -116,10 +95,7 @@ byte GetRAMByte(word address)
   return result;
 }
 
-///////////////////////////////////////////
-
-void PutByte(word address, byte data)
-{ 
+void PutByte(word address, byte data) { 
   WriteAddress(address);
   PORTF = data;
   PORTL = B00000110;
@@ -128,22 +104,15 @@ void PutByte(word address, byte data)
   delayMicroseconds(10);
 }
 
-///////////////////////////////////////////
-
-void WriteAddress(word address)
-{ 
+void WriteAddress(word address) { 
   PORTA = address & 0xFF;
   PORTK = (address >> 8) & 0xFF;
 }
 
-///////////////////////////////////////////
-
-void DumpROM()
-{
+void DumpROM() {
   CreateROMFileInSD();
   
-  for (byte i = 0; i < romBanks; i++)
-  {
+  for (byte i = 0; i < romBanks; i++) {
     DumpROMBank(i);
   }
   
@@ -153,40 +122,30 @@ void DumpROM()
   Serial.println(romFileName);
 }
 
-///////////////////////////////////////////
-
-void DumpROMBank(byte bank)
-{
+void DumpROMBank(byte bank) {
   Serial.print("DUMPING ROM BANK ");
   Serial.println(bank);
   
   word offset = 0;
   
-  if (bank > 0)
-  {
+  if (bank > 0) {
     offset = 0x4000;  
     SwitchROMBank(bank);
   }
   
-  for (word address = 0; address < 0x4000; address++)
-  {
+  for (word address = 0; address < 0x4000; address++) {
     byte data = GetByte(address + offset);
     dumpFile.write(data);
   }
   
   dumpFile.flush();
-  
   Serial.println("DUMPED!");
 }
 
-///////////////////////////////////////////
-
-void SwitchROMBank(byte bank)
-{
+void SwitchROMBank(byte bank) {
   DataBusAsOutput();
   
-  switch (mbcType)
-  {
+  switch (mbcType) {
     case MBC_1:
     {
       PutByte(0x2100, bank);
@@ -208,24 +167,18 @@ void SwitchROMBank(byte bank)
   DataBusAsInput();
 }
 
-///////////////////////////////////////////
-
-void DumpRAM()
-{
-  if (cartridgeBattery)
-  {
+void DumpRAM() {
+  if (cartridgeBattery) {
     CreateRAMFileInSD();
     EnableRAM();
     
     int maxBanks = ramBanks;
     
-    if (mbcType == MBC_2)
-    {
+    if (mbcType == MBC_2) {
       maxBanks = 1;
     }
     
-    for (byte i = 0; i < maxBanks; i++)
-    {
+    for (byte i = 0; i < maxBanks; i++) {
       DumpRAMBank(i);
     }
     
@@ -238,48 +191,33 @@ void DumpRAM()
   }
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void DumpRAMBank(byte bank)
-{
+void DumpRAMBank(byte bank) {
   word maxAddress = 0xC000;
   
-  if (mbcType == MBC_2)
-  {
+  if (mbcType == MBC_2) {
     Serial.println("DUMPING MBC2 RAM");
     maxAddress = 0xA200;
-  }
-  else
-  {
+  } else {
     Serial.print("DUMPING RAM BANK ");
     Serial.println(bank);
   }
     
   SwitchRAMBank(bank);
     
-  for (word address = 0xA000; address < maxAddress; address++)
-  {
+  for (word address = 0xA000; address < maxAddress; address++) {
     byte data = GetRAMByte(address);
     dumpFile.write(data);
   }
   
   dumpFile.flush();
-  
   Serial.println("DUMPED!");
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void SwitchRAMBank(byte bank)
-{
-  if (ramBanks > 1)
-  {
+void SwitchRAMBank(byte bank) {
+  if (ramBanks > 1) {
     DataBusAsOutput();
     
-    switch (mbcType)
-    {
+    switch (mbcType) {
       case MBC_1:
       case MBC_3:
       case MBC_5:
@@ -288,27 +226,18 @@ void SwitchRAMBank(byte bank)
         break;
       }
     }
-    
     DataBusAsInput();
   }
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void EnableRAM()
-{
+void EnableRAM() {
   DataBusAsOutput();
   PutByte(0x0000, 0x0A); 
   delayMicroseconds(10);
   DataBusAsInput();
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void DisableRAM()
-{
+void DisableRAM() {
   DataBusAsOutput();
   PutByte(0x0000, 0x00);
   delay(50); 
@@ -323,10 +252,8 @@ void GetTitle() {
   }
 }
 
-void GetRomBanks()
-{
-  switch (romSize)
-  {
+void GetRomBanks() {
+  switch (romSize) {
     case 0x00:
       romBanks = 2;
       break;
@@ -357,13 +284,8 @@ void GetRomBanks()
   }
 }
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-
-void GetRamBanks()
-{
-  switch (ramSize)
-  {
+void GetRamBanks() {
+  switch (ramSize) {
     case 0x00:
       ramBanks = 0;
       break;
@@ -469,8 +391,7 @@ void GetType() {
       mbcType = MBC_NOT_SUPPORTED;
   }
   
-  switch (cartridgeType)
-  {
+  switch (cartridgeType) {
     case 0x03:
     case 0x06:
     case 0x09:
@@ -490,8 +411,7 @@ void GetType() {
       cartridgeBattery = false;
   }
 
-  switch (cartridgeType)
-  {
+  switch (cartridgeType) {
     case 0x0F:
     case 0x10:
       cartridgeRTC = true;
@@ -500,8 +420,7 @@ void GetType() {
       cartridgeRTC = false;
   }
 
-  switch (cartridgeType)
-  {
+  switch (cartridgeType) {
     case 0x1C:
     case 0x1D:
     case 0x1E:
@@ -553,12 +472,10 @@ void GatherMetadata() {
   Serial.println(cartridgeRumble);
 }
 
-boolean ValidCheckSum()
-{
+boolean ValidCheckSum() {
   int checksum = 0;
 
-  for (int j = 0x134; j < 0x14E; j++)
-  {
+  for (int j = 0x134; j < 0x14E; j++) {
       checksum += GetByte(j);
   }
 
@@ -570,6 +487,8 @@ void Die() {
   while (1) ;
 }
 
+// http://www.musashinodenpa.com/arduino/ref/index.php?f=0&pos=850
+// pin割り当てを行っている。詳細は上URL
 void Reset() {
   DDRA = B11111111; // PORT A for Address bus LSB as output
   DDRK = B11111111; // PORT K for Address bus MSB as output
@@ -597,12 +516,9 @@ void loop() {
   
   GatherMetadata();
 
-  if (ValidCheckSum())
-  {
+  if (ValidCheckSum()) {
     Serial.println("CHECKSUM OK!");
-  }
-  else
-  {
+  } else {
     Serial.println("INVALID ROM!");
     Die();
   }
