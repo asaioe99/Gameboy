@@ -103,7 +103,7 @@ void PutByte(word address, byte data) {
   PORTL = B00000111;
   delayMicroseconds(10);
 }
-
+// アドレスバスへの指定
 void WriteAddress(word address) { 
   PORTA = address & 0xFF;
   PORTK = (address >> 8) & 0xFF;
@@ -488,7 +488,8 @@ void Die() {
 }
 
 // http://www.musashinodenpa.com/arduino/ref/index.php?f=0&pos=850
-// pin割り当てを行っている。詳細は上URL
+// pin割り当てを行っている。詳細は上URL　Megaのport配置は下URL
+// https://content.arduino.cc/assets/Pinout-Mega2560rev3_latest.pdf
 void Reset() {
   DDRA = B11111111; // PORT A for Address bus LSB as output
   DDRK = B11111111; // PORT K for Address bus MSB as output
