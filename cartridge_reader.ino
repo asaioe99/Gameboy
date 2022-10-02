@@ -516,11 +516,11 @@ void GetType() {
 void GatherMetadata() {
   GetTitle();
   GetType();
-  byte color = GetByte(0x143);
+  byte color = GetByte(0x143); // CGBの判定
   colorGameBoy = (color == 0x80) || (color == 0xC0);
   superGameBoy = GetByte(0x146) == 0x03;
-  romSize = GetByte(0x148);
-  ramSize = GetByte(0x149);
+  romSize = GetByte(0x148); // romサイズ取得
+  ramSize = GetByte(0x149); // ramサイズ取得
   GetRomBanks();
   GetRamBanks();
   romVersion = GetByte(0x14C);
