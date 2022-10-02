@@ -29,3 +29,44 @@ CE ED 66 66 CC 0D 00 0B 03 73 00 83 00 0C 00 0D
 ```
 
 Bit7をセットし、Bit2または3をセットすると、ゲームボーイはパレットが初期化されていない特殊な非CGBモードに切り替わります。用途は不明ですが、ROMに固定パレットデータを持つモノクロゲームのカラー化に使用されるものと思われます。
+
+
+0147 - Cartridge Type
+カートリッジでどのメモリ・バンク・コントローラ(もしあれば)が使用されているか、また、カートリッジにさらに外部ハードウェアが存在するかどうかを指定します。
+
+```
+ 00h  ROM ONLY                 19h  MBC5
+ 01h  MBC1                     1Ah  MBC5+RAM
+ 02h  MBC1+RAM                 1Bh  MBC5+RAM+BATTERY
+ 03h  MBC1+RAM+BATTERY         1Ch  MBC5+RUMBLE
+ 05h  MBC2                     1Dh  MBC5+RUMBLE+RAM
+ 06h  MBC2+BATTERY             1Eh  MBC5+RUMBLE+RAM+BATTERY
+ 08h  ROM+RAM                  20h  MBC6
+ 09h  ROM+RAM+BATTERY          22h  MBC7+SENSOR+RUMBLE+RAM+BATTERY
+ 0Bh  MMM01
+ 0Ch  MMM01+RAM
+ 0Dh  MMM01+RAM+BATTERY
+ 0Fh  MBC3+TIMER+BATTERY
+ 10h  MBC3+TIMER+RAM+BATTERY   FCh  POCKET CAMERA
+ 11h  MBC3                     FDh  BANDAI TAMA5
+ 12h  MBC3+RAM                 FEh  HuC3
+ 13h  MBC3+RAM+BATTERY         FFh  HuC1+RAM+BATTERY
+```
+
+# 0148 - ROM Size
+カートリッジの ROM サイズを指定します。通常、"32KB shl N "として計算されます。
+
+```
+ 00h -  32KByte (no ROM banking)
+ 01h -  64KByte (4 banks)
+ 02h - 128KByte (8 banks)
+ 03h - 256KByte (16 banks)
+ 04h - 512KByte (32 banks)
+ 05h -   1MByte (64 banks)  - only 63 banks used by MBC1
+ 06h -   2MByte (128 banks) - only 125 banks used by MBC1
+ 07h -   4MByte (256 banks)
+ 08h -   8MByte (512 banks)
+ 52h - 1.1MByte (72 banks)
+ 53h - 1.2MByte (80 banks)
+ 54h - 1.5MByte (96 banks)
+```
