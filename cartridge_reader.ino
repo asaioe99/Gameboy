@@ -77,10 +77,10 @@ void DataBusAsOutput() {
 // 指定アドレスから1Byte読み出し　とても重要
 byte GetByte(word address) {
   WriteAddress(address);
-  PORTL = B00000101;
+  PORTL = B00000101; // カートリッジ2~4pinに何らかの設定（仕様不明）
   delayMicroseconds(10);
-  byte result = PINF;
-  PORTL = B00000111;
+  byte result = f;
+  PORTL = B00000111; // カートリッジ2~4pinに何らかの設定
   delayMicroseconds(10);
   return result;
 }
@@ -495,7 +495,7 @@ void Reset() {
   DDRK = B11111111; // PORT K for Address bus MSB as output
   DDRF = B00000000; // PORT F for Data bus as input
   DDRL = B00000111; // PORT F for RD, WR and CS as output
-  
+  // 上記について、カートリッジの2~4pinが対応している。
   PORTL = B00000000; // Set RD, WR and CS to HIGH
   PORTA = B00000000;
   PORTK = B00000000;
@@ -514,7 +514,6 @@ void loop() {
   delayMicroseconds(10);
   
   InitSD();
-  
   GatherMetadata();
 
   if (ValidCheckSum()) {
