@@ -79,7 +79,7 @@ byte GetByte(word address) {
   WriteAddress(address);
   PORTL = B00000101; // カートリッジ2~4pinに何らかの設定（仕様不明）
   delayMicroseconds(10);
-  byte result = f;
+  byte result = PINF;
   PORTL = B00000111; // カートリッジ2~4pinに何らかの設定
   delayMicroseconds(10);
   return result;
