@@ -1,7 +1,5 @@
 # General Memory Map
 
-
-
 |Start | End | Description | Notes |
 |------|-----|-------------|-------|
 |0000	|3FFF|16KB ROM bank 00	|From cartridge, usually a fixed bank|
@@ -16,3 +14,11 @@
 |FF00|	FF7F|	I/O Registers	|
 |FF80|	FFFE|	High RAM (HRAM)	|
 |FFFF|	FFFF|	Interrupts Enable Register (IE)	|
+
+# Jump Vectors in first ROM bank
+ジャンプベクターとして使用することを想定しているアドレスは以下の通りです。
+
+- RST commands: 0000,0008,0010,0018,0020,0028,0030,0038
+- Interrupts: 0040,0048,0050,0058,0060
+- 
+ただし、RSTコマンドや割込みを使用しないプログラムの場合は、他の用途に使用してもかまいません。RSTコマンドは1バイトのオペコードで、宛先アドレスが固定されている以外はCALLオペコードと同じような動作をします。1バイトの大きさなので、処理速度も若干速くなります。
