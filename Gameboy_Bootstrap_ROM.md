@@ -1,26 +1,29 @@
 未完成
 
+以下参考
+- https://www.chciken.com/tlmboy/2022/05/02/gameboy-boot.html
+
 
 # Contents of the ROM
 
-```asm
+```
 	LD SP,$fffe		; $0000  スタック初期化
 
 	XOR A			; $0003  A ← A XOR A (XOR r := A XOR r)
-	LD HL,$9fff		; $0004  HL -> VRAM の先頭
+	LD HL,$9fff		; $0004  HL -> VRAM の最後尾
 Addr_0007:
 	LD (HL-),A		; $0007
-	BIT 7,H		 　　　　; $0008
-	JR NZ, Addr_0007	; $000a
+	BIT 7,H		 　　　　; $0008  HのMSB（最上位bit）の補数をZにセット
+	JR NZ, Addr_0007	; $000a  HLが7FFF以下になると、ループを抜ける
 
-	LD HL,$ff26		; $000c  Setup Audio
+	LD HL,$ff26		; $000c  サウンドプロセッサの初期化
 	LD C,$11		; $000f
 	LD A,$80		; $0011 
 	LD (HL-),A		; $0013
-	LD ($FF00+C),A	; $0014
+	LD ($FF00+C),A　　　　　　; $0014
 	INC C			; $0015
 	LD A,$f3		; $0016
-	LD ($FF00+C),A	; $0018
+	LD ($FF00+C),A　　　　　　; $0018
 	LD (HL-),A		; $0019
 	LD A,$77		; $001a
 	LD (HL),A		; $001c
