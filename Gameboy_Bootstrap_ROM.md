@@ -4,13 +4,13 @@
 # Contents of the ROM
 
 ```asm
-	LD SP,$fffe		; $0000  Setup Stack
+	LD SP,$fffe		; $0000  スタック初期化
 
-	XOR A			; $0003  Zero the memory from $8000-$9FFF (VRAM)
-	LD HL,$9fff		; $0004
+	XOR A			; $0003  A ← A XOR A (XOR r := A XOR r)
+	LD HL,$9fff		; $0004  HL -> VRAM の先頭
 Addr_0007:
 	LD (HL-),A		; $0007
-	BIT 7,H		; $0008
+	BIT 7,H		 　　　　; $0008
 	JR NZ, Addr_0007	; $000a
 
 	LD HL,$ff26		; $000c  Setup Audio
