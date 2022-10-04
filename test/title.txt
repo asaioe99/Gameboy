@@ -1,0 +1,6 @@
+---
+title: テスト
+author: テスト太郎
+rights: © 2022 テスト太郎
+language: ja-JP
+...

@@ -1,0 +1,1 @@
+pandoc -f markdown -t epub3 test.md title.txt -o book.epub --css stylesheet.css --toc --toc-depth=2 --epub-cover-image=cover.jpg
