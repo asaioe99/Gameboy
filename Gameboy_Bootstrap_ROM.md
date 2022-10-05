@@ -34,7 +34,7 @@ Addr_0007:
 	LD DE,$0104		; $0021  Convert and load logo data from cart into Video RAM
 	LD HL,$8010		; $0024
 Addr_0027:
-	LD A,(DE)		; $0027
+	LD A,(DE)		; $0027  
 	CALL $0095		; $0028
 	CALL $0096		; $002b
 	INC DE		; $002e
