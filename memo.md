@@ -5,10 +5,16 @@
 ### Arduino SPIについて
 - http://www.musashinodenpa.com/arduino/ref/index.php?f=1&pos=539 （公式リファレンス）
 
+Arduino Mega: 50(MISO)、51(MOSI)、52(SCK)、53(SS)
+
 ### 液晶（ST7789 TFT）
 - ananevilya/Arduino-ST7789-Library
 - https://shikarunochi.matrix.jp/?p=2834
 - https://simple-circuit.com/arduino-st7789-ips-tft-display-example/
+
+CSpinがあればSPI_MODE0で動くかも知れない。要実験
+
+(1.54インチの製品はCSあり)
 
 ひょっとしたら、CSがないため動作させられない可能性。他のSPIデバイスにアクセスしている間にどういう動作をするか不明
 
