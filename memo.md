@@ -11,6 +11,7 @@ Arduino Mega: 50(MISO)、51(MOSI)、52(SCK)、53(SS)
 - ananevilya/Arduino-ST7789-Library
 - https://shikarunochi.matrix.jp/?p=2834
 - https://simple-circuit.com/arduino-st7789-ips-tft-display-example/
+- http://kako.com/blog/?p=47810(CSピンを取り出す方法についての考察)
 
 CSpinがあればSPI_MODE0で動くかも知れない。要実験
 
