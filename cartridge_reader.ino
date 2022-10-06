@@ -494,7 +494,7 @@ void Reset() {
   DDRA = B11111111; // PORT A for Address bus LSB as output
   DDRK = B11111111; // PORT K for Address bus MSB as output
   DDRF = B00000000; // PORT F for Data bus as input
-  DDRL = B00000111; // PORT F for RD, WR and CS as output
+  DDRL = B00000111; // PORT L for RD, WR and CS as output
   // 上記について、カートリッジの2~4pinが対応している。
   PORTL = B00000000; // Set RD, WR and CS to HIGH
   PORTA = B00000000;
