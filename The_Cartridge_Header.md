@@ -43,7 +43,7 @@ Bit7をセットし、Bit2または3をセットすると、ゲームボーイ�
 |20|kss |22|pow |24|PCM Complete |
 |25|san-x |28|Kemco Japan|29|seta |
 |30|	Viacom|31|Nintendo|32|Bandai|
-|33	Ocean/Acclaim	|34|	Konami	|35|	Hector|
+|33|	Ocean/Acclaim	|34|	Konami	|35|	Hector|
 |37|	Taito	|38|	Hudson	|39|	Banpresto|
 |41|	Ubi Soft	|42|	Atlus	|44|	Malibu|
 |46|	angel	|47|	Bullet-Proof	|49|	irem|
