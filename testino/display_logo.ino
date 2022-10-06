@@ -58,7 +58,6 @@ void loop() {
     }
   Serial.println("");
   }
-
   Serial.println("==  END  ==");
   
   while (1) ;
