@@ -56,7 +56,7 @@ void loop() {
       sprintf(buf,”%02X”,get_byte(0x104 + i + 16 * j));
       Serial.print(buf);
     }
-  Serial.println("");
+  Serial.println("    :");
   }
   Serial.println("==  END  ==");
   
