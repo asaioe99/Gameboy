@@ -414,9 +414,65 @@ ROMの対応地域を表しています。
 00h：日本
 01h：海外
 ```
+
+ソースコードと結果だけ示します。
+
+```c:Dump_Destination_Code.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= destination code =");
+  addr = 0x14a;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+```
+== DUMP START ==
+= destination code =
+014A : 00
+==  END  ==
+```
  
 ## 014B - 旧ライセンスコード
 過去にはこのアドレスにライセンスコードが指定されていたそうです。33hを指定すると、0144-0145hを参照することになります。
+
+ソースコードと結果だけ示します。
+
+```c:Dump_Old_Licensee_Code.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= old_llicensee_code =");
+  addr = 0x14b;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+```
+== DUMP START ==
+= old_llicensee_code =
+014B : 33
+==  END  ==
+```
 
 ## 014C - ROMバージョン
 ゲームのバージョンを指定しているそうです。通常は00hとなります。
