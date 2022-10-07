@@ -477,7 +477,7 @@ void loop() {
 ## 014C - ROMバージョン
 ゲームのバージョンを指定しているそうです。通常は00hとなります。
  
-早速確認してみましょう・
+早速確認してみましょう。
 
 ```c:Dump_ROM_Version.ino
 void loop() {
@@ -521,9 +521,69 @@ for (int i = 0134h; i < 014Dh; i++> {
 ```
   
 結果の下位8ビットは、この値と同じでなければならず、そうでない場合はゲームが動作しません。
+
+ソースコードと結果だけ示します。
+
+```c:Dump_Header_Checksum.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= header checksum =");
+  addr = 0x14d;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+```
+== DUMP START ==
+= header checksum =
+014D : 9B
+==  END  ==
+```
   
 ## 014E-014F - グローバルチェックサム
-カートリッジROM全体の16ビット・チェックサム(上位バイトが先)が含まれています。カートリッジの全バイト（2つのチェックサムバイトを除く）を加算して作成されます。ゲームボーイ本体はこの値を参照することはありません。
+カートリッジROM全体の16ビット・チェックサム(上位バイトが先)が含まれています。カートリッジの全バイト（2つのチェックサムバイトを除く）を加算して作成されます。ゲームボーイ本体はこの値を参照することはありません。何のために用意されたのか不明ですが、恐らく開発時に利用するものでしょう。
+
+こちらもソースコードと結果だけ示します。
+
+```c:Dump_Global_Checksum.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= global checksum =");
+  for (int i = 0; i < 2; i++) {
+    addr = 0x14e + i;
+    sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+    Serial.print(buf);
+    Serial.println("");
+  }
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+```
+== DUMP START ==
+= global checksum =
+014E : F5
+014F : 47
+==  END  ==
+```
 
 ## 参考文献
 - Pan Docs(https://gbdev.gg8.se/wiki/articles/The_Cartridge_Header)
