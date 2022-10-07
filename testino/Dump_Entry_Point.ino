@@ -42,7 +42,7 @@ void setup() {
   Serial.begin(9600);
   ini();
 }
-// ロゴ表示
+// エントリーポイント表示
 void loop() {
   Serial.println("== DUMP START ==");
 
