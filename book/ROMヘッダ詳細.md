@@ -10,6 +10,29 @@
 ```
 となっているそうですが、いつもそうである訳ではないとのことです。
 
+では、実際に覗いてみます。
+
+```c:Dump_Entry_Point.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[3];
+  uint16_t addr;
+  Serial.println("= Entry Point =");
+  for (int i = 0; i < 4; i++) {
+    addr = 0x100 + i;
+    sprintf(buf, "%04X : %02X ", addr, get_byte(addr));
+    Serial.print(buf);
+    Serial.println("");
+  }
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
 ## 0104-0133 - 任天堂ロゴ
 ブートプロセスの際に参照する、任天堂純正のROMであるかチェックするためのデータ領域です。もしも下記のバイト列でなかった場合、ブートプロセス中に無限ループに入り、動作がその時点で終了してしまします。ちなみに、ゲームボーイカラーの場合は先頭の18hバイトを検証するだけだそうです。理由は分かりません。
 
