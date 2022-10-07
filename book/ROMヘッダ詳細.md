@@ -312,7 +312,7 @@ void loop() {
 ```03```であるということは、```MBC1+RAM+BATTERY```ということになります。RAMとバッテリーがあるので、データをセーブできるということになります。
 
 ## 0148 - ROMサイズ
-カートリッジの ROM サイズを指定します。通常、"32KB shl N "として計算されます。
+カートリッジの ROM サイズを指定します。通常、```32KB shl N```として計算されます。
 
 ```
  00h -  32KByte (no ROM banking)
@@ -320,14 +320,46 @@ void loop() {
  02h - 128KByte (8 banks)
  03h - 256KByte (16 banks)
  04h - 512KByte (32 banks)
- 05h -   1MByte (64 banks)  - only 63 banks used by MBC1
- 06h -   2MByte (128 banks) - only 125 banks used by MBC1
+ 05h -   1MByte (64 banks)  - 63バンクのみがMBC1として利用可能
+ 06h -   2MByte (128 banks) - 125バンクのみがMBC1として利用可能
  07h -   4MByte (256 banks)
  08h -   8MByte (512 banks)
  52h - 1.1MByte (72 banks)
  53h - 1.2MByte (80 banks)
  54h - 1.5MByte (96 banks)
 ```
+
+この情報も重要で、カセット内のデータをエミュレータ側で保持する場合は、ここで示された領域を確保する必要があります。
+
+```c:Dump_ROM_Size.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= rom size =");
+  addr = 0x148;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+結果は以下の通りです。
+
+```
+== DUMP START ==
+= rom size =
+0148 : 04
+==  END  ==
+```
+
+```04h - 512KByte (32 banks)```となります。
 
 ## 0149 - RAMサイズ
 カートリッジ内の外部RAMのサイズを指定します。
@@ -336,12 +368,44 @@ void loop() {
 00h - None
 01h - 2 KBytes
 02h - 8 Kbytes
-03h - 32 KBytes (4 banks of 8KBytes each)
-04h - 128 KBytes (16 banks of 8KBytes each)
-05h - 64 KBytes (8 banks of 8KBytes each)
+03h - 32 KBytes (各8KByteの合計4バンク)
+04h - 128 KBytes (各8KByteの合計16バンク)
+05h - 64 KBytes (各8KByteの合計8バンク)
 ```
  
 MBC2 には 512×4 ビットの RAM が内蔵されていますが、MBC2 を使用する場合は、このエントリに 00h を指定する必要があります。
+ 
+この情報も重要で、カセット内のデータをエミュレータ側で保持する場合は、ここで示された領域を確保する必要があります。
+
+```c:Dump_RAM_Size.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= rom size =");
+  addr = 0x149;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+結果は以下の通りでした。
+
+```
+== DUMP START ==
+= ram size =
+0149 : 03
+==  END  ==
+```
+
+```03h - 32 KBytes (各8KByteの合計4バンク)```が利用可能となります。
  
 ## 014A - 対象国コード
 ROMの対応地域を表しています。
