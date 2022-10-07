@@ -477,6 +477,38 @@ void loop() {
 ## 014C - ROMバージョン
 ゲームのバージョンを指定しているそうです。通常は00hとなります。
  
+早速確認してみましょう・
+
+```c:Dump_ROM_Version.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= rom_version =");
+  addr = 0x14c;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+実行結果は以下の通りです。
+
+```
+== DUMP START ==
+ = rom version =
+014C : 01
+==  END  ==
+```
+
+これは少し面白い事実です。どうやら、このROMは初期のものではなく後期版であるみたいです。
+ 
 ## 014D - ヘッダーチャックサム
 カートリッジヘッダーバイト0134-014Cの8ビットチェックサムが含まれています。チェックサムは以下のように計算されます。
  
