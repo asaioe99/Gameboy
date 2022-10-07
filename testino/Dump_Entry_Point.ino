@@ -21,7 +21,7 @@ uint8_t get_byte(uint16_t address) {
   PORTL = B00000101;  // CS=1,R=0,W=1を設定
   delayMicroseconds(10);
   uint8_t result = PINF;
-  PORTL = B00000111;  // カートリッジ2~4pinに何らかの設定
+  PORTL = B00000111;
   delayMicroseconds(10);
   return result;
 }
@@ -49,15 +49,15 @@ void loop() {
   PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
   delayMicroseconds(10);
 
-  char buf[3];
+  char buf[10];
   uint16_t addr;
   Serial.println("= Entry Point =");
   for (int i = 0; i < 4; i++) {
     addr = 0x100 + i;
-    sprintf(buf, "%04X : %02X ", addr, get_byte(addr));
+    sprintf(buf, "%04X : %02X", addr, get_byte(addr));
     Serial.print(buf);
     Serial.println("");
   }
   Serial.println("==  END  ==");
-  while (1);
+  while(1);
 }
