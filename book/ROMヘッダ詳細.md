@@ -256,7 +256,7 @@ void loop() {
 スーパーゲームボーイに対応しているそうですが、これは事実と一致します。
 
 ## 0147 - カートリッジ種類
-カートリッジのMBCの種別及び外部ハードウェアの存在を表します。
+カートリッジのMBCの種別及び外部ハードウェアの存在を表しています。
 
 ```
  00h  ROM ONLY                 19h  MBC5
@@ -276,6 +276,40 @@ void loop() {
  12h  MBC3+RAM                 FEh  HuC3
  13h  MBC3+RAM+BATTERY         FFh  HuC1+RAM+BATTERY
 ```
+
+これはエミュレータを製作する上では重要な情報で、この値に応じて内部的に動作を切り替える必要があります。
+
+それでは確認してみましょう。
+
+```c:Dump_Cartridge_Type.ino
+void loop() {
+  Serial.println("== DUMP START ==");
+
+  PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
+  delayMicroseconds(10);
+
+  char buf[10];
+  uint16_t addr;
+  Serial.println("= cartridge type =");
+  addr = 0x147;
+  sprintf(buf, "%04X : %02X", addr, get_byte(addr));
+  Serial.println(buf);
+  
+  Serial.println("==  END  ==");
+  while (1);
+}
+```
+
+結果は以下の通りです。
+
+```
+== DUMP START ==
+= cartridge type =
+0147 : 03
+==  END  ==
+```
+
+```03```であるということは、```MBC1+RAM+BATTERY```ということになります。RAMとバッテリーがあるので、データをセーブできるということになります。
 
 ## 0148 - ROMサイズ
 カートリッジの ROM サイズを指定します。通常、"32KB shl N "として計算されます。
