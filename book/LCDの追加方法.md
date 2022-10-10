@@ -18,7 +18,7 @@ LCDを利用する上で様々な選択肢がありますが、今回は安価�
 - https://github.com/adafruit/Adafruit-GFX-Library/tree/ad4b6b420641683656309e5075002112cad25dbd
 
 
-例えば、```fillscreen()```
+例えば、```fillscreen()```という関数は、以下の様に構成されています。
 
 ```c
 void Adafruit_GFX::fillScreen(uint16_t color) {
