@@ -39,6 +39,6 @@ SPI＿MODE0で動作。液晶はMODE2なので共用不可
 
 
 
-### ST7759(pico LCD 1.3)
+### ST7789(pico LCD 1.3)
 四の五の言わずに以下を読め
 - https://github.com/adafruit/Adafruit-ST7735-Library
