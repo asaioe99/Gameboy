@@ -18,4 +18,4 @@ PPU（Picture Processing Unitの略）とは、ゲームボーイで画面に表
 
 
 
-[88](https://github.com/asaioe99/Gameboy/blob/main/img/pin_assign.png)
+![8x8](https://github.com/asaioe99/Gameboy/blob/main/img/8x8_tile.png)
