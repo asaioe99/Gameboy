@@ -19,3 +19,10 @@ PPU（Picture Processing Unitの略）とは、ゲームボーイで画面に表
 
 
 ![8x8](https://github.com/asaioe99/Gameboy/blob/main/img/8x8_tile.png)
+
+### 画素データ
+
+DMGの初代Gameboyは4色のパレットにしか対応していないため、1画素の色データを格納するのに2ビットが必要となる。そのため、Gameboyでは「2BPP」（2 bit per pixel）と呼ばれる方式で画像データを記録している。
+
+Gameboyの2BPPフォーマットでは、2バイトで8画素の列を構成する。1バイト目の各ビットと2バイト目の同じ位置のビットを組み合わせて色番号を計算します。ここでは、0xA5 0xC3 を例として説明します。
+
