@@ -1,11 +1,157 @@
 # LCDの追加方法
+## CSピンの有無
+LCDを利用する上で様々な選択肢がありますが、今回は安価でかつ利用例の多いST7789を利用したいと思います。これは、主に1.3インチ 240x240の製品に多く利用されており、amazon等で安く購入できます。しかしながら、これらの製品の大半はSPI通信に必要なCSピンが省略されていることが殆どで、複数のスレーブにより利用する場合は不適です。今回の場合はSRAMを既にSPIを利用して増設しているため、CSがないものは利用できません。
 
-以下メモ
+私が調べた限りでは、CSピンのある製品は以下のものだけでした。
 
 - https://www.waveshare.com/wiki/Pico-LCD-1.3
 
+
+## ライブラリの使用方法
+
 必要なライブラリ
 - Adafruit ST7735 and ST7789 Library
+
+
+上記ライブラリはST77789用のラッパーであり、コアは下記のものである。
+
+- https://github.com/adafruit/Adafruit-GFX-Library/tree/ad4b6b420641683656309e5075002112cad25dbd
+
+
+例えば、```fillscreen()```
+
+```c
+void Adafruit_GFX::fillScreen(uint16_t color) {
+  fillRect(0, 0, _width, _height, color);
+}
+```
+
+
+
+```c
+void Adafruit_GFX::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                            uint16_t color) {
+  startWrite();
+  for (int16_t i = x; i < x + w; i++) {
+    writeFastVLine(i, y, h, color);
+  }
+  endWrite();
+}
+```
+
+```c
+void Adafruit_GFX::writeFastVLine(int16_t x, int16_t y, int16_t h,
+                                  uint16_t color) {
+  // Overwrite in subclasses if startWrite is defined!
+  // Can be just writeLine(x, y, x, y+h-1, color);
+  // or writeFillRect(x, y, 1, h, color);
+  drawFastVLine(x, y, h, color);
+}
+```
+
+```c
+void Adafruit_GFX::drawFastVLine(int16_t x, int16_t y, int16_t h,
+                                 uint16_t color) {
+  startWrite();
+  writeLine(x, y, x, y + h - 1, color);
+  endWrite();
+}
+```
+
+```c
+void Adafruit_GFX::writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             uint16_t color) {
+#if defined(ESP8266)
+  yield();
+#endif
+  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  if (steep) {
+    _swap_int16_t(x0, y0);
+    _swap_int16_t(x1, y1);
+  }
+
+  if (x0 > x1) {
+    _swap_int16_t(x0, x1);
+    _swap_int16_t(y0, y1);
+  }
+
+  int16_t dx, dy;
+  dx = x1 - x0;
+  dy = abs(y1 - y0);
+
+  int16_t err = dx / 2;
+  int16_t ystep;
+
+  if (y0 < y1) {
+    ystep = 1;
+  } else {
+    ystep = -1;
+  }
+
+  for (; x0 <= x1; x0++) {
+    if (steep) {
+      writePixel(y0, x0, color);
+    } else {
+      writePixel(x0, y0, color);
+    }
+    err -= dy;
+    if (err < 0) {
+      y0 += ystep;
+      err += dx;
+    }
+  }
+}
+```
+
+```c
+void Adafruit_GFX::writePixel(int16_t x, int16_t y, uint16_t color) {
+  drawPixel(x, y, color);
+}
+```
+
+```c
+void GFXcanvas1::drawPixel(int16_t x, int16_t y, uint16_t color) {
+  if (buffer) {
+    if ((x < 0) || (y < 0) || (x >= _width) || (y >= _height))
+      return;
+
+    int16_t t;
+    switch (rotation) {
+    case 1:
+      t = x;
+      x = WIDTH - 1 - y;
+      y = t;
+      break;
+    case 2:
+      x = WIDTH - 1 - x;
+      y = HEIGHT - 1 - y;
+      break;
+    case 3:
+      t = x;
+      x = y;
+      y = HEIGHT - 1 - t;
+      break;
+    }
+
+    uint8_t *ptr = &buffer[(x / 8) + y * ((WIDTH + 7) / 8)];
+#ifdef __AVR__
+    if (color)
+      *ptr |= pgm_read_byte(&GFXsetBit[x & 7]);
+    else
+      *ptr &= pgm_read_byte(&GFXclrBit[x & 7]);
+#else
+    if (color)
+      *ptr |= 0x80 >> (x & 7);
+    else
+      *ptr &= ~(0x80 >> (x & 7));
+#endif
+  }
+}
+```
+
+枝葉まで追っているわけではないが、```buffer```というポインタ（と、そこからの一連のアドレス）がLCD上のあるpixelに対応しており、そこに数値を書き込むと色を設定できるということが読み取れそうです。では、今回ゲームボーイのPPUとしては、どこまで潜れば良いのでしょうか？
+
+以下加筆予定
 
 ソースコード　サンプルを動くようにしただけ
 ```
