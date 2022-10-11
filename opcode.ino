@@ -1,133 +1,114 @@
+void LD_r_n(uint8 code) {
+  uint8_t g = (code & 0b00111000) >> 3;
+  uint8_t *t;
+  switch(g) {
+    case 0b000:
+      t = &B;
+      break;
+    case 0b001:
+      t = &C;
+      break;
+    case 0b010:
+      t = &D;
+      break;
+    case 0b011:
+      t = &E;
+      break;
+    case 0b100:
+      t = &H;
+      break;
+    case 0b101:
+      t = &L;
+      break;
+  }
+  *t = get_byte(++pc);
+  cc += 8;
+  pc++;
+}
 
-// 0x06
-void LD_B_n() {
-  pc++;
-  B = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x0E
-void LD_C_n() {
-  pc++;
-  C = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x16
-void LD_D_n() {
-  pc++;
-  D = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x1E
-void LD_E_n() {
-  pc++;
-  E = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x26
-void LD_H_n() {
-  pc++;
-  H = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x2E
-void LD_L_n() {
-  pc++;
-  L = get_byte(pc);
-  cc += 8;
-  pc++;
-}
-// 0x7F
-void LD_A_A() {
-    A = A;
-    cc +=4;
-    pc++;
-}
-// 0x78
-void LD_A_B() {
-    A = B;
-    cc +=4;
-    pc++;
-}
-// 0x79
-void LD_A_C() {
-    A = C;
-    cc +=4;
-    pc++;
-}
-// 0x7A
-void LD_A_D() {
-    A = D;
-    cc +=4;
-    pc++;
-}
-// 0x7B
-void LD_A_E() {
-    A = E;
-    cc +=4;
-    pc++;
-}
-// 0x7C
-void LD_A_H() {
-    A = H;
-    cc +=4;
-    pc++;
-}
-// 0x7D
-void LD_A_L() {
-    A = L;
-    cc +=4;
-    pc++;
-}
-// 0x7E
-void LD_A_lHLl() {
-    A = get_byte((H << 4) + L);
+void LD_r_HL(uint8_t code) {
+  uint8_t g = (code & 0b00111000) >> 3;
+  uint8_t *t;
+  switch(g) {
+    case 0b000:
+      t = &B;
+      break;
+    case 0b001:
+      t = &C;
+      break;
+    case 0b010:
+      t = &D;
+      break;
+    case 0b011:
+      t = &E;
+      break;
+    case 0b100:
+      t = &H;
+      break;
+    case 0b101:
+      t = &L;
+      break;
+    case 0b111:
+      t = &A;
+      break;
+  }
+    *t = get_byte((H << 4) + L);
     cc +=8;
     pc++;
 }
-// 0x40
-void LD_B_B() {
-    B = B;
-    cc +=4;
-    pc++;
-}
-// 0x41
-void LD_B_C() {
-    B = C;
-    cc +=4;
-    pc++;
-}
-// 0x42
-void LD_B_D() {
-    B = D;
-    cc +=4;
-    pc++;
-}
-// 0x43
-void LD_B_E() {
-    B = E;
-    cc +=4;
-    pc++;
-}
-// 0x44
-void LD_B_H() {
-    B = H;
-    cc +=4;
-    pc++;
-}
-// 0x45
-void LD_B_L() {
-    B = L;
-    cc +=4;
-    pc++;
-}
-// 0x46
-void LD_B_lHLl() {
-    B = get_byte((H << 4) + L);
-    cc +=8;
-    pc++;
+
+void LD_r_r(uint8_t code) {
+  uint8_t g1 = (code & 0b00111000) >> 3;
+  uint8_t g2 =  code & 0b00000111;
+  uint8_t *t1;
+  uint8_t *t2;
+  switch(g1) {
+    case 0b000:
+      t1 = &B;
+      break;
+    case 0b001:
+      t1 = &C;
+      break;
+    case 0b010:
+      t1 = &D;
+      break;
+    case 0b011:
+      t1 = &E;
+      break;
+    case 0b100:
+      t1 = &H;
+      break;
+    case 0b101:
+      t1 = &L;
+      break;
+    case 0b111:
+      t1 = &L;
+      break;
+  }
+  switch(g2) {
+    case 0b000:
+      t2 = &B;
+      break;
+    case 0b001:
+      t2 = &C;
+      break;
+    case 0b010:
+      t2 = &D;
+      break;
+    case 0b011:
+      t2 = &E;
+      break;
+    case 0b100:
+      t2 = &H;
+      break;
+    case 0b101:
+      t2 = &L;
+      break;
+    case 0b111:
+      t2 = &L;
+      break;
+  }
+  *t1 = *t2;
+  cc += 4;
+  pc++;
 }
