@@ -12,6 +12,7 @@
 */
 #include <SPI.h>
 
+// bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
   0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
   0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E, 0xFC, 0xE0,
@@ -33,14 +34,14 @@ uint8_t bootstrap[] = {
 
 uint16_t pc;
 uint16_t sp;
-uint8_t a;
-uint8_t f;
-uint8_t b;
-uint8_t c;
-uint8_t d;
-uint8_t e;
-uint8_t h;
-uint8_t l;
+uint8_t A;
+uint8_t F;
+uint8_t B;
+uint8_t C;
+uint8_t D;
+uint8_t E;
+uint8_t H;
+uint8_t L;
 uint8_t cc;
 
 uint8_t oam[0xa0];
@@ -65,6 +66,16 @@ typedef struct {
 } _rom_header;
 
 _rom_header rom_header;
+
+// 命令の関数配列化
+void (*LDrr[])() = {
+    LD_B_B, LD_B_C, LD_B_D, LD_B_E, LD_B_H, LD_B_L, LD_B_HL,
+    LD_C_B, LD_C_C, LD_C_D, LD_C_E, LD_C_H, LD_C_L, LD_C_HL,
+    LD_D_B, LD_D_C, LD_D_D, LD_D_E, LD_D_H, LD_D_L, LD_D_HL,
+    LD_E_B, LD_E_C, LD_E_D, LD_E_E, LD_E_H, LD_E_L, LD_E_HL,
+    LD_H_B, LD_H_C, LD_H_D, LD_H_E, LD_H_H, LD_H_L, LD_H_HL,
+    LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H, LD_L_L, LD_L_HL,
+    };
 
 // アドレスバスの指定
 void set_addr(uint16_t address) {
@@ -388,13 +399,6 @@ void write_ram_bank(uint8_t bank) {
   DataBusAsInput();
 }
 
-// 初期化
-void setup() {
-  Serial.begin(9600);
-  ini();
-  load_rom_header();  // romheader読み込み
-}
-
 uint8_t get_byte(uint8_t addr) {
   if (addr < 0x4000) {
     return get_rom_byte(addr);
@@ -423,11 +427,86 @@ uint8_t get_byte(uint8_t addr) {
 }
 // 読み込み
 uint8_t fetch(uint8_t pc) {
+  // とりあえず素通し
   return get_byte(pc);
 }
 
-void dec_and_exe(uint) {
+void execute(uint8_t pc) {
+  uint8_t code = fetch(pc);
 
+  
+
+  switch(code) {
+    case 0x06: //LD_B_n
+    case 0x0E: //LD_C_n
+    case 0x16: //LD_D_n
+    case 0x1E: //LD_E_n
+    case 0x26: //LD_H_n
+    case 0x2E: //LD_L_n
+      LD_r_n(code);
+      break;
+    case 0x46:
+    case 0x4E:
+    case 0x56:
+    case 0x5E:
+    case 0x66:
+    case 0x6E:
+    case 0x7E:
+      LD_r_HL(code);
+      break;
+    case 0x40: //LD_B_B
+    case 0x41: //LD_B_C
+    case 0x42: //LD_B_D
+    case 0x43: //LD_B_E
+    case 0x44: //LD_B_H
+    case 0x45: //LD_B_L
+    case 0x48: //LD_C_B
+    case 0x49: //LD_C_C
+    case 0x4A: //LD_C_D
+    case 0x4B: //LD_C_E
+    case 0x4C: //LD_C_H
+    case 0x4D: //LD_C_L
+    case 0x50: //LD_D_B
+    case 0x51: //LD_D_C
+    case 0x52: //LD_D_D
+    case 0x53: //LD_D_E
+    case 0x54: //LD_D_H
+    case 0x55: //LD_D_L
+    case 0x58: //LD_E_B
+    case 0x59: //LD_E_C
+    case 0x5A: //LD_E_D
+    case 0x5B: //LD_E_E
+    case 0x5C: //LD_E_H
+    case 0x5D: //LD_E_L
+    case 0x60: //LD_H_B
+    case 0x61: //LD_H_C
+    case 0x62: //LD_H_D
+    case 0x63: //LD_H_E
+    case 0x64: //LD_H_H
+    case 0x65: //LD_H_L
+    case 0x68: //LD_L_B
+    case 0x69: //LD_L_C
+    case 0x6A: //LD_L_D
+    case 0x6B: //LD_L_E
+    case 0x6C: //LD_L_H
+    case 0x6D: //LD_L_L
+    case 0x7F: //LD_A_A
+    case 0x78: //LD_A_C
+    case 0x79: //LD_A_C
+    case 0x7A: //LD_A_D
+    case 0x7B: //LD_A_E
+    case 0x7C: //LD_A_H
+    case 0x7D: //LD_A_L
+      LD_r_r(code);
+      break;
+  }
+}
+
+// 初期化
+void setup() {
+  Serial.begin(9600);
+  ini();
+  load_rom_header();  // romheader読み込み
 }
 
 void loop() {
