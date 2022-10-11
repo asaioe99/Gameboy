@@ -18,6 +18,9 @@ void LD_r_n(uint8 code) {
     case 0b101:
       L = get_byte(++pc);
       break;
+    case 0b111:
+      A = get_byte(++pc);
+      break;
   }
   cc += 8;
   pc++;
@@ -122,7 +125,10 @@ void LD_HL_r(uint8_t code) {
       break;
     case 0b101:
       put_byte((H << 4) + L, L);
-      break;    
+      break;
+    case 0b111:
+      put_byte((H << 4) + L, A);
+      break;  
     }
     cc += 8;
     pc++;
