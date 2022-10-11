@@ -102,3 +102,34 @@ void LD_r_r(uint8_t code) {
   cc += 4;
   pc++;
 }
+
+void LD_HL_r(uint8_t code) {
+    switch(code & 0b00000111) {
+    case 0b000:
+      put_byte((H << 4) + L, B);
+      break;
+    case 0b001:
+      put_byte((H << 4) + L, C);
+      break;
+    case 0b010:
+      put_byte((H << 4) + L, D);
+      break;
+    case 0b011:
+      put_byte((H << 4) + L, E);
+      break;
+    case 0b100:
+      put_byte((H << 4) + L, H);
+      break;
+    case 0b101:
+      put_byte((H << 4) + L, L);
+      break;    
+    }
+    cc += 8;
+    pc++;
+}
+
+void LD_HL_n(uint8_t code) {
+    put_byte((H << 4) + L, get_byte(++pc));
+    cc += 12;
+    pc++;
+}
