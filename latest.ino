@@ -465,6 +465,7 @@ void execute(uint8_t pc) {
     case 0x1E: //LD_E_n
     case 0x26: //LD_H_n
     case 0x2E: //LD_L_n
+    case 0x3E: //LD_A_n
       LD_r_n(code);
       break;
     case 0x46: //LD_B_(HL)
@@ -482,36 +483,42 @@ void execute(uint8_t pc) {
     case 0x43: //LD_B_E
     case 0x44: //LD_B_H
     case 0x45: //LD_B_L
+    case 0x47: //LD_B_A
     case 0x48: //LD_C_B
     case 0x49: //LD_C_C
     case 0x4A: //LD_C_D
     case 0x4B: //LD_C_E
     case 0x4C: //LD_C_H
     case 0x4D: //LD_C_L
+    case 0x4F: //LD_C_A
     case 0x50: //LD_D_B
     case 0x51: //LD_D_C
     case 0x52: //LD_D_D
     case 0x53: //LD_D_E
     case 0x54: //LD_D_H
     case 0x55: //LD_D_L
+    case 0x57: //LD_D_A
     case 0x58: //LD_E_B
     case 0x59: //LD_E_C
     case 0x5A: //LD_E_D
     case 0x5B: //LD_E_E
     case 0x5C: //LD_E_H
     case 0x5D: //LD_E_L
+    case 0x5F: //LD_E_A
     case 0x60: //LD_H_B
     case 0x61: //LD_H_C
     case 0x62: //LD_H_D
     case 0x63: //LD_H_E
     case 0x64: //LD_H_H
     case 0x65: //LD_H_L
+    case 0x67: //LD_H_A
     case 0x68: //LD_L_B
     case 0x69: //LD_L_C
     case 0x6A: //LD_L_D
     case 0x6B: //LD_L_E
     case 0x6C: //LD_L_H
     case 0x6D: //LD_L_L
+    case 0x6F: //LD_L_A
     case 0x7F: //LD_A_A
     case 0x78: //LD_A_C
     case 0x79: //LD_A_C
@@ -527,6 +534,7 @@ void execute(uint8_t pc) {
     case 0x73:
     case 0x74:
     case 0x75:
+    case 0x77:
       LD_HL_r(code);
       break;
     case 0x36:
