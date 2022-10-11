@@ -1,68 +1,59 @@
 void LD_r_n(uint8 code) {
-  uint8_t g = (code & 0b00111000) >> 3;
-  uint8_t *t;
-  switch(g) {
+  switch((code & 0b00111000) >> 3) {
     case 0b000:
-      t = &B;
+      B = get_byte(++pc);
       break;
     case 0b001:
-      t = &C;
+      C = get_byte(++pc);
       break;
     case 0b010:
-      t = &D;
+      D = get_byte(++pc);
       break;
     case 0b011:
-      t = &E;
+      E = get_byte(++pc);
       break;
     case 0b100:
-      t = &H;
+      H = get_byte(++pc);
       break;
     case 0b101:
-      t = &L;
+      L = get_byte(++pc);
       break;
   }
-  *t = get_byte(++pc);
   cc += 8;
   pc++;
 }
 
 void LD_r_HL(uint8_t code) {
-  uint8_t g = (code & 0b00111000) >> 3;
-  uint8_t *t;
-  switch(g) {
+  switch((code & 0b00111000) >> 3) {
     case 0b000:
-      t = &B;
+      B = get_byte((H << 4) + L);
       break;
     case 0b001:
-      t = &C;
+      C = get_byte((H << 4) + L);
       break;
     case 0b010:
-      t = &D;
+      D = get_byte((H << 4) + L);
       break;
     case 0b011:
-      t = &E;
+      E = get_byte((H << 4) + L);
       break;
     case 0b100:
-      t = &H;
+      H = get_byte((H << 4) + L);
       break;
     case 0b101:
-      t = &L;
+      L = get_byte((H << 4) + L);
       break;
     case 0b111:
-      t = &A;
+      A = get_byte((H << 4) + L);
       break;
   }
-    *t = get_byte((H << 4) + L);
-    cc +=8;
+    cc += 8;
     pc++;
 }
 
 void LD_r_r(uint8_t code) {
-  uint8_t g1 = (code & 0b00111000) >> 3;
-  uint8_t g2 =  code & 0b00000111;
   uint8_t *t1;
-  uint8_t *t2;
-  switch(g1) {
+  switch((code & 0b00111000) >> 3) {
     case 0b000:
       t1 = &B;
       break;
@@ -82,33 +73,32 @@ void LD_r_r(uint8_t code) {
       t1 = &L;
       break;
     case 0b111:
-      t1 = &L;
+      t1 = &A;
       break;
   }
-  switch(g2) {
+  switch(code & 0b00000111) {
     case 0b000:
-      t2 = &B;
+      *t1 = B;
       break;
     case 0b001:
-      t2 = &C;
+      *t1 = C;
       break;
     case 0b010:
-      t2 = &D;
+      *t1 = D;
       break;
     case 0b011:
-      t2 = &E;
+      *t1 = E;
       break;
     case 0b100:
-      t2 = &H;
+      *t1 = H;
       break;
     case 0b101:
-      t2 = &L;
+      *t1 = L;
       break;
     case 0b111:
-      t2 = &L;
+      *t1 = A;
       break;
   }
-  *t1 = *t2;
   cc += 4;
   pc++;
 }
