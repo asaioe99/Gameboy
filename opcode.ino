@@ -89,3 +89,45 @@ void LD_A_lHLl() {
     cc +=8;
     pc++;
 }
+// 0x40
+void LD_B_B() {
+    B = B;
+    cc +=4;
+    pc++;
+}
+// 0x41
+void LD_B_C() {
+    B = C;
+    cc +=4;
+    pc++;
+}
+// 0x42
+void LD_B_D() {
+    B = D;
+    cc +=4;
+    pc++;
+}
+// 0x43
+void LD_B_E() {
+    B = E;
+    cc +=4;
+    pc++;
+}
+// 0x44
+void LD_B_H() {
+    B = H;
+    cc +=4;
+    pc++;
+}
+// 0x45
+void LD_B_L() {
+    B = L;
+    cc +=4;
+    pc++;
+}
+// 0x46
+void LD_B_lHLl() {
+    B = get_byte((H << 4) + L);
+    cc +=8;
+    pc++;
+}
