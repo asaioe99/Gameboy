@@ -85,14 +85,14 @@ void set_addr(uint16_t address) {
 // RAM有効化
 void enable_ram() {
   DataBusAsOutput();
-  put_byte(0x0000, 0x0A);
+  put_rom_byte(0x0000, 0x0A);
   delayMicroseconds(10);
   DataBusAsInput();
 }
 // RAM無効化
 void disable_ram() {
   DataBusAsOutput();
-  put_byte(0x0000, 0x00);
+  put_rom_byte(0x0000, 0x00);
   delay(50);  // ?
   DataBusAsInput();
 }
@@ -117,7 +117,7 @@ byte get_ram_byte(uint16_t address) {
   return result;
 }
 // 指定アドレスに1Byte書き込み
-void put_byte(uint16_t address, uint8_t data) {
+void put_rom_byte(uint16_t address, uint8_t data) {
   set_addr(address);
   PORTF = data;
   PORTL = B00000110;
@@ -351,7 +351,7 @@ void switch_rom_bank(uint8_t bank) {
   // rom_sizeが0の場合、bankは存在しない
   if (rom_header.rom_size > 0) {
     DataBusAsOutput();
-    put_byte(0x2100, bank);
+    put_rom_byte(0x2100, bank);
     DataBusAsInput();
   }
 }
@@ -381,7 +381,7 @@ void dump_ram_bank(uint8_t bank) {
 // ramのバンク切り替え　MBC1のみ対応
 void switch_ram_bank(byte bank) {
   DataBusAsOutput();
-  put_byte(0x4000, bank);
+  put_rom_byte(0x4000, bank);
   DataBusAsInput();
 }
 
@@ -425,6 +425,30 @@ uint8_t get_byte(uint8_t addr) {
   }
   return 0x0000;
 }
+
+void put_byte(uint16_t addr, uint8_t data) {
+  if (addr < 0x4000) { 
+  } else if (addr < 0x8000) {
+  } else if (addr < 0xA000) {
+    sram_wt(addr, data);
+  } else if (addr < 0xC000) {
+    put_ram_byte(addr, data);
+  } else if (addr < 0xE000) {
+    sram_wt(addr, data);
+  } else if (addr < 0xFE00) {  // Mirror of C000~DDFF
+    sram_wt(addr, data);
+  } else if (addr < 0xFEA0) {  // Sprite attribute table (OAM)
+    oam[addr - 0xFE00] = data;
+  } else if (addr < 0xFF00) {  // Not Usable
+     sram_wt(addr, data);
+  } else if (addr < 0xFF80) {  // I/O Register
+    io[addr - 0xFF00] = data;
+  } else if (addr < 0xFFFF) {  // High RAM
+    hram[addr - 0xFF80] = data;
+  } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
+  }
+}
+
 // 読み込み
 uint8_t fetch(uint8_t pc) {
   // とりあえず素通し
@@ -433,8 +457,6 @@ uint8_t fetch(uint8_t pc) {
 
 void execute(uint8_t pc) {
   uint8_t code = fetch(pc);
-
-  
 
   switch(code) {
     case 0x06: //LD_B_n
@@ -445,13 +467,13 @@ void execute(uint8_t pc) {
     case 0x2E: //LD_L_n
       LD_r_n(code);
       break;
-    case 0x46:
-    case 0x4E:
-    case 0x56:
-    case 0x5E:
-    case 0x66:
-    case 0x6E:
-    case 0x7E:
+    case 0x46: //LD_B_(HL)
+    case 0x4E: //LD_C_(HL)
+    case 0x56: //LD_D_(HL)
+    case 0x5E: //LD_E_(HL)
+    case 0x66: //LD_H_(HL)
+    case 0x6E: //LD_L_(HL)
+    case 0x7E: //LD_A_(HL)
       LD_r_HL(code);
       break;
     case 0x40: //LD_B_B
@@ -498,6 +520,17 @@ void execute(uint8_t pc) {
     case 0x7C: //LD_A_H
     case 0x7D: //LD_A_L
       LD_r_r(code);
+      break;
+    case 0x70:
+    case 0x71:
+    case 0x72:
+    case 0x73:
+    case 0x74:
+    case 0x75:
+      LD_HL_r(code);
+      break;
+    case 0x36:
+      LD_HL_n(code);
       break;
   }
 }
