@@ -67,16 +67,6 @@ typedef struct {
 
 _rom_header rom_header;
 
-// 命令の関数配列化
-void (*LDrr[])() = {
-    LD_B_B, LD_B_C, LD_B_D, LD_B_E, LD_B_H, LD_B_L, LD_B_HL,
-    LD_C_B, LD_C_C, LD_C_D, LD_C_E, LD_C_H, LD_C_L, LD_C_HL,
-    LD_D_B, LD_D_C, LD_D_D, LD_D_E, LD_D_H, LD_D_L, LD_D_HL,
-    LD_E_B, LD_E_C, LD_E_D, LD_E_E, LD_E_H, LD_E_L, LD_E_HL,
-    LD_H_B, LD_H_C, LD_H_D, LD_H_E, LD_H_H, LD_H_L, LD_H_HL,
-    LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H, LD_L_L, LD_L_HL,
-    };
-
 // アドレスバスの指定
 void set_addr(uint16_t address) {
   PORTA = address & 0xFF;
@@ -528,17 +518,74 @@ void execute(uint8_t pc) {
     case 0x7D: //LD_A_L
       LD_r_r(code);
       break;
-    case 0x70:
-    case 0x71:
-    case 0x72:
-    case 0x73:
-    case 0x74:
-    case 0x75:
-    case 0x77:
+    case 0x70: //LD_(HL)_B 
+    case 0x71: //LD_(HL)_C
+    case 0x72: //LD_(HL)_D
+    case 0x73: //LD_(HL)_E
+    case 0x74: //LD_(HL)_H
+    case 0x75: //LD_(HL)_L
+    case 0x77: //LD_(HL)_A
       LD_HL_r(code);
       break;
     case 0x36:
       LD_HL_n(code);
+      break;
+    case 0x0A:
+      LD_A_BC();
+      break;
+    case 0x1A:
+      LD_A_DE();
+      break;
+    case 0x2A:
+      LD_A_HLi();
+      break;
+    case 0x3A:
+      LD_A_HLd();
+      break;
+    case 0x02:
+      LD_BC_A();
+      break;
+    case 0x12:
+      LD_DE_A();
+      break;
+    case 0x22:
+      LD_HLi_A();
+      break;
+    case 0x32:
+      LD_HLd_A();
+      break;
+    case 0x00:
+      NOP();
+      break;
+    case 0x03: //INC_BC
+    case 0x13: //INC_DE
+    case 0x23: //INC_HL
+    case 0x33: //INC_SP
+      INC_rr(code);
+      break;
+    case 0x0B: //DEC_BC
+    case 0x1B: //DEC_DE
+    case 0x2B: //DEC_HL
+    case 0x3B: //DEC_SP
+      DEC_rr(code);
+      break;
+    case 0x04: //INC_B
+    case 0x0C: //INC_C
+    case 0x14: //INC_D
+    case 0x1C: //INC_E
+    case 0x24: //INC_H
+    case 0x2C: //INC_L
+    case 0x3C: //INC_A
+      INC_r(code); 
+      break;
+    case 0x05: //DEC_B
+    case 0x0D: //DEC_C
+    case 0x15: //DEC_D
+    case 0x1D: //DEC_E
+    case 0x25: //DEC_H
+    case 0x2D: //DEC_L
+    case 0x3D: //DEC_A
+      DEC_r(code); 
       break;
   }
 }
