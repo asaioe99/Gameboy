@@ -287,3 +287,36 @@ void DEC_r(uint8_t code) {
     cc += 4;
     pc++;
 }
+void XOR_r(uint8_t code) {
+    switch(code & 0b00000111) {
+    case 0b000:
+      A = A ^ B;
+      break;
+    case 0b001:
+      A = A ^ C;
+      break;
+    case 0b010:
+      A = A ^ D;
+      break;
+    case 0b011:
+      A = A ^ E;
+      break;
+    case 0b100:
+      A = A ^ H;
+      break;
+    case 0b101:
+      A = A ^ L;
+      break;
+    case 0b111:
+      A = A ^ A;
+      break;  
+    }
+    if (A == 0) {
+      F = F | 0b01000000;
+      F = F & 0b01000000;
+    } else {
+      F = F & 0b00000000;
+    }
+    cc += 4;
+    pc++;
+}
