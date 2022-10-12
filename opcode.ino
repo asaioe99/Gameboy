@@ -307,16 +307,59 @@ void XOR_r(uint8_t code) {
     case 0b101:
       A = A ^ L;
       break;
+    case 0b110:
+      A = A ^ get_byte(((uint16_t)H << 4) + L);
+      break; 
     case 0b111:
       A = A ^ A;
       break;  
     }
     if (A == 0) {
-      F = F | 0b01000000;
-      F = F & 0b01000000;
+      F = 0b10000000;
     } else {
-      F = F & 0b00000000;
-    }
+      F = 0b00000000;
+    }     
     cc += 4;
+    pc++;
+}
+void XOR_r(uint8_t code) {
+  uint8_t val;  
+    switch(code & 0b00000111) {
+    case 0b000:
+      val = B;
+      break;
+    case 0b001:
+      val = C;
+      break;
+    case 0b010:
+      val = D;
+      break;
+    case 0b011:
+      val = E;
+      break;
+    case 0b100:
+      val = H;
+      break;
+    case 0b101:
+      val = L;
+      break;
+    case 0b110:
+      val = get_byte(((uint16_t)H << 4) + L);
+      break; 
+    case 0b111:
+      val = A;
+      break;  
+    }
+    if (A & 0x0F < val & 0x0F) {
+      F = 0b01100000;
+    } else {
+      F = 0b00100000;
+    }
+    if (A < val) {
+      F |= 0b00010000; 
+    }
+    A = A - val;
+    if (A == 0) F |= 0b10000000;
+    cc += 8;
     pc++;
 }
