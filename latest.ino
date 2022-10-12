@@ -587,6 +587,15 @@ void execute(uint8_t pc) {
     case 0x3D: //DEC_A
       DEC_r(code); 
       break;
+    case 0xA8:
+    case 0xA9:
+    case 0xAA:
+    case 0xAB:
+    case 0xAC:
+    case 0xAD:
+    case 0xAF:
+      XOR_r(code); 
+      break;      
   }
 }
 
