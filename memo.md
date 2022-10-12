@@ -49,3 +49,4 @@ SPI＿MODE0で動作。液晶はMODE2なので共用不可
 
 ### CPU opcode一覧
 - https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+- https://github.com/pokemium/gb-docs-ja
