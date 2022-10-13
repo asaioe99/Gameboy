@@ -520,11 +520,13 @@ void LD_r16_d16(uint8_t code) {
 }
 
 void RLA() {
+  
   if (A >> 7) {
-    A = (A << 1) + 1;
+    A = (A << 1) + F & 0b00010000;
     F = 0b00010000;
   } else {
-    A = A << 1;
+    A = (A << 1) + F & 0b00010000;
+    F = 0b00000000;
   }
   cc += 4;
   pc++;
@@ -643,4 +645,74 @@ void CP_d8() {
   if (A == val) F |= 0b10000000;
   cc += 8;
   pc++;
+}
+
+RL_r(uint8_t code) {
+  uint8_t* r;
+  switch(code & 0b00000111) {
+    case 0b000:
+      r = &B;
+      break;
+    case 0b001:
+      r = &C;
+      break;
+    case 0b010:
+      r = &D;
+      break;
+    case 0b011:
+      r = &E;
+      break;
+    case 0b100:
+      r = &H;
+      break;
+    case 0b101:
+      r = &L;
+      break;
+    case 0b111:
+      r = &A;
+      break;  
+  }
+  if (*r >> 7) {
+    *r = (*r << 1) + F & 0b00010000;
+    F = 0b00010000;
+  } else {
+    *r = (*r << 1) + F & 0b00010000;
+    F = 0b00000000;
+  }
+  if (*r == 0) F | 0b10000000;
+  cc += 8;
+  pc++;
+}
+
+void BIT(code) {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t* r;
+  uint8_t mask = 0b00000001 << b;
+  switch(code & 0b00000111) {
+    case 0b000:
+      r = &B;
+      break;
+    case 0b001:
+      r = &C;
+      break;
+    case 0b010:
+      r = &D;
+      break;
+    case 0b011:
+      r = &E;
+      break;
+    case 0b100:
+      r = &H;
+      break;
+    case 0b101:
+      r = &L;
+      break;
+    case 0b111:
+      r = &A;
+      break;
+  }
+  if ((*r & mask) >> b) F = F | 0b10000000;
+  F = F & 0b10010000;
+  cc += 8;
+  pc += 2;
 }
