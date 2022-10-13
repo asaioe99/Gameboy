@@ -140,25 +140,54 @@ void execute(uint8_t pc) {
     case 0x3D: //DEC_A
       DEC_r(code); 
       break;
-    case 0xA8:
-    case 0xA9:
-    case 0xAA:
-    case 0xAB:
-    case 0xAC:
-    case 0xAD:
-    case 0xAE:
-    case 0xAF:
+    case 0xA8: //XOR_B
+    case 0xA9: //XOR_C
+    case 0xAA: //XOR_D
+    case 0xAB: //XOR_E
+    case 0xAC: //XOR_H
+    case 0xAD: //XOR_L
+    case 0xAE: //XOR_(HL)
+    case 0xAF: //XOR_L
       XOR_r(code); 
       break;
-    case 0x90:
-    case 0x91:
-    case 0x92:
-    case 0x93:
-    case 0x94:
-    case 0x95:
-    case 0x96:
-    case 0x97:
+    case 0x90: //SUB_B
+    case 0x91: //SUB_C
+    case 0x92: //SUB_D
+    case 0x93: //SUB_E
+    case 0x94: //SUB_H
+    case 0x95: //SUB_L
+    case 0x96: //SUB_(HL)
+    case 0x97: //SUB_L
       SUB_r(code); 
-      break;    
+      break;
+    case 0x80: //ADD_B
+    case 0x81: //ADD_C
+    case 0x82: //ADD_D
+    case 0x83: //ADD_E
+    case 0x84: //ADD_H
+    case 0x85: //ADD_L
+    case 0x86: //ADD_(HL)
+    case 0x87: //ADD_L
+      ADD_r(code); 
+      break;
+    case 0xB8: //CP_B
+    case 0xB9: //CP_C
+    case 0xBA: //CP_D
+    case 0xBB: //CP_E
+    case 0xBC: //CP_H
+    case 0xBD: //CP_L
+    case 0xBE: //CP_(HL)
+    case 0xBF: //CP_L
+      CP_r(code); 
+      break;
+    case 0x20:
+    case 0x30:
+    case 0x18:
+    case 0x28:
+    case 0x38:
+      JR_cc_d8(code);
+      break;
+    default:
+      NOP();
   }
 }
