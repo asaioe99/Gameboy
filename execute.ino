@@ -187,6 +187,18 @@ void execute(uint8_t pc) {
     case 0x38:
       JR_cc_d8(code);
       break;
+    case 0x01:
+    case 0x11:
+    case 0x21:
+    case 0x31:
+      LD_r16_d16(code);
+      break;
+    case 0xE0:
+      LD_a8_a(code);
+      break;
+    case 0xF0:
+      LD_a_a8(code);
+      break;
     default:
       NOP();
   }
