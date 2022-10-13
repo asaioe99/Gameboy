@@ -199,6 +199,42 @@ void execute(uint8_t pc) {
     case 0xF0:
       LD_a_a8(code);
       break;
+    case 0xC1:
+    case 0xD1:
+    case 0xE1:
+    case 0xF1:
+      POP_r16(code);
+      break;
+    case 0xE2:
+      LDH_c_a(code);
+      break;
+    case 0xF2:
+      LDH_a_c(code);
+      break;
+    case 0xF3:
+      DI();
+      break;
+    case 0xFB:
+      EI();
+      break;
+    case 0xC5:
+    case 0xD5:
+    case 0xE5:
+    case 0xF5:
+      PUSH_r16(code);
+      break;
+    case 0xC9:
+      RET();
+      break;
+    case 0xEA:
+      LD_a16p_a();
+      break;
+    case 0xCD:
+      CALL();
+      break;
+    case 0xFE:
+      CP_d8();
+      break;
     default:
       NOP();
   }
