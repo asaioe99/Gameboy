@@ -1,6 +1,8 @@
 void execute(uint8_t pc) {
   uint8_t code = fetch(pc);
-
+  Serial.print(pc, HEX);
+  Serial.print(" ");
+  Serial.println(code, HEX);
   switch(code) {
     case 0xCB: // prefix
       //cc += 4;
@@ -267,10 +269,10 @@ void execute(uint8_t pc) {
       LD_r16_d16(code);
       break;
     case 0xE0:
-      LD_a8_a(code);
+      LDH_a8_a(code);
       break;
     case 0xF0:
-      LD_a_a8(code);
+      LDH_a_a8(code);
       break;
     case 0xC1:
     case 0xD1:
@@ -279,10 +281,10 @@ void execute(uint8_t pc) {
       POP_r16(code);
       break;
     case 0xE2:
-      LDH_c_a(code);
+      LDH_c_a();
       break;
     case 0xF2:
-      LDH_a_c(code);
+      LDH_a_c();
       break;
     case 0xF3:
       DI();
