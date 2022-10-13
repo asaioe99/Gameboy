@@ -154,7 +154,8 @@ void GFXcanvas1::drawPixel(int16_t x, int16_t y, uint16_t color) {
 以下加筆予定
 
 ソースコード　サンプルを動くようにしただけ
-```
+
+```c
 /**************************************************************************
   This is a library for several Adafruit displays based on ST77* drivers.
   Works with the Adafruit 1.8" TFT Breakout w/SD card
