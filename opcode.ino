@@ -309,6 +309,7 @@ void XOR_r(uint8_t code) {
       break;
     case 0b110:
       A = A ^ get_byte(((uint16_t)H << 4) + L);
+      cc += 4;
       break; 
     case 0b111:
       A = A ^ A;
@@ -322,7 +323,7 @@ void XOR_r(uint8_t code) {
     cc += 4;
     pc++;
 }
-void XOR_r(uint8_t code) {
+void SUB_r(uint8_t code) {
   uint8_t val;  
     switch(code & 0b00000111) {
     case 0b000:
@@ -345,6 +346,7 @@ void XOR_r(uint8_t code) {
       break;
     case 0b110:
       val = get_byte(((uint16_t)H << 4) + L);
+      cc += 4;
       break; 
     case 0b111:
       val = A;
@@ -353,13 +355,143 @@ void XOR_r(uint8_t code) {
     if (A & 0x0F < val & 0x0F) {
       F = 0b01100000;
     } else {
-      F = 0b00100000;
+      F = 0b01000000;
     }
     if (A < val) {
       F |= 0b00010000; 
     }
     A = A - val;
     if (A == 0) F |= 0b10000000;
-    cc += 8;
+    cc += 4;
     pc++;
+}
+
+void ADD_r(uint8_t code) {
+  uint8_t val;  
+    switch(code & 0b00000111) {
+    case 0b000:
+      val = B;
+      break;
+    case 0b001:
+      val = C;
+      break;
+    case 0b010:
+      val = D;
+      break;
+    case 0b011:
+      val = E;
+      break;
+    case 0b100:
+      val = H;
+      break;
+    case 0b101:
+      val = L;
+      break;
+    case 0b110:
+      val = get_byte(((uint16_t)H << 4) + L);
+      cc += 4;
+      break; 
+    case 0b111:
+      val = A;
+      break;  
+    }
+    if (A & 0x0F + val & 0x0F > 0x0F) {
+      F = 0b00100000;
+    } else {
+      F = 0b00000000;
+    }
+    if (A + val > 0xFF) {
+      F |= 0b00010000; 
+    }
+    A = A + val;
+    if (A == 0) F |= 0b10000000;
+    cc += 4;
+    pc++;
+}
+
+void CP_r(uint8_t code) {
+  uint8_t val;  
+    switch(code & 0b00000111) {
+    case 0b000:
+      val = B;
+      break;
+    case 0b001:
+      val = C;
+      break;
+    case 0b010:
+      val = D;
+      break;
+    case 0b011:
+      val = E;
+      break;
+    case 0b100:
+      val = H;
+      break;
+    case 0b101:
+      val = L;
+      break;
+    case 0b110:
+      val = get_byte(((uint16_t)H << 4) + L);
+      cc += 4;
+      break; 
+    case 0b111:
+      val = A;
+      break;  
+    }
+    if (A & 0x0F < val & 0x0F) {
+      F = 0b01100000;
+    } else {
+      F = 0b01000000;
+    }
+    if (A < val) {
+      F |= 0b00010000; 
+    }
+    if (A == val) F |= 0b10000000;
+    cc += 4;
+    pc++;
+}
+
+void JR_cc_d8(uint8_t code) {
+  switch(code) {
+    case 0x18:
+      pc = pc + 2 + get_byte(pc + 1);
+      cc += 12;
+      break;
+    case 0x20:
+      if (F >> 7 == 0) {
+        pc = pc + 2 + get_byte(pc + 1);
+        cc += 12;
+      } else {
+        cc += 8;
+        pc += 2;
+      }
+      break;
+    case 0x28:
+      if ((F & 0b10000000) >> 7) {
+        pc = pc + 2 + get_byte(pc + 1);
+        cc += 12;
+      } else {
+        cc += 8;
+        pc += 2;
+      }
+      break;
+    case 0x30:
+      if (F & 0b00010000 == 0) {
+        pc = pc + 2 + get_byte(pc + 1);
+        cc += 12;
+      } else {
+        cc += 8;
+        pc += 2;
+      }
+      break;
+    case 0x38:
+      if (F & 0b00010000) {
+        pc = pc + 2 + get_byte(pc + 1);
+        cc += 12;
+      } else {
+        cc += 8;
+        pc += 2;
+      }
+      break;
+  }
 }
