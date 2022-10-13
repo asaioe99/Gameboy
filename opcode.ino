@@ -530,14 +530,117 @@ void RLA() {
   pc++;
 }
 
-void LD_a8_a(uint8_t code) {
+void LDH_a8_a(uint8_t code) {
   put_byte(0xFF00 + get_byte(++pc), A);
   cc += 12;
   pc++;
 }
 
-void LD_a_a8(uint8_t code) {
+void LDH_a_a8(uint8_t code) {
   A = get_byte(0xFF00 + get_byte(++pc));
   cc += 12;
+  pc++;
+}
+
+void POP_r16(uint8_t code) {
+  switch((code & 0b00110000) >> 4) {
+    case 0b00:
+      C = get_byte(SP++);
+      B = get_byte(SP++);
+      break;
+    case 0b01:
+      E = get_byte(SP++);
+      D = get_byte(SP++);
+      break;
+    case 0b10:
+      L = get_byte(SP++);
+      H = get_byte(SP++);
+      break;
+    case 0b11:
+      F = get_byte(SP++) & 0xF0;
+      A = get_byte(SP++);
+      break;
+  }
+  cc += 12;
+  pc++;
+}
+
+void LDH_c_a() {
+  put_byte(0xFF + C, A);
+  cc += 8;
+  pc++;
+}
+
+void LDH_a_c() {
+  A = get_byte(0xFF + C);
+  cc += 8;
+  pc++;
+}
+
+void DI() {
+  ime = 0;
+  cc += 4;
+  pc++;
+}
+
+void EI() {
+  ime = 1;
+  cc += 4;
+  pc++;
+}
+
+void PUSH_r16(uint8_t code) {
+  switch((code & 0b00110000) >> 4) {
+    case 0b00:
+      put_byte(SP--, B);
+      put_byte(SP--, C);
+      break;
+    case 0b01:
+      put_byte(SP--, D);
+      put_byte(SP--, E);
+      break;
+    case 0b10:
+      put_byte(SP--, H);
+      put_byte(SP--, L);
+      break;
+    case 0b11:
+      put_byte(SP--, A);
+      put_byte(SP--, F);
+      break;
+  }
+  cc += 16;
+  pc++;
+}
+void RET() {
+  pc = (get_byte(SP + 1) << 4) + get_byte(SP);
+  SP -= 2;
+  cc += 16;
+}
+
+void LD_a16p_a() {
+  put_byte(get_byte(pc+1) + (get_byte(pc+2) << 4), A);
+  cc += 16;
+  pc += 3;
+}
+
+void CALL() {
+  put_byte(--SP, get_byte(pc + 4));
+  put_byte(--SP, get_byte(pc + 3));
+  cc += 24;
+  pc += 3;
+}
+
+void CP_d8() {
+  uint8_t val = get_byte(++pc);
+  if (A & 0x0F < val & 0x0F) {
+    F = 0b01100000;
+  } else {
+    F = 0b01000000;
+  }
+  if (A < val) {
+    F |= 0b00010000; 
+  }
+  if (A == val) F |= 0b10000000;
+  cc += 8;
   pc++;
 }
