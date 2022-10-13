@@ -647,7 +647,7 @@ void CP_d8() {
   pc++;
 }
 
-RL_r(uint8_t code) {
+void RL_r(uint8_t code) {
   uint8_t* r;
   switch(code & 0b00000111) {
     case 0b000:
@@ -684,7 +684,7 @@ RL_r(uint8_t code) {
   pc++;
 }
 
-void BIT(code) {
+void BIT(uint8_t code) {
   uint8_t b = (code & 0b00111000) >> 3;
   uint8_t* r;
   uint8_t mask = 0b00000001 << b;
