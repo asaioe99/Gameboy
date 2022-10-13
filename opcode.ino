@@ -495,3 +495,49 @@ void JR_cc_d8(uint8_t code) {
       break;
   }
 }
+
+void LD_r16_d16(uint8_t code) {
+  switch((code & 0b00110000) >> 4) {
+    case 0b00:
+      C = get_byte(++pc);
+      B = get_byte(++pc);
+      break;
+    case 0b01:
+      E = get_byte(++pc);
+      D = get_byte(++pc);
+      break;
+    case 0b10:
+      L = get_byte(++pc);
+      H = get_byte(++pc);
+      break;
+    case 0b11:
+      SP = get_byte(++pc);
+      SP += get_byte(++pc) << 4;
+      break;
+  }
+  cc += 12;
+  pc++;
+}
+
+void RLA() {
+  if (A >> 7) {
+    A = (A << 1) + 1;
+    F = 0b00010000;
+  } else {
+    A = A << 1;
+  }
+  cc += 4;
+  pc++;
+}
+
+void LD_a8_a(uint8_t code) {
+  put_byte(0xFF00 + get_byte(++pc), A);
+  cc += 12;
+  pc++;
+}
+
+void LD_a_a8(uint8_t code) {
+  A = get_byte(0xFF00 + get_byte(++pc));
+  cc += 12;
+  pc++;
+}
