@@ -1,16 +1,14 @@
-/*
-  カートリッジpin割り当て表(カートリッジ左から1pin)
-  https://gbdev.gg8.se/wiki/articles/DMG_Schematics
-  1: Vcc   9: a3    17: a11  25: d3
-  2: CLK? 10: a4   18: a12  26: d4
-  3: /WR  11: a5   19: a13  27: d5
-  4: /RD  12: a6   20: a14  28: d6
-  5: /CS  13: a7   21: a15  29: d7
-  6: a0   14: a8   22: d0   30: /RST
-  7: a1   15: a9   23: d1   31: Vin
-  8: a2   16: a10  24: d2   32: GND
-*/
 #include <SPI.h>
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+
+#define TFT_DC        50 // MISOのこと
+#define TFT_RST       48
+#define TFT_MOSI      51
+#define TFT_SCLK      52
+#define TFT_CS        11
+
+Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST); //for display with CS pin
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
@@ -42,12 +40,13 @@ uint8_t D;
 uint8_t E;
 uint8_t H;
 uint8_t L;
-uint8_t cc;
+uint16_t cc;
 
 uint8_t oam[0xa0];
 uint8_t io[0x80];
 uint8_t hram[0x7F];
 uint8_t ie;
+uint8_t ime;
 
 typedef struct {
   uint8_t ety_point[4];
@@ -138,6 +137,10 @@ void sram_wt(uint16_t addr, uint8_t data) {
 
   uint8_t addr_h = (addr >> 4) & 0xFF;
   uint8_t addr_l = addr & 0xFF;
+  SPI.begin();
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV4);
+  SPI.setDataMode(SPI_MODE0);
 
   digitalWrite(10, LOW);
   SPI.transfer(0x02);  //0x02 書き込みモード
@@ -145,6 +148,7 @@ void sram_wt(uint16_t addr, uint8_t data) {
   SPI.transfer(addr_l);
   SPI.transfer(data);
   digitalWrite(10, HIGH);
+  SPI.end();
 }
 
 // 読み込み
@@ -155,16 +159,20 @@ int sram_rd(uint16_t addr) {
   uint8_t addr_h = (addr >> 4) & 0xFF;
   uint8_t addr_l = addr & 0xFF;
 
+  SPI.begin();
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV4);
+  SPI.setDataMode(SPI_MODE0);
+
   digitalWrite(10, LOW);
   SPI.transfer(0x03);  //0x03 読み込みモード
   SPI.transfer(addr_h);
   SPI.transfer(addr_l);
   r_data = SPI.transfer(0);
   digitalWrite(10, HIGH);
-
+  SPI.end();
   return r_data;
 }
-
 
 // GPIO割り当て（レジスタにより）
 void ini() {
@@ -190,151 +198,33 @@ void ini() {
   uint8_t h = 0x00;
   uint8_t l = 0x00;
   uint8_t cc = 0x00;
+  // フラグ初期化
+  put_byte(0xFF10, 0x80);
+  put_byte(0xFF11, 0xBF);
+  put_byte(0xFF12, 0xF3);
+  put_byte(0xFF14, 0xBF);
+  put_byte(0xFF16, 0x3F);
+  put_byte(0xFF19, 0xBF);
+  put_byte(0xFF1A, 0x7F);
+  put_byte(0xFF1B, 0xFF);
+  put_byte(0xFF1C, 0x9F);
+  put_byte(0xFF1E, 0xBF);
+  put_byte(0xFF20, 0xFF);
+  put_byte(0xFF23, 0xBF);
+  put_byte(0xFF24, 0x77);
+  put_byte(0xFF25, 0xF3);
+  put_byte(0xFF26, 0xF1);
+  put_byte(0xFF40, 0x91);
+  put_byte(0xFF47, 0xFC);
+  put_byte(0xFF48, 0xFF);
+  put_byte(0xFF49, 0xFF);
+
+  // VRAM init
+  for (uint16_t i = 0x8000; i < 0xA000; i++) put_byte(i, 0x00);
 
   // SPI初期化（SRAM）
   pinMode(10, OUTPUT);
   digitalWrite(10, HIGH);
-
-  SPI.begin();
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
-  SPI.setDataMode(SPI_MODE0);
-  /*
-  uint8_t oam[0xa0];
-  uint8_t io[0x80];
-  uint8_t hram[0x7F];
-  uint8_t ie;
-  */
-}
-
-void load_rom_header() {
-  for (int i = 0; i < 4; i++) {
-    rom_header.ety_point[i] = get_rom_byte(0x100 + i);
-  }
-  for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < 16; i++) {
-      rom_header.logo[i + 16 * j] = get_rom_byte(0x104 + i + 16 * j);
-    }
-  }
-  for (int i = 0; i < 16; i++) {
-    rom_header.tle[i] = get_rom_byte(0x134 + i);
-  }
-
-  rom_header.lsc_code[0] = get_rom_byte(0x144);
-  rom_header.lsc_code[1] = get_rom_byte(0x145);
-  rom_header.sgb_flag = get_rom_byte(0x146);
-  rom_header.ctg_type = get_rom_byte(0x147);
-  rom_header.rom_size = get_rom_byte(0x148);
-  rom_header.ram_size = get_rom_byte(0x149);
-  rom_header.des_code = get_rom_byte(0x14a);
-  rom_header.old_code = get_rom_byte(0x14b);
-  rom_header.rom_ver = get_rom_byte(0x14c);
-  rom_header.hed_chk = get_rom_byte(0x14d);
-  rom_header.gbl_chk[0] = get_rom_byte(0x14e);
-  rom_header.gbl_chk[1] = get_rom_byte(0x14f);
-}
-
-void display_rom_header() {
-
-  char buf[16];
-
-  Serial.println("== DUMP START ==");
-  Serial.println("= Entry Point =");
-  for (int i = 0; i < 4; i++) {
-    sprintf(buf, "%04X : %02X ", 0x100 + i, rom_header.ety_point[i]);
-    Serial.print(buf);
-    Serial.println("");
-  }
-  Serial.println("= logo =");
-  for (int j = 0; j < 3; j++) {
-    sprintf(buf, "%04X : ", 0x104 + j * 16);
-    Serial.print(buf);
-    for (int i = 0; i < 16; i++) {
-      sprintf(buf, "%02X ", rom_header.logo[i + 16 * j]);
-      Serial.print(buf);
-    }
-    Serial.println("");
-  }
-  Serial.println("= title =");
-  sprintf(buf, "%04X : ", 0x134);
-  Serial.print(buf);
-  for (int i = 0; i < 16; i++) {
-    sprintf(buf, "%02X ", rom_header.tle[i]);
-    Serial.print(buf);
-  }
-  Serial.println("");
-  Serial.println("= license code =");
-  sprintf(buf, "0144 : %02X %02X", rom_header.lsc_code[0], rom_header.lsc_code[1]);
-  Serial.println(buf);
-  Serial.println("= sgb flag =");
-  sprintf(buf, "0146 : %02X", rom_header.sgb_flag);
-  Serial.println(buf);
-  Serial.println("= cartridge type =");
-  sprintf(buf, "0147 : %02X", rom_header.ctg_type);
-  Serial.println(buf);
-  Serial.println("= rom size =");
-  sprintf(buf, "0148 : %02X", rom_header.rom_size);
-  Serial.println(buf);
-  Serial.println("= ram size =");
-  sprintf(buf, "0149 : %02X", rom_header.ram_size);
-  Serial.println(buf);
-  Serial.println("= destination code =");
-  sprintf(buf, "014a : %02X", rom_header.des_code);
-  Serial.println(buf);
-  Serial.println("= old_llicensee_code =");
-  sprintf(buf, "014b : %02X", rom_header.old_code);
-  Serial.println(buf);
-  Serial.println("= rom_version =");
-  sprintf(buf, "014c : %02X", rom_header.rom_ver);
-  Serial.println(buf);
-  Serial.println("= header checksum =");
-  sprintf(buf, "014d : %02X", rom_header.hed_chk);
-  Serial.println(buf);
-  Serial.println("= license code =");
-  sprintf(buf, "014e : %02X %02X", rom_header.gbl_chk[0], rom_header.gbl_chk[1]);
-  Serial.println(buf);
-  Serial.println("==  END  ==");
-}
-// いずれ消す
-void dump_bank00() {
-  char buf[16];
-  Serial.println("= mbc1 bank 00 dump =");
-  for (int j = 0; j < 0x400; j++) {
-    sprintf(buf, "%04X : ", j * 16);
-    Serial.print(buf);
-    for (int i = 0; i < 16; i++) {
-      sprintf(buf, "%02X ", get_rom_byte(i + 16 * j));
-      Serial.print(buf);
-    }
-    Serial.println("");
-  }
-}
-
-void dump_rom_bank(uint8_t bank) {
-
-  Serial.print("rom bank : ");
-  Serial.println(bank);
-
-  uint16_t offset = 0;
-  if (bank > 0) {
-    offset = 0x4000;
-    switch_rom_bank(bank);  // bank number < 2 ^ (rom_header.rom_size  + 1)
-  }
-
-  char buf[16];
-
-  for (uint16_t address = 0; address < 0x4000; address++) {
-    if ((address + offset) % 16 == 0) {
-      sprintf(buf, "%04X : %02X ", address + offset, get_rom_byte(address + offset));
-      Serial.print(buf);
-    } else if ((address + offset) % 16 == 15) {
-      sprintf(buf, "%02X ", get_rom_byte(address + offset));
-      Serial.println(buf);
-    } else {
-      sprintf(buf, "%02X ", get_rom_byte(address + offset));
-      Serial.print(buf);
-    }
-  }
 }
 
 void switch_rom_bank(uint8_t bank) {
@@ -346,28 +236,6 @@ void switch_rom_bank(uint8_t bank) {
   }
 }
 
-void dump_ram_bank(uint8_t bank) {
-
-  Serial.print("ram bank : ");
-  Serial.println(bank);
-
-  switch_ram_bank(bank);
-
-  char buf[16];
-
-  for (uint16_t address = 0xA000; address < 0xC000; address++) {
-    if (address % 16 == 0) {
-      sprintf(buf, "%04X : %02X ", address, get_ram_byte(address));
-      Serial.print(buf);
-    } else if (address % 16 == 15) {
-      sprintf(buf, "%02X ", get_ram_byte(address));
-      Serial.println(buf);
-    } else {
-      sprintf(buf, "%02X ", get_ram_byte(address));
-      Serial.print(buf);
-    }
-  }
-}
 // ramのバンク切り替え　MBC1のみ対応
 void switch_ram_bank(byte bank) {
   DataBusAsOutput();
@@ -377,8 +245,8 @@ void switch_ram_bank(byte bank) {
 
 void write_ram_bank(uint8_t bank) {
 
-  Serial.print("write ram bank ");
-  Serial.println(bank);
+  //Serial.print("write ram bank ");
+  //Serial.println(bank);
   switch_ram_bank(bank);
   DataBusAsOutput();
 
@@ -390,7 +258,9 @@ void write_ram_bank(uint8_t bank) {
 }
 
 uint8_t get_byte(uint8_t addr) {
-  if (addr < 0x4000) {
+  if (addr < 0x0100) {
+    return bootstrap[addr];
+  } else if (addr < 0x4000) {
     return get_rom_byte(addr);
   } else if (addr < 0x8000) {
     return get_rom_byte(addr);
@@ -450,6 +320,9 @@ void setup() {
   Serial.begin(9600);
   ini();
   load_rom_header();  // romheader読み込み
+
+  tft.init(240, 240);
+  tft.fillScreen(0);
 }
 
 void loop() {
@@ -466,8 +339,10 @@ void loop() {
   //dump_ram_bank(0);
   //disable_ram();
 
-
-
-  while (1)
-    ;
+  execute(pc);
+  //testdrawtext("PUIPUI", ST77XX_WHITE);
+  if (cc > 0x3FF) {
+    ppu();
+    cc = 0x00;
+  }
 }
