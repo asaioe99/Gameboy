@@ -22,6 +22,11 @@ void LD_r_n(uint8_t code) {
       A = get_byte(++pc);
       break;
   }
+  Serial.print("B:");
+
+  Serial.print(" ");
+  Serial.print(B, HEX);
+  Serial.println();
   cc += 8;
   pc++;
 }
@@ -544,10 +549,10 @@ void LD_r16_d16(uint8_t code) {
 void RLA() {
 
   if (A >> 7) {
-    A = (A << 1) + F & 0b00010000;
+    A = (A << 1) + (F & 0b00010000) >> 4;
     F = 0b00010000;
   } else {
-    A = (A << 1) + F & 0b00010000;
+    A = (A << 1) + (F & 0b00010000) >> 4;
     F = 0b00000000;
   }
   cc += 4;
@@ -695,10 +700,10 @@ void RL_r(uint8_t code) {
       break;
   }
   if (*r >> 7) {
-    *r = (*r << 1) + F & 0b00010000;
+    *r = (*r << 1) + (F & 0b00010000) >> 4;
     F = 0b00010000;
   } else {
-    *r = (*r << 1) + F & 0b00010000;
+    *r = (*r << 1) + (F & 0b00010000) >> 4;
     F = 0b00000000;
   }
   if (*r == 0) F | 0b10000000;
@@ -741,5 +746,5 @@ void BIT(uint8_t code) {
   }
   F = F & 0b10010000;
   cc += 8;
-  pc += 2;
+  pc++;
 }
