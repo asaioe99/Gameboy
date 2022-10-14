@@ -12,6 +12,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RS
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
+//   0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
   0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
   0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E, 0xFC, 0xE0,
   0x47, 0x11, 0x04, 0x01, 0x21, 0x10, 0x80, 0x1A, 0xCD, 0x95, 0x00, 0xCD, 0x96, 0x00, 0x13, 0x7B,
@@ -220,7 +221,7 @@ void ini() {
   put_byte(0xFF49, 0xFF);
 
   // VRAM init
-  for (uint16_t i = 0x8000; i < 0xA000; i++) put_byte(i, 0x00);
+  //for (uint16_t i = 0x8000; i < 0xA000; i++) put_byte(i, 0x00);
 
   // SPI初期化（SRAM）
   pinMode(10, OUTPUT);
@@ -257,7 +258,7 @@ void write_ram_bank(uint8_t bank) {
   DataBusAsInput();
 }
 
-uint8_t get_byte(uint8_t addr) {
+uint8_t get_byte(uint16_t addr) {
   if (addr < 0x0100) {
     return bootstrap[addr];
   } else if (addr < 0x4000) {
@@ -310,14 +311,14 @@ void put_byte(uint16_t addr, uint8_t data) {
 }
 
 // 読み込み
-uint8_t fetch(uint8_t pc) {
+uint8_t fetch(uint16_t pc) {
   // とりあえず素通し
   return get_byte(pc);
 }
 
 // 初期化
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(38400);
   ini();
   load_rom_header();  // romheader読み込み
 
@@ -341,8 +342,8 @@ void loop() {
 
   execute(pc);
   //testdrawtext("PUIPUI", ST77XX_WHITE);
-  if (cc > 0x3FF) {
-    ppu();
+  if (cc > 0x9FFF) {
+    //ppu();
     cc = 0x00;
   }
 }
