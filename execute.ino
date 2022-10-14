@@ -1,4 +1,4 @@
-void execute(uint8_t pc) {
+void execute(uint16_t pc) {
   uint8_t code = fetch(pc);
   Serial.print(pc, HEX);
   Serial.print(" ");
