@@ -1,13 +1,16 @@
-void execute(uint16_t pc) {
+void execute() {
   uint8_t code = fetch(pc);
   Serial.print(pc, HEX);
   Serial.print(" ");
   Serial.println(code, HEX);
-  switch(code) {
+  switch (code) {
     case 0xCB: // prefix
       //cc += 4;
       code = fetch(++pc);
-      switch(code) {
+      Serial.print(pc, HEX);
+      Serial.print("-");
+      Serial.println(code, HEX);
+      switch (code) {
         case 0x10:
         case 0x11:
         case 0x12:
@@ -146,7 +149,7 @@ void execute(uint16_t pc) {
     case 0x7D: //LD_A_L
       LD_r_r(code);
       break;
-    case 0x70: //LD_(HL)_B 
+    case 0x70: //LD_(HL)_B
     case 0x71: //LD_(HL)_C
     case 0x72: //LD_(HL)_D
     case 0x73: //LD_(HL)_E
@@ -204,7 +207,7 @@ void execute(uint16_t pc) {
     case 0x24: //INC_H
     case 0x2C: //INC_L
     case 0x3C: //INC_A
-      INC_r(code); 
+      INC_r(code);
       break;
     case 0x05: //DEC_B
     case 0x0D: //DEC_C
@@ -213,7 +216,7 @@ void execute(uint16_t pc) {
     case 0x25: //DEC_H
     case 0x2D: //DEC_L
     case 0x3D: //DEC_A
-      DEC_r(code); 
+      DEC_r(code);
       break;
     case 0xA8: //XOR_B
     case 0xA9: //XOR_C
@@ -223,7 +226,7 @@ void execute(uint16_t pc) {
     case 0xAD: //XOR_L
     case 0xAE: //XOR_(HL)
     case 0xAF: //XOR_L
-      XOR_r(code); 
+      XOR_r(code);
       break;
     case 0x90: //SUB_B
     case 0x91: //SUB_C
@@ -233,7 +236,7 @@ void execute(uint16_t pc) {
     case 0x95: //SUB_L
     case 0x96: //SUB_(HL)
     case 0x97: //SUB_L
-      SUB_r(code); 
+      SUB_r(code);
       break;
     case 0x80: //ADD_B
     case 0x81: //ADD_C
@@ -243,7 +246,7 @@ void execute(uint16_t pc) {
     case 0x85: //ADD_L
     case 0x86: //ADD_(HL)
     case 0x87: //ADD_L
-      ADD_r(code); 
+      ADD_r(code);
       break;
     case 0xB8: //CP_B
     case 0xB9: //CP_C
@@ -253,7 +256,7 @@ void execute(uint16_t pc) {
     case 0xBD: //CP_L
     case 0xBE: //CP_(HL)
     case 0xBF: //CP_L
-      CP_r(code); 
+      CP_r(code);
       break;
     case 0x20:
     case 0x30:
