@@ -22,12 +22,8 @@ void LD_r_n(uint8_t code) {
       A = get_byte(++pc);
       break;
   }
-  Serial.print("B:");
-
-  Serial.print(" ");
-  Serial.print(B, HEX);
-  Serial.println();
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -56,6 +52,7 @@ void LD_r_HL(uint8_t code) {
       break;
   }
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -84,11 +81,6 @@ void LD_r_r(uint8_t code) {
       t1 = &A;
       break;
   }
-  //Serial.print("C A:");
-  //Serial.print(C, HEX);
-  //Serial.print(" ");
-  //Serial.print(A, HEX);
-  //Serial.println();
   switch (code & 0b00000111) {
     case 0b000:
       *t1 = B;
@@ -112,12 +104,8 @@ void LD_r_r(uint8_t code) {
       *t1 = A;
       break;
   }
-  Serial.print("C A:");
-  Serial.print(C, HEX);
-  Serial.print(" ");
-  Serial.print(A, HEX);
-  Serial.println("");
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 
@@ -146,22 +134,26 @@ void LD_HL_r(uint8_t code) {
       break;
   }
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
 void LD_HL_n(uint8_t code) {
   put_byte((uint16_t)(H << 8) + L, get_byte(++pc));
   cc += 12;
+  cc_dec = 12;
   pc++;
 }
 void LD_A_BC() {
   A = get_byte(((uint16_t)B << 8) + C);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_A_DE() {
   A = get_byte(((uint16_t)D << 8) + E);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_A_HLi() {
@@ -169,6 +161,7 @@ void LD_A_HLi() {
   L++;
   if (L == 0x00) H++;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_A_HLd() {
@@ -176,16 +169,19 @@ void LD_A_HLd() {
   L--;
   if (L == 0xFF) H--;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_BC_A() {
   put_byte(((uint16_t)B << 8) + C, A);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_DE_A() {
   put_byte(((uint16_t)D << 8) + E, A);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_HLi_A() {
@@ -193,22 +189,20 @@ void LD_HLi_A() {
   L++;
   if (L == 0x00) H++;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void LD_HLd_A() {
   put_byte(((uint16_t)H << 8) + L, A);
-  Serial.print("HL:");
-  Serial.print(((uint16_t)H << 8) + L, HEX);
-  Serial.print(" ");
-  Serial.print(get_byte(((uint16_t)H << 8) + L), HEX);
-  Serial.println();
   L--;
   if (L == 0xFF) H--;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void NOP() {
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 void INC_rr(uint8_t code) {
@@ -230,6 +224,7 @@ void INC_rr(uint8_t code) {
       break;
   }
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void DEC_rr(uint8_t code) {
@@ -251,6 +246,7 @@ void DEC_rr(uint8_t code) {
       break;
   }
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 void INC_r(uint8_t code) {
@@ -278,33 +274,51 @@ void INC_r(uint8_t code) {
       break;
   }
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 void DEC_r(uint8_t code) {
-  switch ((code & 0b00111000) >> 3) {
-    case 0b000:
-      B--;
+  uint8_t *r;
+  uint8_t t;
+  switch (code & 0b00111000) {
+    case 0b00000000:
+      r = &B;
       break;
-    case 0b001:
-      C--;
+    case 0b00001000:
+      r = &C;
       break;
-    case 0b010:
-      D--;
+    case 0b00010000:
+      r = &D;
       break;
-    case 0b011:
-      E--;
+    case 0b00011000:
+      r = &E;
       break;
-    case 0b100:
-      H--;
+    case 0b00100000:
+      r = &H;
       break;
-    case 0b101:
-      L--;
+    case 0b00101000:
+      r = &L;
       break;
-    case 0b111:
-      A--;
+    case 0b00111000:
+      r = &A;
       break;
   }
+  t = *r;
+  *r = *r - 1;
+  if (*r == 0) {
+    F |= 0b11000000;
+  } else {
+    F &= 0b01111111;
+    F |= 0b01000000;
+  }
+  if(t & 0x0f == 0x00) {
+    F |= 0b00100000;
+  } else {
+    F &= 0b11010000;
+  }
+  // hフラグ謎
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 void XOR_r(uint8_t code) {
@@ -341,6 +355,7 @@ void XOR_r(uint8_t code) {
     F = 0b00000000;
   }
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 void SUB_r(uint8_t code) {
@@ -367,6 +382,7 @@ void SUB_r(uint8_t code) {
     case 0b110:
       val = get_byte(((uint16_t)H << 8) + L);
       cc += 4;
+      cc_dec = 4;
       break;
     case 0b111:
       val = A;
@@ -383,6 +399,7 @@ void SUB_r(uint8_t code) {
   A = A - val;
   if (A == 0) F |= 0b10000000;
   cc += 4;
+  cc_dec += 4;
   pc++;
 }
 
@@ -410,6 +427,7 @@ void ADD_r(uint8_t code) {
     case 0b110:
       val = get_byte(((uint16_t)H << 8) + L);
       cc += 4;
+      cc_dec = 4;
       break;
     case 0b111:
       val = A;
@@ -426,6 +444,7 @@ void ADD_r(uint8_t code) {
   A = A + val;
   if (A == 0) F |= 0b10000000;
   cc += 4;
+  cc_dec += 4;
   pc++;
 }
 
@@ -453,6 +472,7 @@ void CP_r(uint8_t code) {
     case 0b110:
       val = get_byte(((uint16_t)H << 8) + L);
       cc += 4;
+      cc_dec = 4;
       break;
     case 0b111:
       val = A;
@@ -468,6 +488,7 @@ void CP_r(uint8_t code) {
   }
   if (A == val) F |= 0b10000000;
   cc += 4;
+  cc_dec += 4;
   pc++;
 }
 
@@ -476,6 +497,7 @@ void JR_cc_d8(uint8_t code) {
     case 0x18:
       pc = pc + 2 + (int8_t)get_byte(pc + 1);
       cc += 12;
+      cc_dec = 4;
       break;
     case 0x20:
       if (F >> 7 == 0) {
@@ -508,12 +530,14 @@ void JR_cc_d8(uint8_t code) {
       if (F & 0b00010000) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
+        cc_dec = 4;
       } else {
         cc += 8;
         pc += 2;
       }
       break;
   }
+  cc_dec += 8;
 }
 
 void LD_r16_d16(uint8_t code) {
@@ -529,45 +553,42 @@ void LD_r16_d16(uint8_t code) {
     case 0b10:
       L = get_byte(++pc);
       H = get_byte(++pc);
-      //Serial.print("HL:");
-      //Serial.print(H, HEX);
-      //Serial.print(L, HEX);
-      //.println();
       break;
     case 0b11:
       sp = get_byte(++pc);
       sp += ((uint16_t)get_byte(++pc)) << 8;
-      //Serial.print("sp:");
-      //Serial.print(sp, HEX);
-      //Serial.println();
       break;
   }
   cc += 12;
+  cc_dec = 12;
   pc++;
 }
 
 void RLA() {
 
   if (A >> 7) {
-    A = (A << 1) + (F & 0b00010000) >> 4;
+    A = (A << 1) + ((F & 0b00010000) >> 4);
     F = 0b00010000;
   } else {
-    A = (A << 1) + (F & 0b00010000) >> 4;
+    A = (A << 1) + ((F & 0b00010000) >> 4);
     F = 0b00000000;
-  }
+  }  
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 
 void LDH_a8_a(uint8_t code) {
   put_byte(0xFF00 + get_byte(++pc), A);
   cc += 12;
+  cc_dec = 12;
   pc++;
 }
 
 void LDH_a_a8(uint8_t code) {
   A = get_byte(0xFF00 + get_byte(++pc));
   cc += 12;
+  cc_dec = 12;
   pc++;
 }
 
@@ -591,71 +612,80 @@ void POP_r16(uint8_t code) {
       break;
   }
   cc += 12;
+  cc_dec = 12;
   pc++;
 }
 
 void LDH_c_a() {
   put_byte(0xFF + C, A);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
 void LDH_a_c() {
   A = get_byte(0xFF + C);
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
 void DI() {
   ime = 0;
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 
 void EI() {
   ime = 1;
   cc += 4;
+  cc_dec = 4;
   pc++;
 }
 
 void PUSH_r16(uint8_t code) {
   switch ((code & 0b00110000) >> 4) {
     case 0b00:
-      put_byte(sp--, B);
-      put_byte(sp--, C);
+      put_byte(--sp, B);
+      put_byte(--sp, C);
       break;
     case 0b01:
-      put_byte(sp--, D);
-      put_byte(sp--, E);
+      put_byte(--sp, D);
+      put_byte(--sp, E);
       break;
     case 0b10:
-      put_byte(sp--, H);
-      put_byte(sp--, L);
+      put_byte(--sp, H);
+      put_byte(--sp, L);
       break;
     case 0b11:
-      put_byte(sp--, A);
-      put_byte(sp--, F);
+      put_byte(--sp, A);
+      put_byte(--sp, F);
       break;
   }
   cc += 16;
+  cc_dec = 16;
   pc++;
 }
 void RET() {
   pc = ((uint16_t)get_byte(sp + 1) << 8) + get_byte(sp);
-  sp -= 2;
+  sp += 2;
   cc += 16;
+  cc_dec = 16;
 }
 
 void LD_a16p_a() {
   put_byte(get_byte(pc + 1) + ((uint16_t)get_byte(pc + 2) << 8), A);
   cc += 16;
+  cc_dec = 16;
   pc += 3;
 }
 
 void CALL() {
-  put_byte(--sp, (uint8_t)((pc + 3) >> 8));
-  put_byte(--sp, (uint8_t)((pc + 3) & 0b00001111));
+  put_byte(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+  put_byte(--sp, (uint8_t)((pc + 3) & 0x00FF));
   cc += 24;
+  cc_dec = 24;
   pc = get_byte(pc + 1) + ((uint16_t)get_byte(pc + 2) << 8);
 }
 
@@ -671,11 +701,13 @@ void CP_d8() {
   }
   if (A == val) F |= 0b10000000;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
 void RL_r(uint8_t code) {
   uint8_t* r;
+  uint8_t t;
   switch (code & 0b00000111) {
     case 0b000:
       r = &B;
@@ -700,14 +732,15 @@ void RL_r(uint8_t code) {
       break;
   }
   if (*r >> 7) {
-    *r = (*r << 1) + (F & 0b00010000) >> 4;
+    *r = (*r << 1) + ((F & 0b00010000) >> 4);
     F = 0b00010000;
   } else {
-    *r = (*r << 1) + (F & 0b00010000) >> 4;
+    *r = (*r << 1) + ((F & 0b00010000) >> 4);
     F = 0b00000000;
-  }
+  }  
   if (*r == 0) F | 0b10000000;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -746,5 +779,6 @@ void BIT(uint8_t code) {
   }
   F = F & 0b10010000;
   cc += 8;
+  cc_dec = 8;
   pc++;
 }
