@@ -1,24 +1,24 @@
 void LD_r_n(uint8_t code) {
-  switch ((code & 0b00111000) >> 3) {
-    case 0b000:
+  switch (code & 0b00111000) {
+    case 0b00000000:
       B = get_byte(++pc);
       break;
-    case 0b001:
+    case 0b00001000:
       C = get_byte(++pc);
       break;
-    case 0b010:
+    case 0b00010000:
       D = get_byte(++pc);
       break;
-    case 0b011:
+    case 0b00011000:
       E = get_byte(++pc);
       break;
-    case 0b100:
+    case 0b00100000:
       H = get_byte(++pc);
       break;
-    case 0b101:
+    case 0b00101000:
       L = get_byte(++pc);
       break;
-    case 0b111:
+    case 0b00111000:
       A = get_byte(++pc);
       break;
   }
@@ -28,26 +28,26 @@ void LD_r_n(uint8_t code) {
 }
 
 void LD_r_HL(uint8_t code) {
-  switch ((code & 0b00111000) >> 3) {
-    case 0b000:
+  switch (code & 0b00111000) {
+    case 0b00000000:
       B = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b001:
+    case 0b00001000:
       C = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b010:
+    case 0b00010000:
       D = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b011:
+    case 0b00011000:
       E = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b100:
+    case 0b00100000:
       H = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b101:
+    case 0b00101000:
       L = get_byte(((uint16_t)H << 8) + L);
       break;
-    case 0b111:
+    case 0b00111000:
       A = get_byte(((uint16_t)H << 8) + L);
       break;
   }
@@ -250,34 +250,6 @@ void DEC_rr(uint8_t code) {
   pc++;
 }
 void INC_r(uint8_t code) {
-  switch ((code & 0b00111000) >> 3) {
-    case 0b000:
-      B++;
-      break;
-    case 0b001:
-      C++;
-      break;
-    case 0b010:
-      D++;
-      break;
-    case 0b011:
-      E++;
-      break;
-    case 0b100:
-      H++;
-      break;
-    case 0b101:
-      L++;
-      break;
-    case 0b111:
-      A++;
-      break;
-  }
-  cc += 4;
-  cc_dec = 4;
-  pc++;
-}
-void DEC_r(uint8_t code) {
   uint8_t *r;
   uint8_t t;
   switch (code & 0b00111000) {
@@ -304,6 +276,47 @@ void DEC_r(uint8_t code) {
       break;
   }
   t = *r;
+  *r = *r + 1;
+  if (*r == 0) {
+    F |= 0b10000000;
+    F &= 0b10110000;
+  } else {
+    F &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    F |= 0b00100000;
+  } else {
+    F &= 0b11010000;
+  }
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+void DEC_r(uint8_t code) {
+  uint8_t *r;
+  switch (code & 0b00111000) {
+    case 0b00000000:
+      r = &B;
+      break;
+    case 0b00001000:
+      r = &C;
+      break;
+    case 0b00010000:
+      r = &D;
+      break;
+    case 0b00011000:
+      r = &E;
+      break;
+    case 0b00100000:
+      r = &H;
+      break;
+    case 0b00101000:
+      r = &L;
+      break;
+    case 0b00111000:
+      r = &A;
+      break;
+  }
   *r = *r - 1;
   if (*r == 0) {
     F |= 0b11000000;
@@ -311,7 +324,7 @@ void DEC_r(uint8_t code) {
     F &= 0b01111111;
     F |= 0b01000000;
   }
-  if(t & 0x0f == 0x00) {
+  if (*r & 0x0F == 0x0F) {
     F |= 0b00100000;
   } else {
     F &= 0b11010000;
@@ -572,7 +585,7 @@ void RLA() {
   } else {
     A = (A << 1) + ((F & 0b00010000) >> 4);
     F = 0b00000000;
-  }  
+  }
   cc += 4;
   cc_dec = 4;
   pc++;
@@ -737,7 +750,7 @@ void RL_r(uint8_t code) {
   } else {
     *r = (*r << 1) + ((F & 0b00010000) >> 4);
     F = 0b00000000;
-  }  
+  }
   if (*r == 0) F | 0b10000000;
   cc += 8;
   cc_dec = 8;
