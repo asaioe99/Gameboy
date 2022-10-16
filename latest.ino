@@ -12,7 +12,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RS
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
-//   0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
+  //   0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
   0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E, // 0
   0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E, 0xFC, 0xE0, // 1
   0x47, 0x11, 0x04, 0x01, 0x21, 0x10, 0x80, 0x1A, 0xCD, 0x95, 0x00, 0xCD, 0x96, 0x00, 0x13, 0x7B, // 2
@@ -48,6 +48,9 @@ uint8_t io[0x80];
 uint8_t hram[0x7F];
 uint8_t ie;
 uint8_t ime;
+uint8_t cc_dec;
+
+int16_t scaline_counter;
 
 typedef struct {
   uint8_t ety_point[4];
@@ -199,29 +202,39 @@ void ini() {
   uint8_t h = 0x00;
   uint8_t l = 0x00;
   uint8_t cc = 0x00;
+
   // フラグ初期化
+  put_byte(0xFF05, 0x00);
+  put_byte(0xFF06, 0x00);
+  put_byte(0xFF07, 0x00);
   put_byte(0xFF10, 0x80);
   put_byte(0xFF11, 0xBF);
   put_byte(0xFF12, 0xF3);
   put_byte(0xFF14, 0xBF);
   put_byte(0xFF16, 0x3F);
+  put_byte(0xFF17, 0x00);
   put_byte(0xFF19, 0xBF);
   put_byte(0xFF1A, 0x7F);
   put_byte(0xFF1B, 0xFF);
   put_byte(0xFF1C, 0x9F);
   put_byte(0xFF1E, 0xBF);
   put_byte(0xFF20, 0xFF);
+  put_byte(0xFF21, 0x00);
+  put_byte(0xFF22, 0x00);
   put_byte(0xFF23, 0xBF);
   put_byte(0xFF24, 0x77);
   put_byte(0xFF25, 0xF3);
   put_byte(0xFF26, 0xF1);
   put_byte(0xFF40, 0x91);
+  put_byte(0xFF42, 0x00);
+  put_byte(0xFF43, 0x00);
+  put_byte(0xFF45, 0x00);
   put_byte(0xFF47, 0xFC);
   put_byte(0xFF48, 0xFF);
   put_byte(0xFF49, 0xFF);
-
-  // VRAM init
-  //for (uint16_t i = 0x8000; i < 0xA000; i++) put_byte(i, 0x00);
+  put_byte(0xFF4A, 0x00);
+  put_byte(0xFF4B, 0x00);
+  put_byte(0xFFFF, 0x00);
 
   // SPI初期化（SRAM）
   pinMode(10, OUTPUT);
@@ -279,7 +292,7 @@ uint8_t get_byte(uint16_t addr) {
     return sram_rd(addr);
   } else if (addr < 0xFF80) {  // I/O Register
     return io[addr - 0xFF00];
-  } else if (addr < 0xFFFF) {  // High RAM
+  } else if (addr < 0xFFFF) {  // High RAM stack
     return hram[addr - 0xFF80];
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
     return ie;
@@ -288,7 +301,7 @@ uint8_t get_byte(uint16_t addr) {
 }
 
 void put_byte(uint16_t addr, uint8_t data) {
-  if (addr < 0x4000) { 
+  if (addr < 0x4000) {
   } else if (addr < 0x8000) {
   } else if (addr < 0xA000) {
     sram_wt(addr, data);
@@ -301,7 +314,7 @@ void put_byte(uint16_t addr, uint8_t data) {
   } else if (addr < 0xFEA0) {  // Sprite attribute table (OAM)
     oam[addr - 0xFE00] = data;
   } else if (addr < 0xFF00) {  // Not Usable
-     sram_wt(addr, data);
+    sram_wt(addr, data);
   } else if (addr < 0xFF80) {  // I/O Register
     io[addr - 0xFF00] = data;
   } else if (addr < 0xFFFF) {  // High RAM
@@ -318,12 +331,20 @@ uint8_t fetch(uint16_t addr) {
 
 // 初期化
 void setup() {
-  Serial.begin(38400);
+  Serial.begin(115200);
   ini();
   load_rom_header();  // romheader読み込み
 
+  //tft.setRotation(1);
   tft.init(240, 240);
+  tft.fillScreen(ST77XX_WHITE);
   tft.fillScreen(0);
+
+  SPI.begin();  //SPIを初期化、SCK、MOSI、SSの各ピンの動作は出力、SCK、MOSIはLOW、SSはHIGH
+  SPI.setClockDivider(SPI_CLOCK_DIV2);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE3);
+  //  SPI.beginTransaction(settings);
 }
 
 void loop() {
@@ -333,17 +354,17 @@ void loop() {
 
   //for debug
   //display_rom_header();
-  //dump_bank00();
   //dump_rom_bank(1);
   //enable_ram();
   //write_ram_bank(0);
   //dump_ram_bank(0);
   //disable_ram();
 
-  execute();
+
   //testdrawtext("PUIPUI", ST77XX_WHITE);
-  if (cc > 0x9FFF) {
-    //ppu();
-    cc = 0x00;
+  while (cc < 456 * (144 + 10)) {
+    execute();
+    ppu();
   }
+  cc = 0;
 }
