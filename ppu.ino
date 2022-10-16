@@ -1,36 +1,75 @@
-void draw_tile(uint16_t addr, uint8_t x, uint8_t y) {
-  uint16_t color;
-  uint8_t t1, t2;
-  for (uint8_t i = 0; i < 8; i++) {
-    for (uint8_t j = 0; j < 8; j++) {
-      t1 = get_byte(addr + i * 2);
-      t2 = get_byte(addr + i * 2 + 1);
-      color = ((t1 & (0b10000000 >> j)) >> (7 - j)) + ((t2 & (0b10000000 >> j)) >> (7 - j));
-      //Serial.print(color);  
-      color = color * 64;
-      tft.drawPixel(x * 8 + j, y * 8 + i, color);
-    }
-    //Serial.println("");
+
+
+void p_flag_update() {
+  uint8_t status_LCD = get_byte(0xFF41);
+
+  if ((get_byte(0xFF40) & 0x80) != 0x80) {
+    put_byte(0xFF40, 0x00);
+    scaline_counter = 456;
+    status_LCD &= 0b11111100;
+    status_LCD = ~(status_LCD & (1 << 0));
+    status_LCD = ~(status_LCD & (1 << 1));
+    put_byte(0xFF41, status_LCD);
+    return;
   }
+
+  status_LCD = get_byte(0xFF41);
+
+  if (get_byte(0xFF44) >= 144) {         // mode1
+    status_LCD = status_LCD & 0b11111101;
+  } else {
+    if (scaline_counter >= 376) {        // mode2
+      status_LCD = status_LCD & 0b11111110;
+    } else if (scaline_counter >= 204) { // mode3
+      status_LCD = status_LCD & 0b11111111;
+    } else {                             // mode0
+      status_LCD = status_LCD & 0b11111100;
+    }
+  }
+  
+  put_byte(0xFF41, status_LCD);
+  
+  status_LCD = get_byte(0xFF41);
+  // LYC == LY -> status reg
+  if (get_byte(0xFF44) == get_byte(0xFF45)) {
+    status_LCD = status_LCD | 0b00000100;
+  } else {
+    status_LCD = status_LCD & 0b11111011;
+  }
+
+  put_byte(0xFF41, status_LCD);
 }
+
+
+void draw_scanline() {
+  return;
+}
+
 
 void ppu() {
   uint16_t offset = 0x9800;
   uint8_t r_addr;
-  for (uint8_t y = 0; y < 18; y++) {
-    for (uint8_t x = 0; x < 20; x++) {
-      r_addr = get_byte(offset + x + y * 0x20);
-      //Serial.print(offset + x + y * 0x20, HEX);
-      //Serial.print(" ");
-      //Serial.println(r_addr + 0x8000, HEX);
-      draw_tile(r_addr + 0x8000, x, y);
+
+  // flag アップデート
+  p_flag_update();
+
+  if (get_byte(0xFF40) & 0b10000000) {
+    scaline_counter -= cc_dec;
+  } else {
+    return;
+  }
+  
+  if (scaline_counter <= 0) {
+    put_byte(0xFF44, get_byte(0xFF44) + 1);
+    scaline_counter += 456;
+
+    if (get_byte(0xFF44) == 144) {
+      draw_scanline();
+      put_byte(0xFF0F, (get_byte(0xFF0F) | 0b00000001));
+    } else if (get_byte(0xFF44) > 153) {
+      put_byte(0xFF44, 0);
+    } else if (get_byte(0xFF44) < 144) {
+      draw_scanline();
     }
   }
-}
-
-void testdrawtext(char *text, uint16_t color) {
-  tft.setCursor(0, 0);
-  tft.setTextColor(color);
-  tft.setTextWrap(true);
-  tft.print(text);
 }
