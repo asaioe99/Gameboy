@@ -1,15 +1,21 @@
 void execute() {
   uint8_t code = fetch(pc);
-  Serial.print(pc, HEX);
-  Serial.print(" ");
-  Serial.println(code, HEX);
+
+  char buf[64];
+  if (pc > 0x00) {
+    sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X LY:%02X SL:%03d", pc, code, A, F, B, C, D, E, H, L, sp, get_byte(0xFF44), scaline_counter);
+    Serial.println(buf);
+    //delay(10);
+  }
+  cc_dec = 0;
   switch (code) {
     case 0xCB: // prefix
       //cc += 4;
       code = fetch(++pc);
-      Serial.print(pc, HEX);
-      Serial.print("-");
-      Serial.println(code, HEX);
+      //Serial.print(pc, HEX);
+      //Serial.print("-");
+      //Serial.println(code, HEX);
+      //delay(10);
       switch (code) {
         case 0x10:
         case 0x11:
