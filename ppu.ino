@@ -1,5 +1,3 @@
-
-
 void p_flag_update() {
   uint8_t status_LCD = get_byte(0xFF41);
 
@@ -40,11 +38,9 @@ void p_flag_update() {
   put_byte(0xFF41, status_LCD);
 }
 
-
 void draw_scanline() {
   return;
 }
-
 
 void ppu() {
   uint16_t offset = 0x9800;
