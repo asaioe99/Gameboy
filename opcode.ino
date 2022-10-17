@@ -58,49 +58,49 @@ void LD_r_HL(uint8_t code) {
 
 void LD_r_r(uint8_t code) {
   uint8_t *t1;
-  switch ((code & 0b00111000) >> 3) {
-    case 0b000:
+  switch (code & 0b00111000) {
+    case 0b00000000:
       t1 = &B;
       break;
-    case 0b001:
+    case 0b00001000:
       t1 = &C;
       break;
-    case 0b010:
+    case 0b00010000:
       t1 = &D;
       break;
-    case 0b011:
+    case 0b00011000:
       t1 = &E;
       break;
-    case 0b100:
+    case 0b00100000:
       t1 = &H;
       break;
-    case 0b101:
+    case 0b00101000:
       t1 = &L;
       break;
-    case 0b111:
+    case 0b00111000:
       t1 = &A;
       break;
   }
   switch (code & 0b00000111) {
-    case 0b000:
+    case 0b00000000:
       *t1 = B;
       break;
-    case 0b001:
+    case 0b00000001:
       *t1 = C;
       break;
-    case 0b010:
+    case 0b00000010:
       *t1 = D;
       break;
-    case 0b011:
+    case 0b00000011:
       *t1 = E;
       break;
-    case 0b100:
+    case 0b00000100:
       *t1 = H;
       break;
-    case 0b101:
+    case 0b00000101:
       *t1 = L;
       break;
-    case 0b111:
+    case 0b00000111:
       *t1 = A;
       break;
   }
@@ -111,25 +111,25 @@ void LD_r_r(uint8_t code) {
 
 void LD_HL_r(uint8_t code) {
   switch (code & 0b00000111) {
-    case 0b000:
+    case 0b00000000:
       put_byte(((uint16_t)H << 8) + L, B);
       break;
-    case 0b001:
+    case 0b00000001:
       put_byte(((uint16_t)H << 8) + L, C);
       break;
-    case 0b010:
+    case 0b00000010:
       put_byte(((uint16_t)H << 8) + L, D);
       break;
-    case 0b011:
+    case 0b00000011:
       put_byte(((uint16_t)H << 8) + L, E);
       break;
-    case 0b100:
+    case 0b00000100:
       put_byte(((uint16_t)H << 8) + L, H);
       break;
-    case 0b101:
+    case 0b00000101:
       put_byte(((uint16_t)H << 8) + L, L);
       break;
-    case 0b111:
+    case 0b00000111:
       put_byte(((uint16_t)H << 8) + L, A);
       break;
   }
@@ -228,20 +228,20 @@ void INC_rr(uint8_t code) {
   pc++;
 }
 void DEC_rr(uint8_t code) {
-  switch ((code & 0b00110000) >> 4) {
-    case 0b00:
+  switch (code & 0b00110000) {
+    case 0b00000000:
       C--;
       if (C == 0xFF) B--;
       break;
-    case 0b01:
+    case 0b00010000:
       E--;
       if (E == 0xFF) D--;
       break;
-    case 0b10:
+    case 0b00100000:
       L--;
       if (L == 0xFF) H--;
       break;
-    case 0b11:
+    case 0b00110000:
       sp--;
       break;
   }
@@ -329,7 +329,6 @@ void DEC_r(uint8_t code) {
   } else {
     F &= 0b11010000;
   }
-  // hフラグ謎
   cc += 4;
   cc_dec = 4;
   pc++;
