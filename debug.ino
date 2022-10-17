@@ -1,28 +1,28 @@
 void load_rom_header() {
   for (int i = 0; i < 4; i++) {
-    rom_header.ety_point[i] = get_rom_byte(0x100 + i);
+    rom_header.ety_point[i] = get_byte(0x100 + i);
   }
   for (int j = 0; j < 3; j++) {
     for (int i = 0; i < 16; i++) {
-      rom_header.logo[i + 16 * j] = get_rom_byte(0x104 + i + 16 * j);
+      rom_header.logo[i + 16 * j] = get_byte(0x104 + i + 16 * j);
     }
   }
   for (int i = 0; i < 16; i++) {
-    rom_header.tle[i] = get_rom_byte(0x134 + i);
+    rom_header.tle[i] = get_byte(0x134 + i);
   }
 
-  rom_header.lsc_code[0] = get_rom_byte(0x144);
-  rom_header.lsc_code[1] = get_rom_byte(0x145);
-  rom_header.sgb_flag = get_rom_byte(0x146);
-  rom_header.ctg_type = get_rom_byte(0x147);
-  rom_header.rom_size = get_rom_byte(0x148);
-  rom_header.ram_size = get_rom_byte(0x149);
-  rom_header.des_code = get_rom_byte(0x14a);
-  rom_header.old_code = get_rom_byte(0x14b);
-  rom_header.rom_ver = get_rom_byte(0x14c);
-  rom_header.hed_chk = get_rom_byte(0x14d);
-  rom_header.gbl_chk[0] = get_rom_byte(0x14e);
-  rom_header.gbl_chk[1] = get_rom_byte(0x14f);
+  rom_header.lsc_code[0] = get_byte(0x144);
+  rom_header.lsc_code[1] = get_byte(0x145);
+  rom_header.sgb_flag = get_byte(0x146);
+  rom_header.ctg_type = get_byte(0x147);
+  rom_header.rom_size = get_byte(0x148);
+  rom_header.ram_size = get_byte(0x149);
+  rom_header.des_code = get_byte(0x14a);
+  rom_header.old_code = get_byte(0x14b);
+  rom_header.rom_ver = get_byte(0x14c);
+  rom_header.hed_chk = get_byte(0x14d);
+  rom_header.gbl_chk[0] = get_byte(0x14e);
+  rom_header.gbl_chk[1] = get_byte(0x14f);
 }
 
 void display_rom_header() {
