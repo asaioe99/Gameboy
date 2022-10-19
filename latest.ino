@@ -17,6 +17,9 @@ SPISettings lcd_SPISettings = SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE3);
 
 uint8_t SPIBuf[320 * 2] ; // SPI転送用バッファ
 
+uint8_t FIFO_bg_wnd[12];
+bool pic_flag = 1;
+
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
   // 0     1     2     3     4     5     6     7     8     9     A     B     C     D     E     F
@@ -156,7 +159,7 @@ void sram_wt(uint16_t addr, uint8_t data) {
   SPI.transfer(addr_l);
   SPI.transfer(data);
   digitalWrite(10, HIGH);
-  SPI.endTransaction(sram_SPISettings);
+  SPI.endTransaction();
 }
 
 // 読み込み
@@ -173,7 +176,7 @@ int sram_rd(uint16_t addr) {
   SPI.transfer(addr_l);
   r_data = SPI.transfer(0);
   digitalWrite(10, HIGH);
-  SPI.endTransaction(sram_SPISettings);
+  SPI.endTransaction();
   return r_data;
 }
 
@@ -266,7 +269,6 @@ void write_ram_bank(uint8_t bank) {
   for (uint16_t address = 0xA000; address < 0xC000; address++) {
     put_ram_byte(address, 0xcc);
   }
-
   DataBusAsInput();
 }
 
@@ -322,8 +324,10 @@ void put_byte(uint16_t addr, uint8_t data) {
 // 初期化
 void setup() {
   Serial.begin(115200);
+  Serial.println("test");
   ini();
   ini_LCD();
+  Serial.println("test_aft_LCD");
   load_rom_header();  // romheader読み込み
   display_rom_header();
 }
