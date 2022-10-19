@@ -507,13 +507,13 @@ void CP_r() {
 void JR_cc_d8() {
   switch (code) {
     case 0x18:
-      pc = pc + 2 + get_byte(pc + 1);
+      pc = pc + 2 + (int8_t)get_byte(pc + 1);
       cc += 12;
       cc_dec = 4;
       break;
     case 0x20:
       if (F >> 7 == 0) {
-        pc = pc + 2 + get_byte(pc + 1);
+        pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
       } else {
         cc += 8;
@@ -522,7 +522,7 @@ void JR_cc_d8() {
       break;
     case 0x28:
       if ((F & 0b10000000) >> 7) {
-        pc = pc + 2 + get_byte(pc + 1);
+        pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
       } else {
         cc += 8;
@@ -531,7 +531,7 @@ void JR_cc_d8() {
       break;
     case 0x30:
       if (F & 0b00010000 == 0) {
-        pc = pc + 2 + get_byte(pc + 1);
+        pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
       } else {
         cc += 8;
@@ -540,7 +540,7 @@ void JR_cc_d8() {
       break;
     case 0x38:
       if (F & 0b00010000) {
-        pc = pc + 2 + get_byte(pc + 1);
+        pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
         cc_dec = 4;
       } else {
@@ -636,7 +636,7 @@ void LDH_c_a() {
 }
 
 void LDH_a_c() {
-  A = get_byte(0xFF + C);
+  A = get_byte(0xFF00 + C);
   cc += 8;
   cc_dec = 8;
   pc++;
