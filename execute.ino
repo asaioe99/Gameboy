@@ -2,7 +2,7 @@ void execute() {
   code = get_byte(pc);
 
   char buf[64];
-  if (pc > 0xE0) {
+  if (pc >= 0xE0) {
     sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X LY:%02X SL:%03d", pc, code, A, F, B, C, D, E, H, L, sp, get_byte(0xFF44), scaline_counter);
     Serial.println(buf);
     //delay(10);
