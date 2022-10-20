@@ -6,19 +6,20 @@
 #define LBYTE(u) (u & 0xFF)
 #define HL(H, L) ((uint16_t)H << 8) + L
 
-#define TFT_DC        50 // MISOのこと
-#define TFT_RST       48
+#define TFT_DC        41 // 
+#define TFT_RST       40
 #define TFT_MOSI      51
 #define TFT_SCLK      52
 #define TFT_CS        11
 
-SPISettings sram_SPISettings = SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE0);
-SPISettings lcd_SPISettings = SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE3);
+#define HBYTE(u) ((u >> 8) & 0xFF)
+#define LBYTE(u) (u & 0xFF)
+
+SPISettings sram_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE0);
+SPISettings lcd_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE3);
 
 uint8_t SPIBuf[320 * 2] ; // SPI転送用バッファ
-
 uint8_t FIFO_bg_wnd[12];
-bool pic_flag = 1;
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
@@ -324,10 +325,8 @@ void put_byte(uint16_t addr, uint8_t data) {
 // 初期化
 void setup() {
   Serial.begin(115200);
-  Serial.println("test");
   ini();
   ini_LCD();
-  Serial.println("test_aft_LCD");
   load_rom_header();  // romheader読み込み
   display_rom_header();
 }
