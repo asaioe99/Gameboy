@@ -2,10 +2,10 @@ void execute() {
   code = get_byte(pc);
 
   char buf[64];
-  if (pc >= 0xE0) {
-    sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X LY:%02X SL:%03d", pc, code, A, F, B, C, D, E, H, L, sp, get_byte(0xFF44), scaline_counter);
+  if (pc >= 0x0b) {
+    //sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, A, F, B, C, D, E, H, L, sp);
+    sprintf(buf, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%04X", *(io+0xFF40), *(io+0xFF41), *(io+0xFF42), *(io+0xFF43), *(io+0xFF44), *(io+0xFF45));
     Serial.println(buf);
-    //delay(10);
   }
   cc_dec = 0;
   if (code == 0xCB) {
