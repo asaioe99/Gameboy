@@ -15,8 +15,8 @@ void p_flag_update() {
     return;
   }
   //現時点のmodeが何であるか取得し更新
-  status_LCD &= 0b11111100; // mode0 デフォ
-  if (*t_FF44 >= 144) {         // mode1
+  status_LCD &= 0b11111100;              // mode0 デフォ
+  if (*t_FF44 >= 144) {                  // mode1
     status_LCD |= 0b00000001;
   } else {
     if (scaline_counter >= 376) {        // mode2
@@ -44,48 +44,12 @@ void mode_2() {
 
 // bg&wnd フェッチ
 void mode_3() {
-
-  uint8_t *t_FF40 = io + 0x40;
-  uint8_t SCY = *(io + 0x42) << 3; // SCY BGの描画位置
-  uint8_t SCX = *(io + 0x43) << 3; // SCX
-  uint8_t LY  = *(io + 0x44);
-  uint8_t pic_h;
-  uint8_t pic_l;
-
-  static uint16_t bg_offset;
-  static uint16_t window_offset;
-
-  uint8_t base_tile_number;
-  uint8_t tile_l;
-  uint8_t tile_h;
-  
-  for (uint8_t i = 0; i < 20; i++) {
-    base_tile_number = LY << 2; // LY（scanline number）に対応した先頭のtile number
-    
-    tile_l = get_byte(0x8000 + (base_tile_number + i) << 3 + (LY & 0b00000111) * 2); // LYに対応したタイルデータ 
-    tile_h = get_byte(0x8001 + (base_tile_number + i) << 3 + (LY & 0b00000111) * 2);
-
-    *(FIFO_bg_wnd + 0 ) = (tile_h & 0b10000000)      + (tile_h & 0b10000000) >> 1;
-    *(FIFO_bg_wnd + 1 ) = (tile_h & 0b01000000) >> 3 + (tile_h & 0b01000000) >> 4;
-    *(FIFO_bg_wnd + 2 ) = 0;
-    *(FIFO_bg_wnd + 3 ) = (tile_h & 0b00100000) << 2 + (tile_h & 0b00100000) << 1;
-    *(FIFO_bg_wnd + 4 ) = (tile_h & 0b00010000) >> 1 + (tile_h & 0b00010000) >> 2;
-    *(FIFO_bg_wnd + 5 ) = 0;
-    *(FIFO_bg_wnd + 6 ) = (tile_h & 0b00001000)      + (tile_h & 0b00001000) >> 1;
-    *(FIFO_bg_wnd + 7 ) = (tile_h & 0b00000100) << 1 + (tile_h & 0b00000100)     ;
-    *(FIFO_bg_wnd + 8 ) = 0;
-    *(FIFO_bg_wnd + 9 ) = (tile_h & 0b00000010) << 6 + (tile_h & 0b00000010) << 5;
-    *(FIFO_bg_wnd + 10) = (tile_h & 0b00000010) << 2 + (tile_h & 0b00000010) << 1;
-    *(FIFO_bg_wnd + 11) = 0;
-
-    drowBitMap(i * 8, LY);
-  }
   return;
 }
 
 void draw_scanline() {
   uint8_t *t_FF41 = io + 0x41;
-  
+
   switch (*t_FF41 & 0b00000011) {
     case 0b00: // mode 0
       break;
@@ -167,6 +131,7 @@ void ini_LCD() {
   dispStartLine(0);
   SPI.endTransaction();
   digitalWrite(TFT_CS, HIGH);
+
   return;
 }
 // 表示開始ライン設定
@@ -183,27 +148,20 @@ void dispStartLine(uint16_t y) {
 }
 
 // BITマップ表示
-void drowBitMap(uint8_t offsetX , uint8_t offsetY) {
-  uint8_t endX = offsetX + 7;
-  uint8_t endY = offsetY;
-
-  //uint8_t xsL = offsetX;
-  //uint8_t xeL = endX;
-  //uint8_t ysL = offsetY;
-  //uint8_t yeL = endY;
+void drowBitMap(uint8_t y) {
 
   SPI.beginTransaction(lcd_SPISettings);
 
-  tftSendCommand4(0x2A, 0, offsetX, 0, endX) ; // Colmun Address
-  tftSendCommand4(0x2B, 0, offsetY, 0, endY) ; // Row Address
+  tftSendCommand4(0x2A, 0, 0, 0, 159) ; // Colmun Address
+  tftSendCommand4(0x2B, 0, y, 0, y + 1) ; // Row Address
 
   digitalWrite(TFT_CS, LOW);
   digitalWrite(TFT_DC, LOW); // Command mode
   SPI.transfer(0x2C);
   digitalWrite(TFT_DC, HIGH); // Data mode
-  SPI.transfer(FIFO_bg_wnd, 12);
-  //SPI.transfer(test, 12);
+  SPI.transfer(FIFO_bg_wnd, 480);
   digitalWrite(TFT_CS, HIGH);
+
   SPI.endTransaction();
 }
 
@@ -216,13 +174,12 @@ void cls(bool rot) {
     tftSendCommand4(0x2A, 0, 0, 0x01, 0x3F) ; // Colmun Address
     tftSendCommand4(0x2B, 0, 0, 0, 239) ; // Row Address
   }
-  digitalWrite(TFT_CS, LOW);
   digitalWrite(TFT_DC, LOW); // Command mode
   SPI.transfer(0x2C);
   digitalWrite(TFT_DC, HIGH); // Data mode
   for (int i = 0; i < 240; i++) {
-    memset(SPIBuf, 0b10100000, 320 * 2) ;
-    SPI.transfer(SPIBuf, 320 * 2);
+    memset(SPIBuf, 0b00000000, 360) ;
+    SPI.transfer(SPIBuf, 360);
   }
   digitalWrite(TFT_DC, LOW); // Command mode
   digitalWrite(TFT_CS, HIGH);
