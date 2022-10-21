@@ -213,7 +213,7 @@ void display_tile(uint8_t start) {
   uint16_t tile_number;
   uint8_t tile_l;
   uint8_t tile_h;
-  
+
   Serial.println("begin");
   for (uint8_t LY = 0; LY < 144 ; LY++) {
     for (uint8_t i = 0; i < 20; i++) {
@@ -225,7 +225,7 @@ void display_tile(uint8_t start) {
       tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
 
       uint8_t tmp[12];
-      uint16_t t =  i * 12 + (LY % 2) * 160;
+      uint16_t t =  i * 12 + (LY % 2) * 240;
 
       for (int n = 0; n < 4; n++) {
 
@@ -234,53 +234,53 @@ void display_tile(uint8_t start) {
         uint8_t *tmp_2 = FIFO_bg_wnd + 2 + 3 * n + t;
         switch ((tile_l & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
           case 0b00:
-            *tmp_0 = 0b00000000;
-            *tmp_1 = 0b00000000;
-            *tmp_2 = 0b00000000;
+            *tmp_0 = ~0b00000000;
+            *tmp_1 = ~0b00000000;
+            *tmp_2 = ~0b00000000;
             break;
           case 0b01:
-            *tmp_0 = 0b00000000;
-            *tmp_1 = 0b00000011;
-            *tmp_2 = 0b00110011;
+            *tmp_0 = ~0b00000000;
+            *tmp_1 = ~0b00000011;
+            *tmp_2 = ~0b00110011;
             break;
           case 0b10:
-            *tmp_0 = 0b00110011;
-            *tmp_1 = 0b00110000;
-            *tmp_2 = 0b00000000;
+            *tmp_0 = ~0b00110011;
+            *tmp_1 = ~0b00110000;
+            *tmp_2 = ~0b00000000;
             break;
           case 0b11:
-            *tmp_0 = 0b00110011;
-            *tmp_1 = 0b00110011;
-            *tmp_2 = 0b00110011;
+            *tmp_0 = ~0b00110011;
+            *tmp_1 = ~0b00110011;
+            *tmp_2 = ~0b00110011;
             break;
         }
         switch ((tile_h & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
-          //case 0b00:
-          //*tmp_0 |= 0b00000000;
-          //*tmp_1 |= 0b00000000;
-          //*tmp_2 |= 0b00000000;
-          //break;
+          case 0b00:
+            *tmp_0 |= ~0b00000000;
+            *tmp_1 |= ~0b00000000;
+            *tmp_2 |= ~0b00000000;
+            break;
           case 0b01:
-            //*tmp_0 |= 0b00000000;
-            *tmp_1 |= 0b00001100;
-            *tmp_2 |= 0b11001100;
+            *tmp_0 |= ~0b00000000;
+            *tmp_1 |= ~0b00001100;
+            *tmp_2 |= ~0b11001100;
             break;
           case 0b10:
-            *tmp_0 |= 0b11001100;
-            *tmp_1 |= 0b11000000;
-            //*tmp_2 |= 0b00000000;
+            *tmp_0 |= ~0b11001100;
+            *tmp_1 |= ~0b11000000;
+            *tmp_2 |= ~0b00000000;
             break;
           case 0b11:
-            *tmp_0 |= 0b11001100;
-            *tmp_1 |= 0b11001100;
-            *tmp_2 |= 0b11001100;
+            *tmp_0 |= ~0b11001100;
+            *tmp_1 |= ~0b11001100;
+            *tmp_2 |= ~0b11001100;
             break;
         }
       }
     }
     if (LY % 2 == 1) drowBitMap(LY);
   }
-  
+
   Serial.println("end");
   return;
 }
