@@ -18,8 +18,8 @@
 SPISettings sram_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE0);
 SPISettings lcd_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE3);
 
-uint8_t SPIBuf[320 * 2] ; // SPI転送用バッファ
-uint8_t FIFO_bg_wnd[12];
+uint8_t SPIBuf[360] ; // SPI転送用バッファ
+uint8_t FIFO_bg_wnd[480];
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
