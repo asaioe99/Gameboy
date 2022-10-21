@@ -117,8 +117,12 @@ void ini_LCD() {
   tftSendCommand(0x11);            // Sleep Out
   delay(500);
   tftSendCommand1(0x3A, 0x03);     // 12Bit Pixel Mode
-
-  delay(10);
+  delay(100);
+  //tftSendCommand1(0xC6, 0x00);     // frame rate
+  //delay(100);
+  //tftSendCommand1(0xB4, 0x00);     // 12Bit Pixel Mode
+  //delay(100);
+  
   tftSendCommand1(0x36, 0b00000000);
   bool r = false; // MX MY MV ML RGB MH x x:縦向き１
   tftSendCommand2(0xB6, 0x15, 0x02); // Display settings #5
@@ -174,11 +178,12 @@ void cls(bool rot) {
     tftSendCommand4(0x2A, 0, 0, 0x01, 0x3F) ; // Colmun Address
     tftSendCommand4(0x2B, 0, 0, 0, 239) ; // Row Address
   }
+  digitalWrite(TFT_CS, LOW);
   digitalWrite(TFT_DC, LOW); // Command mode
   SPI.transfer(0x2C);
   digitalWrite(TFT_DC, HIGH); // Data mode
   for (int i = 0; i < 240; i++) {
-    memset(SPIBuf, 0b00000000, 360) ;
+    memset(SPIBuf, ~0b00000000, 360) ;
     SPI.transfer(SPIBuf, 360);
   }
   digitalWrite(TFT_DC, LOW); // Command mode
