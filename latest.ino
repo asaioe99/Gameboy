@@ -1,6 +1,6 @@
 #include <SPI.h>
-#include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+//#include <Adafruit_GFX.h>    // Core graphics library
+//#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
@@ -15,11 +15,11 @@
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
 
-SPISettings sram_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE0);
-SPISettings lcd_SPISettings = SPISettings(SPI_CLOCK_DIV2, MSBFIRST, SPI_MODE3);
+SPISettings sram_SPISettings = SPISettings(8000000, MSBFIRST, SPI_MODE0);//SPI_CLOCK_DIV2よりも速くした?
+SPISettings lcd_SPISettings = SPISettings(4000000, MSBFIRST, SPI_MODE3); //SPI_CLOCK_DIV2よりも速くした
 
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
-uint8_t FIFO_bg_wnd[480];
+uint8_t FIFO_bg_wnd[480]; //16pix毎
 
 // bootstrap（実物のため、そのままは掲載不可）
 uint8_t bootstrap[] = {
@@ -107,7 +107,7 @@ uint8_t get_rom_byte(uint16_t address) {
   delayMicroseconds(10);
   uint8_t result = PINF;
   PORTL = B00000111;  // カートリッジ2~4pinに何らかの設定
-  delayMicroseconds(10);
+  //delayMicroseconds(10);
   return result;
 }
 // ramの指定アドレスから1Byte読み出し
@@ -150,33 +150,32 @@ void DataBusAsOutput() {
 // 書き込み 高速化必須
 void sram_wt(uint16_t addr, uint8_t data) {
 
-  uint8_t addr_h = (addr >> 4) & 0xFF;
+  uint8_t addr_h = (addr >> 4);// & 0xFF;
   uint8_t addr_l = addr & 0xFF;
 
   SPI.beginTransaction(sram_SPISettings);
-  digitalWrite(10, LOW);
+  PORTB &= 0b11101111;//digitalWrite(10, LOW);
   SPI.transfer(0x02);  //0x02 書き込みモード
   SPI.transfer(addr_h);
   SPI.transfer(addr_l);
   SPI.transfer(data);
-  digitalWrite(10, HIGH);
+  PORTB |= 0b00010000;//digitalWrite(10, HIGH);
   SPI.endTransaction();
 }
 
 // 読み込み
 int sram_rd(uint16_t addr) {
-
   uint8_t r_data;
-  uint8_t addr_h = (addr >> 4) & 0xFF;
+  uint8_t addr_h = (addr >> 4);// & 0xFF;
   uint8_t addr_l = addr & 0xFF;
 
   SPI.beginTransaction(sram_SPISettings);
-  digitalWrite(10, LOW);
+  PORTB &= 0b11101111;//digitalWrite(10, LOW);
   SPI.transfer(0x03);  //0x03 読み込みモード
   SPI.transfer(addr_h);
   SPI.transfer(addr_l);
   r_data = SPI.transfer(0);
-  digitalWrite(10, HIGH);
+  PORTB |= 0b00010000;//digitalWrite(10, HIGH);
   SPI.endTransaction();
   return r_data;
 }
@@ -239,6 +238,16 @@ void ini() {
   put_byte(0xFF4B, 0x00);
   put_byte(0xFFFF, 0x00);
 
+  // SRAM初期化
+  /*
+  for (uint16_t addr = 0x8000; addr < 0xA000; addr++) {
+    sram_wt(addr, 0x00);
+    if (sram_rd(addr) != 0x00) {
+      Serial.print("error sram chk at ");
+      Serial.println(addr, HEX);
+    }
+  }
+*/
   // SPI初期化（SRAM）
   pinMode(10, OUTPUT);
   digitalWrite(10, HIGH);
@@ -262,8 +271,6 @@ void switch_ram_bank(byte bank) {
 
 void write_ram_bank(uint8_t bank) {
 
-  //Serial.print("write ram bank ");
-  //Serial.println(bank);
   switch_ram_bank(bank);
   DataBusAsOutput();
 
@@ -327,6 +334,7 @@ void setup() {
   Serial.begin(115200);
   ini();
   ini_LCD();
+  delay(100);
   load_rom_header();  // romheader読み込み
   display_rom_header();
 }
@@ -336,8 +344,6 @@ void loop() {
   PORTL = B00000111;  // 読み書き時以外は常にこの状態にするらしい
   delayMicroseconds(10);
 
-  //for debug
-  
   //dump_rom_bank(1);
   //enable_ram();
   //write_ram_bank(0);
