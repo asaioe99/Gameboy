@@ -21,7 +21,6 @@ void p_flag_update() {
   } else {
     if (scaline_counter >= 376) {        // mode2
       status_LCD |= 0b00000010;
-
     } else if (scaline_counter >= 204) { // mode3
       status_LCD |= 0b00000011;
     }
@@ -38,6 +37,14 @@ void p_flag_update() {
   *t_FF41 = status_LCD;
 }
 
+void mode_0() {
+  return;
+}
+
+void mode_1() {
+  return;
+}
+
 void mode_2() {
   return;
 }
@@ -48,21 +55,16 @@ void mode_3() {
   return;
 }
 
-void draw_scanline() {
-  uint8_t *t_FF41 = io + 0x41;
+void mode_sw() {
 
-  switch (*t_FF41 & 0b00000011) {
+  switch (*(io + 0x41) & 0b00000011) {
     case 0b00: // mode 0
-      digitalWrite(25, LOW);
       break;
     case 0b01: // mode 1
-      digitalWrite(25, HIGH);
       break;
     case 0b10: // mode 2
-      digitalWrite(25, LOW);
       break;
     case 0b11: // mode 3
-      digitalWrite(25, LOW);
       mode_3();
       break;
   }
@@ -75,7 +77,9 @@ void ppu() {
   // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
   if (*(io + 0x40) & 0b10000000) {
     scaline_counter -= cc_dec;
+    gpio_put(25, HIGH);
   } else {
+    gpio_put(25, LOW);
     return;
   }
   uint8_t *t_FF44 = io + 0x44;
@@ -83,17 +87,12 @@ void ppu() {
   if (scaline_counter <= 0) {
     *t_FF44 = *t_FF44 + 1;
     scaline_counter += 456;
-    display_scanline();
-  } else {
-    return;
   }
   // 非ブランクゾーンの場合の処理
   if (*t_FF44 < 144) {
-    draw_scanline();
-
+    mode_sw();
   } else if (*t_FF44 > 153) {
     *t_FF44 = 0;
-
   } else if (*t_FF44 = 144) {
     *(io + 0x0F) = *(io + 0x0F) | 0b00010000; // v-blank割り込み発生
   }
@@ -103,11 +102,8 @@ void ppu() {
 void display_scanline() {
 
   uint8_t *t_FF40 = io + 0x40;
-
   uint8_t SCY = *(io + 0x42) << 3; // SCY BGの描画位置
   uint8_t SCX = *(io + 0x43) << 3; // SCX
-
-
   uint8_t LY  = *(io + 0x44);
   uint8_t pic_h;
   uint8_t pic_l;
@@ -133,7 +129,6 @@ void display_scanline() {
       tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2);
     }
 
-    uint8_t tmp[12];
     uint16_t t =  i * 12;
 
     for (int n = 0; n < 4; n++) {
@@ -141,21 +136,26 @@ void display_scanline() {
       uint8_t *tmp_0 = FIFO_bg_wnd + 0 + 3 * n + t;
       uint8_t *tmp_1 = FIFO_bg_wnd + 1 + 3 * n + t;
       uint8_t *tmp_2 = FIFO_bg_wnd + 2 + 3 * n + t;
+      
+      *tmp_0 = 0b00000000;
+      *tmp_1 = 0b00000000;
+      *tmp_2 = 0b00000000;
+      
       switch ((tile_l & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
-        case 0b00:
-          *tmp_0 = 0b00000000;
-          *tmp_1 = 0b00000000;
-          *tmp_2 = 0b00000000;
-          break;
+        //case 0b00:
+          //*tmp_0 = 0b00000000;
+          //*tmp_1 = 0b00000000;
+          //*tmp_2 = 0b00000000;
+          //break;
         case 0b01:
-          *tmp_0 = 0b00000000;
+          //*tmp_0 = 0b00000000;
           *tmp_1 = 0b00000011;
           *tmp_2 = 0b00110011;
           break;
         case 0b10:
           *tmp_0 = 0b00110011;
           *tmp_1 = 0b00110000;
-          *tmp_2 = 0b00000000;
+          //*tmp_2 = 0b00000000;
           break;
         case 0b11:
           *tmp_0 = 0b00110011;
@@ -187,6 +187,7 @@ void display_scanline() {
       }
     }
   }
+
   drowBitMap(LY);
 
   //digitalWrite(25, LOW);
