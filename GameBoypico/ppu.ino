@@ -1,186 +1,187 @@
-void ini_LCD() {
+void p_flag_update() {
 
-  /*
-      tft.init(240, 240);           // Init ST7789 240x240
-      tft.setSPISpeed(80000000);
-      tft.startWrite();
-      tft.fillScreen(ST77XX_WHITE);
-      tft.endWrite();
-      delay(500);
-      tft.fillScreen(ST77XX_BLACK);
-      tft.endWrite();
-      delay(500);
-      tft.drawPixel(tft.width() / 2, tft.height() / 2, ST77XX_GREEN);
-      delay(500);
-  */
+  uint8_t *t_FF40 = io + 0x40;
+  uint8_t *t_FF41 = io + 0x41;
+  uint8_t *t_FF44 = io + 0x44;
+  uint8_t status_LCD = *t_FF41;
 
-  SPI.begin();
-  /*
-    gpio_init(TFT_DC);                //gpio番号を初期化する
-    gpio_set_dir(TFT_DC,   GPIO_OUT); //出力に設定する
-    gpio_init(TFT_RST);
-    gpio_set_dir(TFT_RST,  GPIO_OUT);
-    gpio_init(TFT_CS);
-    gpio_set_dir(TFT_CS,   GPIO_OUT);
-    gpio_init(TFT_MOSI);
-    gpio_set_dir(TFT_MOSI, GPIO_OUT);
-    gpio_init(TFT_SCLK);
-    gpio_set_dir(TFT_SCLK, GPIO_OUT);
+  if ((*t_FF40 & 0x80) != 0x80) {
+    *t_FF40 = 0x00;
+    scaline_counter = 456;
+    status_LCD &= 0b11111100;
+    status_LCD = ~(status_LCD & (1 << 0));
+    status_LCD = ~(status_LCD & (1 << 1));
+    *t_FF41 = status_LCD;
+    return;
+  }
+  //現時点のmodeが何であるか取得し更新
+  status_LCD &= 0b11111100;              // mode0 デフォ
+  if (*t_FF44 >= 144) {                  // mode1
+    status_LCD |= 0b00000001;
+  } else {
+    if (scaline_counter >= 376) {        // mode2
+      status_LCD |= 0b00000010;
 
-    gpio_put(TFT_DC, 1);
-  */
-  pinMode(TFT_DC,   OUTPUT);
-  pinMode(TFT_RST,  OUTPUT);
-  pinMode(TFT_CS,   OUTPUT);
-  pinMode(TFT_MOSI, OUTPUT);
-  pinMode(TFT_SCLK, OUTPUT);
-
-  SPI.beginTransaction(lcd_SPISettings);
-  for (int i = 0; i < 1000; i++) {
-    Serial.println("Hello World!");
+    } else if (scaline_counter >= 204) { // mode3
+      status_LCD |= 0b00000011;
+    }
   }
 
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  Serial.println("chk1");
-  // --- HARD Ware Reset
-  digitalWrite(TFT_RST, HIGH);
-  delay(500);                  // VDD goes high at start, pause for 500 ms
-  digitalWrite(TFT_RST, LOW);  // Bring reset low
-  delay(100);                  // Wait 100 ms
-  digitalWrite(TFT_RST, HIGH); // Bring out of reset
-  delay(120);                  // Wait 500 ms, more then 120 ms
-  // --- SOFT Ware Reset
-  tftSendCommand(0x01);        // SOFTWARE RESET
-  delay(500);
+  // put_byte(0xFF41, status_LCD);
+  *t_FF41 = status_LCD;
 
-  // --- Initial Comands
-  tftSendCommand(0x28);            // Display OFF
-  delay(500);
-  tftSendCommand(0x11);            // Sleep Out
-  delay(500);
-  tftSendCommand1(0x3A, 0x03);     // 12Bit Pixel Mode
-  delay(100);
-  tftSendCommand1(0x26, 0x08);     // Gamma value
-  delay(100);
-  //tftSendCommand3(0xB3, 0b00010011, 0b00000000, 0b00000000);     // Frame rate
-  //delay(100);
+  if (status_LCD == *(io + 0x45)) {
+    status_LCD = status_LCD | 0b00000100;
+  } else {
+    status_LCD = status_LCD & 0b11111011;
+  }
+  *t_FF41 = status_LCD;
+}
 
-  tftSendCommand1(0x36, 0b00000000);
-  //bool r = false; // MX MY MV ML RGB MH x x:縦向き１
-  tftSendCommand2(0xB6, 0x15, 0x02); // Display settings #5
-  delay(100);
-  tftSendCommand(0x13);            // NomalDisplayMode
-  delay(100);
-  tftSendCommand(0x21);            // Display Inversion Off
-  delay(100);
-  cls();
-  delay(500);
-  tftSendCommand(0x29);            // Display ON
-  delay(500);
-  //dispStartLine(0);
-  SPI.endTransaction();
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
-
+void mode_2() {
   return;
 }
 
-// 画面クリア
-void cls() {
-  SPI.beginTransaction(lcd_SPISettings);
+// bg&wnd フェッチ
+void mode_3() {
+  display_scanline();
+  return;
+}
 
-  tftSendCommand4(0x2A, 0, 0, 0, 239) ; // Colmun Address
-  tftSendCommand4(0x2B, 0, 0, 0, 239) ; // Row Address
+void draw_scanline() {
+  uint8_t *t_FF41 = io + 0x41;
 
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-
-  SPI.transfer(0x2C);
-
-  digitalWrite(TFT_DC, HIGH); // Data mode
-  delayMicroseconds(10);
-  memset(SPIBuf, 0b11111111, 360);//0b00000000
-  for (int i = 0; i < 240; i++) {
-    SPI.transfer(SPIBuf, 360);
+  switch (*t_FF41 & 0b00000011) {
+    case 0b00: // mode 0
+      digitalWrite(25, LOW);
+      break;
+    case 0b01: // mode 1
+      digitalWrite(25, HIGH);
+      break;
+    case 0b10: // mode 2
+      digitalWrite(25, LOW);
+      break;
+    case 0b11: // mode 3
+      digitalWrite(25, LOW);
+      mode_3();
+      break;
   }
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
-
-  SPI.endTransaction();
+  return;
 }
 
-// TFTにコマンドを送信
-void tftSendCommand(uint8_t command) {
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(command);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
+void ppu() {
+  // flag等 アップデート
+  p_flag_update();
+  // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
+  if (*(io + 0x40) & 0b10000000) {
+    scaline_counter -= cc_dec;
+  } else {
+    return;
+  }
+  uint8_t *t_FF44 = io + 0x44;
+  //　スキャンラインの右端に達したらlyをインクリメントしてスキャンラインナンバーを下に進める
+  if (scaline_counter <= 0) {
+    *t_FF44 = *t_FF44 + 1;
+    scaline_counter += 456;
+    display_scanline();
+  } else {
+    return;
+  }
+  // 非ブランクゾーンの場合の処理
+  if (*t_FF44 < 144) {
+    draw_scanline();
+    
+  } else if (*t_FF44 > 153) {
+    *t_FF44 = 0;
+    
+  } else if (*t_FF44 = 144) {
+    draw_scanline();
+    *(io + 0x0F) = *(io + 0x0F) | 0b00010000; // v-blank割り込み発生
+  }
 }
 
-// TFTにコマンド+1バイトデータを送信
-void tftSendCommand1(uint8_t command, uint8_t data1) {
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(command);
-  digitalWrite(TFT_DC, HIGH); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(data1);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
-}
+// bg&wnd フェッチ
+void display_scanline() {
+  
+  //uint8_t *t_FF40 = io + 0x40;
+  uint8_t SCY = *(io + 0x42) << 3; // SCY BGの描画位置
+  uint8_t SCX = *(io + 0x43) << 3; // SCX
+  uint8_t LY  = *(io + 0x44);
+  uint8_t pic_h;
+  uint8_t pic_l;
 
-// TFTにコマンド+2バイトデータを送信
-void tftSendCommand2(uint8_t command, uint8_t data1, uint8_t data2) {
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(command);
-  digitalWrite(TFT_DC, HIGH); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(data1);
-  SPI.transfer(data2);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
-}
-// TFTにコマンド+3バイトデータを送信
-void tftSendCommand3(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3) {
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(command);
-  digitalWrite(TFT_DC, HIGH); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(data1);
-  SPI.transfer(data2);
-  SPI.transfer(data3);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
-}
-// TFTにコマンド+4バイトデータを送信
-void tftSendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4) {
-  digitalWrite(TFT_CS, LOW);
-  delayMicroseconds(10);
-  digitalWrite(TFT_DC, LOW); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(command);
-  digitalWrite(TFT_DC, HIGH); // Command mode
-  delayMicroseconds(10);
-  SPI.transfer(data1);
-  SPI.transfer(data2);
-  SPI.transfer(data3);
-  SPI.transfer(data4);
-  digitalWrite(TFT_CS, HIGH);
-  delayMicroseconds(10);
+  static uint16_t bg_offset;
+  static uint16_t window_offset;
+
+  uint16_t base_tile_number;
+  uint16_t tile_number;
+  uint8_t tile_l;
+  uint8_t tile_h;
+
+  for (uint8_t i = 0; i < 20; i++) {
+    base_tile_number = (LY >> 3) << 5; // LY（scanline number）に対応した先頭のtile number
+
+    tile_number = get_byte(0x9900 + base_tile_number + i); // LYに対応したタイルデータ
+
+    tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2);
+    tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
+
+    uint8_t tmp[12];
+    uint16_t t =  i * 12;
+
+    for (int n = 0; n < 4; n++) {
+
+      uint8_t *tmp_0 = FIFO_bg_wnd + 0 + 3 * n + t;
+      uint8_t *tmp_1 = FIFO_bg_wnd + 1 + 3 * n + t;
+      uint8_t *tmp_2 = FIFO_bg_wnd + 2 + 3 * n + t;
+      switch ((tile_l & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
+        case 0b00:
+          *tmp_0 = 0b00000000;
+          *tmp_1 = 0b00000000;
+          *tmp_2 = 0b00000000;
+          break;
+        case 0b01:
+          *tmp_0 = 0b00000000;
+          *tmp_1 = 0b00000011;
+          *tmp_2 = 0b00110011;
+          break;
+        case 0b10:
+          *tmp_0 = 0b00110011;
+          *tmp_1 = 0b00110000;
+          *tmp_2 = 0b00000000;
+          break;
+        case 0b11:
+          *tmp_0 = 0b00110011;
+          *tmp_1 = 0b00110011;
+          *tmp_2 = 0b00110011;
+          break;
+      }
+      switch ((tile_h & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
+        //case 0b00:
+        //*tmp_0 |= 0b00000000;
+        //*tmp_1 |= 0b00000000;
+        //*tmp_2 |= 0b00000000;
+        //break;
+        case 0b01:
+          //*tmp_0 |= 0b00000000;
+          *tmp_1 |= 0b00001100;
+          *tmp_2 |= 0b11001100;
+          break;
+        case 0b10:
+          *tmp_0 |= 0b11001100;
+          *tmp_1 |= 0b11000000;
+          //*tmp_2 |= 0b00000000;
+          break;
+        case 0b11:
+          *tmp_0 |= 0b11001100;
+          *tmp_1 |= 0b11001100;
+          *tmp_2 |= 0b11001100;
+          break;
+      }
+    }
+  }
+  drowBitMap(LY);
+
+  //digitalWrite(25, LOW);
+  return;
 }
