@@ -55,3 +55,6 @@ SPI＿MODE0で動作。液晶はMODE2なので共用不可
 
 
 https://github.com/adafruit/Adafruit-ST7735-Library/blob/master/examples/graphicstest_st7789/graphicstest_st7789.ino
+
+### picoに移行
+SPIのpinは公式ArduinoIDEからでは割り当て変更不可なので、ソフトウェアSPIを実装すべき。
