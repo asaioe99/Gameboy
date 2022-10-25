@@ -90,22 +90,24 @@ void ppu() {
   // 非ブランクゾーンの場合の処理
   if (*t_FF44 < 144) {
     draw_scanline();
-    
+
   } else if (*t_FF44 > 153) {
     *t_FF44 = 0;
-    
+
   } else if (*t_FF44 = 144) {
-    draw_scanline();
     *(io + 0x0F) = *(io + 0x0F) | 0b00010000; // v-blank割り込み発生
   }
 }
 
 // bg&wnd フェッチ
 void display_scanline() {
-  
-  //uint8_t *t_FF40 = io + 0x40;
+
+  uint8_t *t_FF40 = io + 0x40;
+
   uint8_t SCY = *(io + 0x42) << 3; // SCY BGの描画位置
   uint8_t SCX = *(io + 0x43) << 3; // SCX
+
+
   uint8_t LY  = *(io + 0x44);
   uint8_t pic_h;
   uint8_t pic_l;
@@ -119,12 +121,17 @@ void display_scanline() {
   uint8_t tile_h;
 
   for (uint8_t i = 0; i < 20; i++) {
-    base_tile_number = (LY >> 3) << 5; // LY（scanline number）に対応した先頭のtile number
+    base_tile_number = SCX + SCY * 32 + (LY >> 3) << 5; // LY（scanline number）に対応した先頭のtile number
 
-    tile_number = get_byte(0x9900 + base_tile_number + i); // LYに対応したタイルデータ
+    tile_number = get_byte(0x9800 + base_tile_number); // LYに対応したタイルデータ
 
-    tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2);
-    tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
+    if (*t_FF40 & 0b00010000 == 0b00010000) {
+      tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2);
+      tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
+    } else {
+      tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2);
+      tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2);
+    }
 
     uint8_t tmp[12];
     uint16_t t =  i * 12;
