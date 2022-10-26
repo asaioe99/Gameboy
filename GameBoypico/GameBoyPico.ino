@@ -18,7 +18,7 @@
 #define LBYTE(u) (u & 0xFF)
 
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
-uint8_t FIFO_bg_wnd[480];
+uint8_t FIFO_bg_wnd[320];
 
 // bootstrap（実物のため、そのままは掲載不可）
 const uint8_t bootstrap[] = {
@@ -75,8 +75,6 @@ uint8_t ime;
 uint8_t cc_dec;
 uint8_t code;
 int16_t scaline_counter;
-
-
 
 // romの指定アドレスから1Byte読み出し
 uint8_t get_rom_byte(uint16_t address) {
