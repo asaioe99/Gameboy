@@ -1,6 +1,6 @@
 void ini_LCD() {
   // pin assign
-  pinMode(TFT_MOSI, OUTPUT);
+  pinMode(TFT_MOSI,OUTPUT);
   pinMode(TFT_CLK, OUTPUT);
   pinMode(TFT_CS,  OUTPUT);
   pinMode(TFT_DC,  OUTPUT);
@@ -45,17 +45,17 @@ void ini_LCD() {
 
 // ===== SPI WRITE =====
 // ソフトウエアＳＰＩ通信:MODE0 MSBFARST（送信のみ）
-void SPI_transfer(uint8_t writeData) {
+void SPI_transfer(uint8_t data) {
   for (uint8_t bit = 0x80; bit; bit >>= 1) {
-    gpio_put(TFT_MOSI, writeData & bit);
+    gpio_put(TFT_MOSI, data & bit);
     gpio_put(TFT_CLK, HIGH);
     gpio_put(TFT_CLK, LOW);
   }
 }
 
-void SPI_transfer(uint8_t writeData[], int WriteDataLen) {
-  for (int d = 0; d < WriteDataLen; d++) {
-    SPI_transfer(writeData[d]) ;
+void SPI_transfer(uint8_t* data, int dataLen) {
+  for (int d = 0; d < dataLen; d++) {
+    SPI_transfer(*(data + d));
   }
 }
 
@@ -113,7 +113,7 @@ void tftSendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data
   gpio_put(TFT_CS, HIGH);  //
 }
 
-// 画面クリア 将来的には周辺部は黒くしたい　節電！
+// 画面クリア 
 void cls(bool rot) {
 
   tftSendCommand4(0x2A, 0, 0, 0, 239) ; // Colmun Address
