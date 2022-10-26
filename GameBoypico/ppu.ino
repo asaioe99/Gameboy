@@ -92,11 +92,8 @@ void ppu() {
     scaline_counter += 456;
     // 非ブランクゾーンの場合の処理
     if (*t_FF44 < 144) {
-      //display_scanline();
-      display_tile(0);
-      //mode_sw();
+      display_scanline();
     } else if (*t_FF44 == 144) {
-      //mode_sw();
       *(io + 0x0F) = *(io + 0x0F) | 0b00010000; // v-blank割り込み発生
     } else {
       *t_FF44 = 0;
@@ -112,51 +109,55 @@ void ppu() {
 void display_scanline() {
 
   uint8_t *t_FF40 = io + 0x40;
-  uint8_t SCY = *(io + 0x42); // SCY BGの描画位置
-  uint8_t SCX = *(io + 0x43); // SCX
-  uint16_t LY  = *(io + 0x44);
+  uint16_t SCY = (uint16_t)*(io + 0x42); // SCY BGの描画位置
+  uint16_t SCX = (uint16_t)*(io + 0x43); // SCX
+  uint16_t LY  = (uint16_t)*(io + 0x44);
 
-  static uint16_t bg_offset;
-  static uint16_t window_offset;
   uint16_t base_tile_number;
   uint16_t tile_number;
   uint8_t tile_l;
   uint8_t tile_h;
 
-  for (uint16_t i = 0; i < 0x20; i++) {
-    base_tile_number = (SCX >> 3) + (SCY >> 3) * 32 + ((LY & 0b11111000) << 2); // LY（scanline number）に対応した先頭のtile number
+  for (uint16_t i = 0; i < 20; i++) {
+    //base_tile_number = (LY & 0b11111000) << 2 + (SCY & 0b11111000) << 2; // LY（scanline number）に対応した先頭のtile number
+    base_tile_number = ((LY + SCY) & 0b11111000) << 2;
 
-    if (*t_FF40 & 0b00001000 == 0b00001000) {
+    if (*t_FF40 & 0b00001000) {
       tile_number = get_byte(0x9C00 + base_tile_number + i); // LYに対応したタイルデータ
     } else {
-      //gpio_put(25, HIGH);
-      //delay(100);
+      //delay(50);
       //gpio_put(25, LOW);
       tile_number = get_byte(0x9800 + base_tile_number + i); // LYに対応したタイルデータ
     }
-    if (*t_FF40 & 0b00010000 == 0b00010000) {
-      tile_l = get_byte(0x8000 + (tile_number << 4) + ((LY + (SCY & 0b00000111)) & 0b00000111) * 2);
-      tile_h = get_byte(0x8001 + (tile_number << 4) + ((LY + (SCY & 0b00000111)) & 0b00000111) * 2);
+    if (*t_FF40 & 0b00010000) {
+      //tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2);
+      //tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2);
+      tile_l = get_byte(0x8000 + (tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
+      tile_h = get_byte(0x8001 + (tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
     } else {
-      tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + ((LY + (SCY & 0b00000111)) & 0b00000111) * 2); //怪しい
-      tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + ((LY + (SCY & 0b00000111)) & 0b00000111) * 2);
+      //tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2));
+      //tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2));
+      tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
+      tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
     }
 
-    for (int n = 0; n < 8; n++) {
+    uint8_t *tmp_0 = FIFO_bg_wnd + (i << 4);
+    uint8_t *tmp_1 = tmp_0 + 1;
 
-      uint8_t *tmp_0 = FIFO_bg_wnd + 0 + 2 * n + i * 16;
-      uint8_t *tmp_1 = FIFO_bg_wnd + 1 + 2 * n + i * 16;
+    for (int n = 0; n < 8; n++) {
+      tmp_0 += 2;
+      tmp_1 += 2;
 
       *tmp_0 = 0b00000000;
       *tmp_1 = 0b00000000;
 
       if (tile_l & (0b10000000 >> n)) {
-        *tmp_0 = 0b00011000;
-        *tmp_1 = 0b11000011;
+        *tmp_0 = 0b00111001;
+        *tmp_1 = 0b11000111;
       }
       if (tile_h & (0b10000000 >> n)) {
-        *tmp_0 |= 0b01100011;
-        *tmp_1 |= 0b00001100;
+        *tmp_0 |= 0b11000110;
+        *tmp_1 |= 0b00011000;
       }
     }
   }
