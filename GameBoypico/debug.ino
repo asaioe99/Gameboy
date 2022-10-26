@@ -14,74 +14,35 @@ void display_tile(uint8_t start) {
   uint8_t tile_l;
   uint8_t tile_h;
 
-  for (uint8_t LY = 0; LY < 144 ; LY++) {
-    for (uint8_t i = 0; i < 20; i++) {
-      base_tile_number = (LY >> 3) << 5; // LY（scanline number）に対応した先頭のtile number
-      //tile_number = get_byte(0x9900 + base_tile_number + i); // LYに対応したタイルデータ
+  for (uint16_t LY = 0; LY < 144 ; LY++) {
+    for (uint16_t i = 0; i < 20; i++) {
+      base_tile_number = (LY & 0b11111000) << 2; // LY（scanline number）に対応した先頭のtile number
+      tile_number = get_byte(0x9800 + base_tile_number + i); // LYに対応したタイルデータ
       //tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2);
       //tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
-      tile_l = get_byte(0x8000 + ((i + base_tile_number) << 4) + (LY & 0b00000111) * 2);
-      tile_h = get_byte(0x8001 + ((i + base_tile_number) << 4) + (LY & 0b00000111) * 2);
+      tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2);
+      tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2);
 
-      uint16_t t =  i * 12;
+      for (int n = 0; n < 8; n++) {
 
-      for (int n = 0; n < 4; n++) {
+        uint8_t *tmp_0 = FIFO_bg_wnd + 0 + 2 * n + i * 16;
+        uint8_t *tmp_1 = FIFO_bg_wnd + 1 + 2 * n + i * 16;
 
-        uint8_t *tmp_0 = FIFO_bg_wnd + 0 + 3 * n + t;
-        uint8_t *tmp_1 = FIFO_bg_wnd + 1 + 3 * n + t;
-        uint8_t *tmp_2 = FIFO_bg_wnd + 2 + 3 * n + t;
         *tmp_0 = 0b00000000;
         *tmp_1 = 0b00000000;
-        *tmp_2 = 0b00000000;
 
-        switch ((tile_l & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
-          //case 0b00:
-            //*tmp_0 = 0b00000000;
-            //*tmp_1 = 0b00000000;
-            //*tmp_2 = 0b00000000;
-            //break;
-          case 0b01:
-            //*tmp_0 = 0b00000000;
-            *tmp_1 = 0b00000011;
-            *tmp_2 = 0b00110011;
-            break;
-          case 0b10:
-            *tmp_0 = 0b00110011;
-            *tmp_1 = 0b00110000;
-            //*tmp_2 = 0b00000000;
-            break;
-          case 0b11:
-            *tmp_0 = 0b00110011;
-            *tmp_1 = 0b00110011;
-            *tmp_2 = 0b00110011;
-            break;
+        if (tile_l & (0b10000000 >> n)) {
+          *tmp_0 = 0b00011000;
+          *tmp_1 = 0b11000011;
         }
-        switch ((tile_h & (0b11000000 >> 2 * n)) >> (6 - 2 * n)) {
-          //case 0b00:
-          //*tmp_0 |= 0b00000000;
-          //*tmp_1 |= 0b00000000;
-          //*tmp_2 |= 0b00000000;
-          //break;
-          case 0b01:
-            //*tmp_0 |= 0b00000000;
-            *tmp_1 |= 0b00001100;
-            *tmp_2 |= 0b11001100;
-            break;
-          case 0b10:
-            *tmp_0 |= 0b11001100;
-            *tmp_1 |= 0b11000000;
-            //*tmp_2 |= 0b00000000;
-            break;
-          case 0b11:
-            *tmp_0 |= 0b11001100;
-            *tmp_1 |= 0b11001100;
-            *tmp_2 |= 0b11001100;
-            break;
+        if (tile_h & (0b10000000 >> n)) {
+          *tmp_0 |= 0b01100011;
+          *tmp_1 |= 0b00001100;
         }
       }
+      drowBitMap(LY);
     }
-    drowBitMap(LY);
-  }
 
-  return;
+    return;
+  }
 }
