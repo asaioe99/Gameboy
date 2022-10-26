@@ -2,9 +2,9 @@ void ini_LCD() {
   // pin assign
   pinMode(TFT_MOSI, OUTPUT);
   pinMode(TFT_CLK, OUTPUT);
-  pinMode(TFT_CS, OUTPUT);
-  pinMode(TFT_DC, OUTPUT);
-  pinMode(TFT_BL, OUTPUT);
+  pinMode(TFT_CS,  OUTPUT);
+  pinMode(TFT_DC,  OUTPUT);
+  pinMode(TFT_BL,  OUTPUT);
   pinMode(TFT_RST, OUTPUT);
 
   // BACK LIGHT ON
@@ -28,12 +28,9 @@ void ini_LCD() {
 
   tftSendCommand(0x11) ;            // Sleep Out
   delay(500);
-  tftSendCommand1(0x3A, 0x03) ;       // 16Bit Pixel Mode
+  tftSendCommand1(0x3A, 0x05) ;       // 16Bit Pixel Mode
   delay(10);
-  //tftSendCommand1(0x36, 0b00000000); ; r = false; // MX MY MV ML RGB MH x x:横向き１
-  tftSendCommand1(0x36,B01100000) ; r = false;  // MX MY MV ML RGB MH x x：横向き２
-  //tftSendCommand1(0x36,B00000000) ; r = true;  // MX MY MV ML RGB MH x x：縦向き１
-  //tftSendCommand1(0x36, B11000000) ; r = true; // MX MY MV ML RGB MH x x：縦向き２(多分これがスタンダード)
+  tftSendCommand1(0x36, B01100000) ; r = false; // MX MY MV ML RGB MH x x：横向き２
   tftSendCommand2(0xB6, 0x15, 0x02) ; // Display settings #5
   tftSendCommand1(0xB4, 0x00) ;     // Display inversion control
 
@@ -116,19 +113,20 @@ void tftSendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data
   gpio_put(TFT_CS, HIGH);  //
 }
 
-// 画面クリア
+// 画面クリア 将来的には周辺部は黒くしたい　節電！
 void cls(bool rot) {
 
-  tftSendCommand4(0x2A, 0, 0, 1, 0X3F) ; // Colmun Address
+  tftSendCommand4(0x2A, 0, 0, 0, 239) ; // Colmun Address
   tftSendCommand4(0x2B, 0, 0, 0, 239) ; // Row Address
 
   gpio_put(TFT_CS, LOW);
   gpio_put(TFT_DC, LOW); // Command mode
   SPI_transfer(0x2C);
   gpio_put(TFT_DC, HIGH); // Data mode
-  for (int i = 0; i < 360; i++) {
-    for (int j = 0; j < 360; j++) {
-      SPI_transfer(B00000000);
+  for (int i = 0; i < 240; i++) {
+    for (int j = 0; j < 240; j++) {
+      SPI_transfer(0b11111111);
+      SPI_transfer(0b11111111);
     }
   }
   gpio_put(TFT_DC, LOW); // Command mode
@@ -144,7 +142,7 @@ void drowBitMap(uint8_t y) {
   gpio_put(TFT_DC, LOW); // Command mode
   SPI_transfer(0x2C);
   gpio_put(TFT_DC, HIGH); // Data mode
-  SPI_transfer(FIFO_bg_wnd, 240);
+  SPI_transfer(FIFO_bg_wnd, 320);
   gpio_put(TFT_CS, HIGH);
 
 }
