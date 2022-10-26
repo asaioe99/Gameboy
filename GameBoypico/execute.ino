@@ -1,20 +1,28 @@
 void execute() {
   code = get_byte(pc);
 
-  char buf[64];
-  if (pc >= 0x24 && pc <= 0x100) {
-    sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X SL:%03d", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp, scaline_counter);
-    Serial.println(buf);
-    sprintf(buf, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
-    Serial.println(buf);
-    //delay(10);
-  }
+  /*
+    char buf[64];
+    if (pc >= 0x24 && pc <= 0x100) {
+      sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X SL:%03d", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp, scaline_counter);
+      Serial.println(buf);
+      sprintf(buf, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
+      Serial.println(buf);
+      //delay(10);
+    }
 
-  //if (pc >= 0x55 && pc <= 0x5d) { //0x55 is the one
-
-  if (pc == 0xFA) { //0x55 is the one
-    display_tile(0);
+    //if (pc >= 0x55 && pc <= 0x5d) { //0x55 is the one
+  */
+  if (pc == 0x5F) { //0x55 is the one
+    //display_tile(0);
     gpio_put(25, HIGH);
+    delay(5000);
+    gpio_put(25, LOW);
+    delay(1000);
+    if (*(io + 0x40) == 0x91) {
+      gpio_put(25, HIGH);
+      delay(5000);
+    }
   } else {
     gpio_put(25, LOW);
   }
@@ -149,11 +157,11 @@ void execute() {
           DEC_r();
           return;
           break;
-        case 0b00001110:
+        case 0b00001110: // E
           LD_r_n();
           return;
           break;
-        case 0b00001111:
+        case 0b00001111: // F
           break;
       }
       break;
