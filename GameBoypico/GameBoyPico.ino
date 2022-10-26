@@ -11,12 +11,6 @@
 #define TFT_RST   12    // RESET
 #define TFT_BL    13    // BACK LIGHT
 
-#define TFT_WIDTH 240
-#define TFT_HIGH  240
-
-#define HBYTE(u) ((u >> 8) & 0xFF)
-#define LBYTE(u) (u & 0xFF)
-
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
 uint8_t FIFO_bg_wnd[320];
 
