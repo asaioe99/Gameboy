@@ -1,5 +1,3 @@
-#include <SPI.h>
-
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
 #define HL(H, L) ((uint16_t)H << 8) + L
