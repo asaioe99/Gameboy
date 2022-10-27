@@ -12,7 +12,7 @@
 #define TFT_BL    13    // BACK LIGHT
 
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
-uint8_t FIFO_bg_wnd[320];
+uint16_t FIFO_bg_wnd[160];
 
 // bootstrap（実物のため、そのままは掲載不可）
 const uint8_t bootstrap[] = {
@@ -50,7 +50,6 @@ uint8_t oam[0xa0];
 uint8_t io[0x80];
 uint8_t hram[0x7F];
 uint8_t ie;
-
 
 uint16_t pc;
 uint16_t sp;
@@ -93,17 +92,17 @@ uint8_t put_ram_byte(uint16_t address, uint8_t data) {
 void ini() {
 
   // レジスタ設定
-  uint16_t pc = 0x0000;
-  uint16_t sp = 0x0000;
-  uint8_t a = 0x00;
-  uint8_t f = 0x00;
-  uint8_t b = 0x00;
-  uint8_t c = 0x00;
-  uint8_t d = 0x00;
-  uint8_t e = 0x00;
-  uint8_t h = 0x00;
-  uint8_t l = 0x00;
-  uint8_t cc = 0x00;
+  pc = 0x0000;
+  sp = 0x0000;
+  AR = 0x00;
+  BR = 0x00;
+  CR = 0x00;
+  DR = 0x00;
+  ER = 0x00;
+  FR = 0x00;
+  HR = 0x00;
+  LR = 0x00;
+  cc = 0x00;
 
   // フラグ初期化
   put_byte(0xFF05, 0x00);
@@ -200,8 +199,6 @@ void setup() {
 }
 
 void loop() {
-
-  //delayMicroseconds(10);
 
   while (cc < 70224) {
     execute();
