@@ -1,7 +1,7 @@
 void LD_r_n() {
   switch (code & 0b00111000) {
     case 0b00000000:
-      BR  = get_byte(++pc);
+      BR = get_byte(++pc);
       break;
     case 0b00001000:
       CR = get_byte(++pc);
@@ -78,7 +78,7 @@ void LD_r_r() {
       t1 = &LR;
       break;
     case 0b00111000:
-      t1 = &AR; 
+      t1 = &AR;
       break;
   }
   switch (code & 0b00000111) {
@@ -101,7 +101,7 @@ void LD_r_r() {
       *t1 = LR;
       break;
     case 0b00000111:
-      *t1 = AR; 
+      *t1 = AR;
       break;
   }
   cc += 4;
@@ -272,7 +272,7 @@ void INC_r() {
       r = &LR;
       break;
     case 0b00111000:
-      r = &AR; 
+      r = &AR;
       break;
   }
   t = *r;
@@ -314,7 +314,7 @@ void DEC_r() {
       r = &LR;
       break;
     case 0b00111000:
-      r = &AR; 
+      r = &AR;
       break;
   }
   *r = *r - 1;
@@ -358,7 +358,7 @@ void XOR_r() {
       cc += 4;
       break;
     case 0b111:
-      AR = AR ^ AR; 
+      AR = AR ^ AR;
       break;
   }
   if (AR == 0) {
@@ -397,7 +397,7 @@ void SUB_r() {
       cc_dec = 4;
       break;
     case 0b111:
-      val = AR; 
+      val = AR;
       break;
   }
   if (AR & 0x0F < val & 0x0F) {
@@ -442,7 +442,7 @@ void ADD_r() {
       cc_dec = 4;
       break;
     case 0b111:
-      val = AR; 
+      val = AR;
       break;
   }
   if (AR & 0x0F + val & 0x0F > 0x0F) {
@@ -487,7 +487,7 @@ void CP_r() {
       cc_dec = 4;
       break;
     case 0b111:
-      val = AR; 
+      val = AR;
       break;
   }
   if (AR & 0x0F < val & 0x0F) {
@@ -740,7 +740,7 @@ void RL_r() {
       r = &LR;
       break;
     case 0b111:
-      r = &AR; 
+      r = &AR;
       break;
   }
   if (*r >> 7) {
@@ -780,7 +780,7 @@ void BIT() {
       r = LR;
       break;
     case 0b111:
-      r = AR; 
+      r = AR;
       break;
   }
   r = r & mask;

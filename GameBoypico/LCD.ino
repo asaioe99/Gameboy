@@ -1,6 +1,6 @@
 void ini_LCD() {
   // pin assign
-  pinMode(TFT_MOSI,OUTPUT);
+  pinMode(TFT_MOSI, OUTPUT);
   pinMode(TFT_CLK, OUTPUT);
   pinMode(TFT_CS,  OUTPUT);
   pinMode(TFT_DC,  OUTPUT);
@@ -113,7 +113,7 @@ void tftSendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data
   gpio_put(TFT_CS, HIGH);  //
 }
 
-// 画面クリア 
+// 画面クリア
 void cls(bool rot) {
 
   tftSendCommand4(0x2A, 0, 0, 0, 239) ; // Colmun Address
@@ -142,7 +142,8 @@ void drowBitMap(uint8_t y) {
   gpio_put(TFT_DC, LOW); // Command mode
   SPI_transfer(0x2C);
   gpio_put(TFT_DC, HIGH); // Data mode
-  SPI_transfer(FIFO_bg_wnd, 320);
+  for (int d = 0; d < 320; d++) {
+    SPI_transfer(*((uint8_t *)FIFO_bg_wnd + d));
+  }
   gpio_put(TFT_CS, HIGH);
-
 }

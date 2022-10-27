@@ -13,7 +13,8 @@ void execute() {
 
     //if (pc >= 0x55 && pc <= 0x5d) { //0x55 is the one
   */
-  if (pc == 0x5D && AR == 0x91) gpio_put(25, HIGH);
+
+  if (pc == 0x100) gpio_put(25, HIGH);
   //if (pc == 0x5F) { //0x55 is the one
   //display_tile(0);
   //gpio_put(25, HIGH);

@@ -30,53 +30,9 @@ void p_flag_update() {
   }
 }
 
-void mode_0() {
-  return;
-}
-
-void mode_1() {
-  return;
-}
-
-void mode_2() {
-  return;
-}
-
-// bg&wnd フェッチ
-void mode_3() {
-  //display_scanline();
-  //display_tile(0);
-
-  return;
-}
-
-void mode_sw() {
-  switch (*(io + 0x41) & 0b00000011) {
-    case 0b00000000: // mode 0
-      mode_0();
-      break;
-    case 0b00000001: // mode 1
-      mode_1();
-      break;
-    case 0b00000010: // mode 2
-      mode_2();
-      break;
-    case 0b00000011: // mode 3
-      mode_3();
-      break;
-  }
-  return;
-}
-
 void ppu() {
   // flag等 アップデート
   p_flag_update();
-
-  if (*(io + 0x40) & 0b00001000 == 0b00001000) {
-    gpio_put(25, LOW);
-  } else {
-    gpio_put(25, HIGH);
-  }
 
   // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
   if (*(io + 0x40) & 0b10000000) {
@@ -100,65 +56,60 @@ void ppu() {
     }
   }
 }
-/*
-      gpio_put(25, HIGH);
-      delay(100);
-      gpio_put(25, LOW);
-*/
+
 // bg&wnd フェッチ
 void display_scanline() {
 
   uint8_t *t_FF40 = io + 0x40;
-  uint16_t SCY = (uint16_t)*(io + 0x42); // SCY BGの描画位置
-  uint16_t SCX = (uint16_t)*(io + 0x43); // SCX
-  uint16_t LY  = (uint16_t)*(io + 0x44);
+  uint16_t SCY = (uint16_t) * (io + 0x42); // SCY BGの描画位置
+  uint16_t SCX = (uint16_t) * (io + 0x43); // SCX
+  uint16_t LY  = (uint16_t) * (io + 0x44);
 
-  uint16_t base_tile_number;
+  uint8_t  tile_l;
+  uint8_t  tile_h;
   uint16_t tile_number;
-  uint8_t tile_l;
-  uint8_t tile_h;
+  uint16_t *tmp = FIFO_bg_wnd;
 
-  for (uint16_t i = 0; i < 20; i++) {
-    //base_tile_number = (LY & 0b11111000) << 2 + (SCY & 0b11111000) << 2; // LY（scanline number）に対応した先頭のtile number
-    base_tile_number = ((LY + SCY) & 0b11111000) << 2;
+  uint8_t  SCX_low_3bit = SCX & 0b00000111;
+  uint16_t intile_y_offset  = ((LY + SCY) & 0b00000111) << 1;
+  uint16_t outtile_y_offset = ((LY + SCY) & 0b11111000) << 2;
+  uint16_t base_tile_number;
 
-    if (*t_FF40 & 0b00001000) {
-      tile_number = get_byte(0x9C00 + base_tile_number + i); // LYに対応したタイルデータ
-    } else {
-      //delay(50);
-      //gpio_put(25, LOW);
-      tile_number = get_byte(0x9800 + base_tile_number + i); // LYに対応したタイルデータ
-    }
+  if (*t_FF40 & 0b00001000) {
+    base_tile_number = 0x9C00 + (SCX & 0b00011111) + outtile_y_offset; // LYに対応したタイルデータ
+  } else {
+    base_tile_number = 0x9800 + (SCX & 0b00011111) + outtile_y_offset;
+  }
+
+  for (uint16_t i = 0; i < 21 ; i++) {
+    tile_number = get_byte(base_tile_number + i); // numberだけどアドレス
+
     if (*t_FF40 & 0b00010000) {
-      //tile_l = get_byte(0x8000 + (tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2);
-      //tile_h = get_byte(0x8001 + (tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2);
-      tile_l = get_byte(0x8000 + (tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
-      tile_h = get_byte(0x8001 + (tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
+      tile_l = get_byte(0x8000 + (tile_number << 4) + intile_y_offset);
+      tile_h = get_byte(0x8001 + (tile_number << 4) + intile_y_offset);
     } else {
-      //tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2));
-      //tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + (LY & 0b00000111) * 2 + (SCY & 0b00000111) * 2));
-      tile_l = get_byte(0x8800 + ((int8_t)tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
-      tile_h = get_byte(0x8801 + ((int8_t)tile_number << 4) + ((LY + SCY) & 0b00000111) << 1);
+      tile_l = get_byte(0x8800 + ((int16_t)tile_number << 4) + (int16_t)intile_y_offset);
+      tile_h = get_byte(0x8801 + ((int16_t)tile_number << 4) + (int16_t)intile_y_offset);
+    }
+    
+    uint8_t start_bit = 0;
+    uint8_t end_bit   = 8;
+    
+    if (i == 0) {
+      start_bit = SCX_low_3bit;
+    } else if (i == 20) {
+      end_bit = SCX_low_3bit;
     }
 
-    uint8_t *tmp_0 = FIFO_bg_wnd + (i << 4);
-    uint8_t *tmp_1 = tmp_0 + 1;
-
-    for (int n = 0; n < 8; n++) {
-      tmp_0 += 2;
-      tmp_1 += 2;
-
-      *tmp_0 = 0b00000000;
-      *tmp_1 = 0b00000000;
-
+    for (int n = start_bit; n < end_bit; n++) {
+      *tmp = 0b0000000000000000;
       if (tile_l & (0b10000000 >> n)) {
-        *tmp_0 = 0b00111001;
-        *tmp_1 = 0b11000111;
+        *tmp  = 0b0011100111000111;
       }
       if (tile_h & (0b10000000 >> n)) {
-        *tmp_0 |= 0b11000110;
-        *tmp_1 |= 0b00011000;
+        *tmp |= 0b1100011000011000;
       }
+      tmp++;
     }
   }
   drowBitMap(LY);
