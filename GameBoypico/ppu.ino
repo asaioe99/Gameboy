@@ -71,25 +71,25 @@ void display_scanline() {
   uint16_t *tmp = FIFO_bg_wnd;
 
   uint8_t  SCX_low_3bit = SCX & 0b00000111;
-  uint16_t intile_y_offset  = ((LY + SCY) & 0b00000111) << 1;
-  uint16_t outtile_y_offset = ((LY + SCY) & 0b11111000) << 2;
+  uint16_t in_tile_y_offset  = ((LY + SCY) & 0b00000111) << 1;
+  uint16_t out_tile_y_offset = ((LY + SCY) & 0b11111000) << 2;
   uint16_t base_tile_number;
 
   if (*t_FF40 & 0b00001000) {
-    base_tile_number = 0x9C00 + (SCX & 0b00011111) + outtile_y_offset; // LYに対応したタイルデータ
+    base_tile_number = 0x9C00 + (SCX & 0b00011111) + out_tile_y_offset; // LYに対応したタイルデータ
   } else {
-    base_tile_number = 0x9800 + (SCX & 0b00011111) + outtile_y_offset;
+    base_tile_number = 0x9800 + (SCX & 0b00011111) + out_tile_y_offset;
   }
 
   for (uint16_t i = 0; i < 21 ; i++) {
     tile_number = get_byte(base_tile_number + i); // numberだけどアドレス
 
     if (*t_FF40 & 0b00010000) {
-      tile_l = get_byte(0x8000 + (tile_number << 4) + intile_y_offset);
-      tile_h = get_byte(0x8001 + (tile_number << 4) + intile_y_offset);
+      tile_l = get_byte(0x8000 + (tile_number << 4) + in_tile_y_offset);
+      tile_h = get_byte(0x8001 + (tile_number << 4) + in_tile_y_offset);
     } else {
-      tile_l = get_byte(0x8800 + ((int16_t)tile_number << 4) + (int16_t)intile_y_offset);
-      tile_h = get_byte(0x8801 + ((int16_t)tile_number << 4) + (int16_t)intile_y_offset);
+      tile_l = get_byte(0x8800 + ((int16_t)tile_number << 4) + (int16_t)in_tile_y_offset);
+      tile_h = get_byte(0x8801 + ((int16_t)tile_number << 4) + (int16_t)in_tile_y_offset);
     }
     
     uint8_t start_bit = 0;

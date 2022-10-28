@@ -30,7 +30,7 @@ void LD_r_n() {
 void LD_r_HL() {
   switch (code & 0b00111000) {
     case 0b00000000:
-      BR  = get_byte(HL(HR, LR));
+      BR = get_byte(HL(HR, LR));
       break;
     case 0b00001000:
       CR = get_byte(HL(HR, LR));
@@ -145,7 +145,7 @@ void LD_HL_n() {
   pc++;
 }
 void LD_A_BC() {
-  AR = get_byte(((uint16_t)BR  << 8) + CR);
+  AR = get_byte(((uint16_t)BR << 8) + CR);
   cc += 8;
   cc_dec = 8;
   pc++;
@@ -756,6 +756,45 @@ void RL_r() {
   pc++;
 }
 
+void SWAP() {
+  uint8_t* r;
+  uint8_t t;
+  switch (code & 0b00000111) {
+    case 0b000:
+      r = &BR;
+      break;
+    case 0b001:
+      r = &CR;
+      break;
+    case 0b010:
+      r = &DR;
+      break;
+    case 0b011:
+      r = &ER;
+      break;
+    case 0b100:
+      r = &HR;
+      break;
+    case 0b101:
+      r = &LR;
+      break;
+    case 0b111:
+      r = &AR;
+      break;
+  }
+  t = *r;
+  *r = t >> 4;
+  *r = t << 4;
+  
+  if (t) {
+    FR = 0b00000000;
+  } else {
+    FR = 0b10000000;
+  }
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
 void BIT() {
   uint8_t b = (code & 0b00111000) >> 3;
   uint8_t r;
@@ -784,12 +823,79 @@ void BIT() {
       break;
   }
   r = r & mask;
-  if (r == mask) {
-    FR = FR & 0b01111111;
+  if (r) {
+    FR &= 0b01111111;
   } else {
-    FR = FR | 0b10000000;
+    FR |= 0b10000000;
   }
-  FR = FR & 0b10010000;
+  FR |= 0b00100000;
+  FR &= 0b10110000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void RES() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t *r;
+  uint8_t mask = 0b00000001 << b;
+  switch (code & 0b00000111) {
+    case 0b000:
+      r = &BR ;
+      break;
+    case 0b001:
+      r = &CR;
+      break;
+    case 0b010:
+      r = &DR;
+      break;
+    case 0b011:
+      r = &ER;
+      break;
+    case 0b100:
+      r = &HR;
+      break;
+    case 0b101:
+      r = &LR;
+      break;
+    case 0b111:
+      r = &AR;
+      break;
+  }
+  *r &= (~mask);
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void SET() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t *r;
+  uint8_t mask = 0b00000001 << b;
+  switch (code & 0b00000111) {
+    case 0b000:
+      r = &BR ;
+      break;
+    case 0b001:
+      r = &CR;
+      break;
+    case 0b010:
+      r = &DR;
+      break;
+    case 0b011:
+      r = &ER;
+      break;
+    case 0b100:
+      r = &HR;
+      break;
+    case 0b101:
+      r = &LR;
+      break;
+    case 0b111:
+      r = &AR;
+      break;
+  }
+  *r |= mask;
   cc += 8;
   cc_dec = 8;
   pc++;
