@@ -1,13 +1,15 @@
+#include "pico/multicore.h"
+
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
 #define HL(H, L) ((uint16_t)H << 8) + L
 
-#define TFT_MOSI  11   // MOSI
-#define TFT_CLK   10   // CLK
-#define TFT_CS    9   // Data/Command
-#define TFT_DC    8    // Data/Command
-#define TFT_RST   12    // RESET
-#define TFT_BL    13    // BACK LIGHT
+#define MOSI  11   // MOSI
+#define CLK   10   // CLK
+#define CS    9   // Data/Command
+#define DC    8    // Data/Command
+#define RST   12    // RESET
+#define BL    13    // BACK LIGHT
 
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160];
@@ -43,7 +45,6 @@ const uint8_t rom_header[] = {
 };
 
 uint8_t VRAM[0x2000];
-
 uint8_t oam[0xa0];
 uint8_t io[0x80];
 uint8_t hram[0x7F];
@@ -69,21 +70,17 @@ int16_t scaline_counter;
 
 // romの指定アドレスから1Byte読み出し
 uint8_t get_rom_byte(uint16_t address) {
-
   return 0x00;
 }
 // ramの指定アドレスから1Byte読み出し
 byte get_ram_byte(uint16_t address) {
-
   return 0x00;
 }
 // 指定アドレスに1Byte書き込み
 void put_rom_byte(uint16_t address, uint8_t data) {
-
 }
 
-uint8_t put_ram_byte(uint16_t address, uint8_t data) {
-
+void put_ram_byte(uint16_t address, uint8_t data) {
 }
 
 // GPIO割り当て（レジスタにより）
@@ -134,7 +131,6 @@ void ini() {
   put_byte(0xFF4A, 0x00);
   put_byte(0xFF4B, 0x00);
   put_byte(0xFFFF, 0x00);
-
 }
 
 uint8_t get_byte(uint16_t addr) {
@@ -192,12 +188,10 @@ void put_byte(uint16_t addr, uint8_t data) {
 void setup() {
   Serial.begin(115200);
   ini();
-  ini_LCD();
   pinMode(25, OUTPUT);
 }
 
 void loop() {
-
   while (cc < 70224) {
     execute();
     ppu();
