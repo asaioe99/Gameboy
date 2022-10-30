@@ -1081,3 +1081,35 @@ void reti() {
   cc += 16;
   cc_dec = 16;
 }
+
+void add_hl_r16() { //動作怪しい
+  uint16_t HL = HL(HR, LR);
+  uint16_t r16;
+  uint32_t t;
+  switch (code) {
+    case 0x09:
+      r16 = (uint16_t)(BR << 8) + (uint16_t)CR;
+      break;
+    case 0x19:
+      r16 = (uint16_t)(DR << 8) + (uint16_t)ER;
+      break;
+    case 0x29:
+      r16 = HL;
+      break;
+    case 0x39:
+      r16 = sp;
+      break;
+  }
+  if ((HL & 0x0FFF) + (r16 & 0x0FFF) > 0x0FFF) { //N H
+    FR |= 0b10100000;
+    FR &= 0b10100000;
+  } else {
+    FR &= 0b10000000;
+  }
+  t = (uint32_t)HL + (uint32_t)r16;
+  if (t > 0xFFFF) {  // C
+    FR |= 0b00010000;
+  }
+  HR = (uint8_t)(t & 0x0000FF00);
+  LR = (uint8_t)(t & 0x000000FF);
+}
