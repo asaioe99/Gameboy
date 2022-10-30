@@ -29,18 +29,18 @@ uint8_t ie;
 
 uint16_t pc;
 uint16_t sp;
-uint8_t AR;
-uint8_t BR;
-uint8_t CR;
-uint8_t DR;
-uint8_t ER;
-uint8_t FR;
-uint8_t HR;
-uint8_t LR;
+uint8_t  AR;
+uint8_t  BR;
+uint8_t  CR;
+uint8_t  DR;
+uint8_t  ER;
+uint8_t  FR;
+uint8_t  HR;
+uint8_t  LR;
 uint32_t cc;
 
 // 内容不明（忘れた）
-uint8_t ime;
+bool ime; //割り込み許可
 
 uint8_t mbcType;
 uint8_t rom_bank_num;
@@ -79,6 +79,7 @@ void ini() {
   cc = 0x00;
 
   rom_bank_num = 1;
+  ime = true;
 }
 
 uint8_t get_byte(uint16_t addr) {

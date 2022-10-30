@@ -509,14 +509,16 @@ void JR_cc_d8() {
     case 0x18:
       pc = pc + 2 + (int8_t)get_byte(pc + 1);
       cc += 12;
-      cc_dec = 4;
-      break;
+      cc_dec = 12;
+      return;
     case 0x20:
       if (FR >> 7 == 0) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
+        cc_dec = 12;
       } else {
         cc += 8;
+        cc_dec = 8;
         pc += 2;
       }
       break;
@@ -524,8 +526,10 @@ void JR_cc_d8() {
       if ((FR & 0b10000000) >> 7) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
+        cc_dec = 12;
       } else {
         cc += 8;
+        cc_dec = 8;
         pc += 2;
       }
       break;
@@ -533,8 +537,10 @@ void JR_cc_d8() {
       if (FR & 0b00010000 == 0) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
+        cc_dec = 12;
       } else {
         cc += 8;
+        cc_dec = 8;
         pc += 2;
       }
       break;
@@ -542,14 +548,14 @@ void JR_cc_d8() {
       if (FR & 0b00010000) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
-        cc_dec = 4;
+        cc_dec = 12;
       } else {
         cc += 8;
+        cc_dec = 8;
         pc += 2;
       }
       break;
   }
-  cc_dec += 8;
 }
 
 void LD_r16_d16() {
@@ -896,10 +902,8 @@ void SET() {
 
 void jp_a16() {
   pc = (uint16_t)get_byte(pc + 1) + ((uint16_t)get_byte(pc + 2) << 8);
-  pc += 3;
   cc += 16;
   cc_dec = 16;
-
 }
 
 void cpl() {
@@ -1019,6 +1023,7 @@ void ld_a_pa16() {
   cc_dec = 16;
   pc += 3;
 }
+
 void ld_pa16_a() {
   put_byte(get_byte(pc + 1) + (uint16_t)(get_byte(pc + 2) << 8), AR);
   cc += 16;
@@ -1068,4 +1073,11 @@ void ret_cc() {
   cc += 8;
   cc_dec = 8;
   pc++;
+}
+void reti() {
+  ime = true;
+  pc = ((uint16_t)get_byte(sp + 1) << 8) + get_byte(sp);
+  sp += 2;
+  cc += 16;
+  cc_dec = 16;
 }

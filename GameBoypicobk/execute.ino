@@ -207,6 +207,19 @@ void execute() {
         case 0xFF:
           SET();
           break;
+        default:
+          gpio_put(25, HIGH);
+          while (1) {
+            Serial.print("pc:");
+            Serial.print(pc, HEX);
+            Serial.print(" code: CB ");
+            Serial.println(code, HEX);
+            Serial.print("rom_bank_num:");
+            Serial.println(rom_bank_num, HEX);
+            chk_init_regs();
+            dump_tilemap();
+            delay(10000);
+          }
       }
       break;
     case 0x06: //LD_B_n
