@@ -40,6 +40,9 @@ CSpinがあればSPI_MODE0で動くかも知れない。要実験
 SPI＿MODE0で動作。液晶はMODE2なので共用不可
 
 
+### MBCについて
+以下を読む
+- http://gameboy.mongenel.com/dmg/asmmemmap.html
 
 ### ST7789(pico LCD 1.3)
 四の五の言わずに以下を読め
