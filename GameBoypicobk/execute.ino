@@ -500,6 +500,9 @@ void execute() {
     case 0xD8:
       ret_cc();
       break;
+    case 0xD9:
+      reti();
+      break;
     default:
       gpio_put(25, HIGH);
       while (1) {
