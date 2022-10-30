@@ -503,6 +503,12 @@ void execute() {
     case 0xD9:
       reti();
       break;
+    case 0x09:
+    case 0x19:
+    case 0x29:
+    case 0x39:
+      add_hl_r16();
+      break;
     default:
       gpio_put(25, HIGH);
       while (1) {
