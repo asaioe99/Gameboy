@@ -85,18 +85,6 @@ void SendCommand2(uint8_t command, uint8_t data1, uint8_t data2) {
   gpio_put(CS, HIGH);  //
 }
 
-// TFTにコマンド+3バイトデータを送信
-void SendCommand3(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3) {
-  gpio_put(CS, LOW); //
-  gpio_put(DC, LOW); // Command mode
-  SPI_transfer(command);
-  gpio_put(DC, HIGH); // Command mode
-  SPI_transfer(data1);
-  SPI_transfer(data2);
-  SPI_transfer(data3);
-  gpio_put(CS, HIGH);  //
-}
-
 // TFTにコマンド+4バイトデータを送信
 void SendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4) {
   gpio_put(CS, LOW); //

@@ -1,13 +1,14 @@
 #include "rom.h"
+#include "cpu_instrrs.h"
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
 #define HL(H, L) ((uint16_t)H << 8) + L
 
-#define MOSI  11   // MOSI
-#define CLK   10   // CLK
-#define CS    9   // Data/Command
-#define DC    8    // Data/Command
+#define MOSI  11    // MOSI　本来ならGP3 ArduinoIDE上でpinassignが変更可能になったらHWSPIに切り替え
+#define CLK   10    // CLK　本来ならGP2
+#define CS    9   　// Data/Command
+#define DC    8     // Data/Command
 #define RST   12    // RESET
 #define BL    13    // BACK LIGHT
 
@@ -108,7 +109,23 @@ uint8_t get_byte(uint16_t addr) {
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
     return ie;
   }
-  return 0x0000;
+
+  gpio_put(25, HIGH);
+  while (1) {
+    Serial.print("pc:");
+    Serial.print(pc, HEX);
+    Serial.print(" code:");
+    Serial.println(code, HEX);
+    Serial.print("rom_bank_num:");
+    Serial.println(rom_bank_num, HEX);
+    Serial.print("get_byte() at an unassigned address :");
+    Serial.println(addr, HEX);
+    chk_init_regs();
+    dump_tilemap();
+    delay(10000);
+  }
+
+  return 0x00;
 }
 
 void put_byte(uint16_t addr, uint8_t data) {

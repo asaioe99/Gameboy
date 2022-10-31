@@ -12,7 +12,7 @@ void p_flag_update() {
     return;
   }
   //現時点のmodeが何であるか取得し更新
-  *t_FF41 &= 0b11111100;              // mode0 デフォ
+  *t_FF41 &= 0b11111100;                 // mode0 デフォ
   if (*t_FF44 >= 144) {                  // mode1
     *t_FF41 |= 0b00000001;
   } else {

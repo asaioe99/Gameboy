@@ -17,6 +17,24 @@ void execute() {
     case 0xCB: // prefix
       code = get_byte(++pc);
       switch (code) {
+        case 0x20:
+        case 0x21:
+        case 0x22:
+        case 0x23:
+        case 0x24:
+        case 0x25:
+        case 0x27:
+          sla_r8();
+          break;
+        case 0x00:
+        case 0x01:
+        case 0x02:
+        case 0x03:
+        case 0x04:
+        case 0x05:
+        case 0x07:
+          rlc_r8();
+          break;
         case 0x10:
         case 0x11:
         case 0x12:
@@ -378,7 +396,7 @@ void execute() {
     case 0x95: //SUB_L
     case 0x96: //SUB_(HL)
     case 0x97: //SUB_L
-      SUB_r();
+      sub_a_r8();
       break;
     case 0x80: //ADD_B
     case 0x81: //ADD_C
@@ -388,7 +406,7 @@ void execute() {
     case 0x85: //ADD_L
     case 0x86: //ADD_(HL)
     case 0x87: //ADD_L
-      ADD_r();
+      add_a_r8();
       break;
     case 0xB8: //CP_B
     case 0xB9: //CP_C
@@ -447,7 +465,7 @@ void execute() {
       RET();
       break;
     case 0xCD:
-      CALL();
+      call_a16();
       break;
     case 0xFE:
       CP_d8();
@@ -508,6 +526,63 @@ void execute() {
     case 0x29:
     case 0x39:
       add_hl_r16();
+      break;
+    case 0x10:
+      stop_0();
+      break;
+    case 0xC2:
+    case 0xD2:
+    case 0xCA:
+    case 0xDA:
+      jp_cc_a16();
+      break;
+    case 0xC4:
+    case 0xD4:
+    case 0xCC:
+    case 0xDC:
+      call_cc_a16();
+      break;
+    case 0x88: //ADC_B
+    case 0x89: //ADC_C
+    case 0x8A: //ADC_D
+    case 0x8B: //ADC_E
+    case 0x8C: //ADC_H
+    case 0x8D: //ADC_L
+    case 0x8E: //ADC_(HL)
+    case 0x8F: //ADC_A
+      adc_r();
+      break;
+    case 0xC7: //RST 00H
+    case 0xD7: //RST 10H
+    case 0xE7: //RST 20H
+    case 0xF7: //RST 30H
+    case 0xCF: //RST 08H
+    case 0xDF: //RST 18H
+    case 0xEF: //RST 28H
+    case 0xFF: //RST 38H
+      rst_vec();
+      break;
+    case 0x98: //SBC_B
+    case 0x99: //SBC_C
+    case 0x9A: //SBC_D
+    case 0x9B: //SBC_E
+    case 0x9C: //SBC_H
+    case 0x9D: //SBC_L
+    case 0x9E: //SBC_(HL)
+    case 0x9F: //SBC_A
+      sbc_r();
+      break;
+    case 0xC6:
+      add_a_d8();
+      break;
+    case 0xCE:
+      adc_a_d8();
+      break;
+    case 0xD6:
+      sub_a_d8();
+      break;
+    case 0xDE:
+      sbc_a_d8();
       break;
     default:
       gpio_put(25, HIGH);

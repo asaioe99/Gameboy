@@ -370,33 +370,34 @@ void XOR_r() {
   cc_dec = 4;
   pc++;
 }
-void SUB_r() {
+
+void sub_a_r8() {
   uint8_t val;
-  switch (code & 0b00000111) {
-    case 0b000:
+  switch (code) {
+    case 0x90:
       val = BR ;
       break;
-    case 0b001:
+    case 0x91:
       val = CR;
       break;
-    case 0b010:
+    case 0x92:
       val = DR;
       break;
-    case 0b011:
+    case 0x93:
       val = ER;
       break;
-    case 0b100:
+    case 0x94:
       val = HR;
       break;
-    case 0b101:
+    case 0x95:
       val = LR;
       break;
-    case 0b110:
+    case 0x96:
       val = get_byte(HL(HR, LR));
       cc += 4;
       cc_dec = 4;
       break;
-    case 0b111:
+    case 0x97:
       val = AR;
       break;
   }
@@ -415,33 +416,33 @@ void SUB_r() {
   pc++;
 }
 
-void ADD_r() {
+void add_a_r8() {
   uint8_t val;
-  switch (code & 0b00000111) {
-    case 0b000:
+  switch (code) {
+    case 0x80:
       val = BR ;
       break;
-    case 0b001:
+    case 0x81:
       val = CR;
       break;
-    case 0b010:
+    case 0x82:
       val = DR;
       break;
-    case 0b011:
+    case 0x83:
       val = ER;
       break;
-    case 0b100:
+    case 0x84:
       val = HR;
       break;
-    case 0b101:
+    case 0x85:
       val = LR;
       break;
-    case 0b110:
+    case 0x86:
       val = get_byte(HL(HR, LR));
       cc += 4;
       cc_dec = 4;
       break;
-    case 0b111:
+    case 0x87:
       val = AR;
       break;
   }
@@ -450,7 +451,7 @@ void ADD_r() {
   } else {
     FR = 0b00000000;
   }
-  if (AR + val > 0xFF) {
+  if ((uint16_t)AR + (uint16_t)val > 0xFF) {
     FR |= 0b00010000;
   }
   AR = AR + val;
@@ -692,7 +693,7 @@ void RET() {
   cc_dec = 16;
 }
 
-void CALL() {
+void call_a16() {
   put_byte(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
   put_byte(--sp, (uint8_t)((pc + 3) & 0x00FF));
   cc += 24;
@@ -1112,4 +1113,314 @@ void add_hl_r16() { //動作怪しい
   }
   HR = (uint8_t)(t & 0x0000FF00);
   LR = (uint8_t)(t & 0x000000FF);
+}
+void stop_0() {
+  pc += 2;
+}
+
+void jp_cc_a16() {
+  switch (code) {
+    case 0xC2: //not zero
+      if (!(FR & 0b10000000)) {
+        jp_a16();
+        return;
+      }
+      break;
+    case 0xD2: //not carry
+      if (!(FR & 0b00010000)) {
+        jp_a16();
+        return;
+      }
+      break;
+    case 0xCA: //zero
+      if (FR & 0b10000000) {
+        jp_a16();
+        return;
+      }
+      break;
+    case 0xDA: //carry
+      if (FR & 0b00010000) {
+        jp_a16();
+        return;
+      }
+      break;
+  }
+  cc += 12;
+  cc_dec = 12;
+  pc += 3;
+}
+
+void call_cc_a16() {
+  switch (code) {
+    case 0xC4: //not zero
+      if (!(FR & 0b10000000)) {
+        call_a16();
+        return;
+      }
+      break;
+    case 0xD4: //not carry
+      if (!(FR & 0b00010000)) {
+        call_a16();
+        return;
+      }
+      break;
+    case 0xCC: //zero
+      if (FR & 0b10000000) {
+        call_a16();
+        return;
+      }
+      break;
+    case 0xDC: //carry
+      if (FR & 0b00010000) {
+        call_a16();
+        return;
+      }
+      break;
+  }
+  cc += 12;
+  cc_dec = 12;
+  pc += 3;
+}
+
+void adc_r() {
+  uint8_t val;
+  uint8_t c_val = (FR & 0b00010000) >> 4;
+  switch (code) {
+    case 0x88:
+      val = BR ;
+      break;
+    case 0x89:
+      val = CR;
+      break;
+    case 0x8A:
+      val = DR;
+      break;
+    case 0x8B:
+      val = ER;
+      break;
+    case 0x8C:
+      val = HR;
+      break;
+    case 0x8D:
+      val = LR;
+      break;
+    case 0x8E:
+      val = get_byte(HL(HR, LR));
+      cc += 4;
+      cc_dec = 4;
+      break;
+    case 0x8F:
+      val = AR;
+      break;
+  }
+  if (AR & 0x0F + val & 0x0F + c_val > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if ((uint16_t)AR + (uint16_t)val + (uint16_t)c_val > 0xFF) {
+    FR |= 0b00010000;
+  }
+  AR = AR + val + c_val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 4;
+  cc_dec += 4;
+  pc++;
+}
+
+void rst_vec() {
+  put_byte(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  put_byte(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  cc += 16;
+  cc_dec = 16;
+  pc = (uint16_t)code - 0xC7; 
+}
+
+void sbc_r() {
+  uint8_t val;
+  uint8_t c_val = (FR & 0b00010000) >> 4;
+  switch (code) {
+    case 0x98:
+      val = BR ;
+      break;
+    case 0x99:
+      val = CR;
+      break;
+    case 0x9A:
+      val = DR;
+      break;
+    case 0x9b:
+      val = ER;
+      break;
+    case 0x9c:
+      val = HR;
+      break;
+    case 0x9d:
+      val = LR;
+      break;
+    case 0x9e:
+      val = get_byte(HL(HR, LR));
+      cc += 4;
+      cc_dec = 4;
+      break;
+    case 0x9f:
+      val = AR;
+      break;
+  }
+  if ((AR & 0x0F) < (val & 0x0F) + c_val) {
+    FR = 0b01100000;
+  } else {
+    FR = 0b01000000;
+  }
+  if ((uint16_t)AR < (uint16_t)val + (uint16_t)c_val) {
+    FR |= 0b00010000;
+  }
+  AR = AR - val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 4;
+  cc_dec += 4;
+  pc++;
+}
+
+void add_a_d8() {
+  uint8_t val = get_byte(++pc);
+  if (AR & 0x0F + val & 0x0F > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if ((uint16_t)AR + (uint16_t)val > 0xFF) {
+    FR |= 0b00010000;
+  }
+  AR = AR + val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+
+void adc_a_d8() {
+  uint8_t val = get_byte(++pc);
+  uint8_t c_val = (FR & 0b00010000) >> 4;
+  if (AR & 0x0F + val & 0x0F + c_val > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if ((uint16_t)AR + (uint16_t)val + (uint16_t)c_val > 0xFF) {
+    FR |= 0b00010000;
+  }
+  AR = AR + val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+
+void sub_a_d8() {
+  uint8_t val = get_byte(++pc);
+  if (AR & 0x0F < val & 0x0F) {
+    FR = 0b01100000;
+  } else {
+    FR = 0b01000000;
+  }
+  if (AR < val) {
+    FR |= 0b00010000;
+  }
+  AR = AR - val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+
+void sbc_a_d8() {
+  uint8_t val = get_byte(++pc);
+  uint8_t c_val = (FR & 0b00010000) >> 4;
+  if ((AR & 0x0F) < (val & 0x0F) + c_val) {
+    FR = 0b01100000;
+  } else {
+    FR = 0b01000000;
+  }
+  if ((uint16_t)AR < (uint16_t)val + (uint16_t)c_val) {
+    FR |= 0b00010000;
+  }
+  AR = AR - val;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+
+void sla_r8() {
+  uint8_t val;
+  switch (code) {
+    case 0x20:
+      val = BR ;
+      break;
+    case 0x21:
+      val = CR;
+      break;
+    case 0x22:
+      val = DR;
+      break;
+    case 0x23:
+      val = ER;
+      break;
+    case 0x24:
+      val = HR;
+      break;
+    case 0x25:
+      val = LR;
+      break;
+    case 0x27:
+      val = AR;
+      break;
+  }
+  if (val & 0b10000000 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = val << 1;
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+void rlc_r8() {
+  uint8_t val;
+  switch (code) {
+    case 0x00:
+      val = BR ;
+      break;
+    case 0x01:
+      val = CR;
+      break;
+    case 0x02:
+      val = DR;
+      break;
+    case 0x03:
+      val = ER;
+      break;
+    case 0x04:
+      val = HR;
+      break;
+    case 0x05:
+      val = LR;
+      break;
+    case 0x07:
+      val = AR;
+      break;
+  }
+  if (val & 0b10000000 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (val << 1) + ((val & 0b10000000) >> 7);
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
 }
