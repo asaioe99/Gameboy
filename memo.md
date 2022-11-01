@@ -61,3 +61,197 @@ https://github.com/adafruit/Adafruit-ST7735-Library/blob/master/examples/graphic
 
 ### picoに移行
 SPIのpinは公式ArduinoIDEからでは割り当て変更不可なので、ソフトウェアSPIを実装すべき。
+
+
+### 追加の関数等
+```c
+
+  case 0x76:
+    halt();
+    break;
+  case 0x07:
+    rlca();
+    break;
+  case 0x27:
+    daa();
+    break;
+  case 0x37:
+    scf();
+    break;
+  case 0x08:
+    ld_pd16_sp();
+    break;
+
+void halt() {
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void rlca() {
+  if (AR & 0b10000000 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (AR << 1) | (AR >> 7);
+
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+void daa() {
+  if (!(FR & 0b01000000)) {
+    if ((FR & 0b00010000) || AR > 0x99) {
+      AR += 0x60;
+      FR |= 0b00010000;
+    }
+    if ((FR & 0b00100000) || ((AR & 0x0F) > 0x09)) AR -= 0x06;
+  } else {
+    if (FR & 0b00010000) AR -= 0x60;
+    if (FR & 0b00100000) AR -= 0x06;
+  }
+  if (AR == 0) {
+    FR |= 0b10000000;
+  } else {
+    FR &= 0b01110000;
+  }
+  FR &= 0b11010000;
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+} 
+
+void scf() {
+  FR &= 0b10000000;
+  FR |= 0b00010000;
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void ld_pd16_sp() {
+  put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1), (uint8_t)(sp & 0x00FF));
+  put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1) + 1, (uint8_t)(sp >> 8));
+  cc += 20;
+  cc_dec = 20;
+  pc += 3;
+}
+
+  case 0x08:
+  case 0x09:
+  case 0x0A:
+  case 0x0B:
+  case 0x0C:
+  case 0x0D:
+  case 0x0F:
+    rrc_r8();
+    break;
+  case 0xC6:
+  case 0xD6:
+  case 0xE6:
+  case 0xF6:
+  case 0xCE:
+  case 0xDE:
+  case 0xEE:
+  case 0xFE:
+    set_phl();
+    break;
+  case 0x86:
+  case 0x96:
+  case 0xA6:
+  case 0xB6:
+  case 0x8E:
+  case 0x9E:
+  case 0xAE:
+  case 0xBE:
+    res_phl();
+    break;
+  case 0x46:
+  case 0x56:
+  case 0x66:
+  case 0x76:
+  case 0x4E:
+  case 0x5E:
+  case 0x6E:
+  case 0x7E:
+    bit_phl();
+    break;
+
+void rrc_r8() {
+  uint8_t val;
+  switch (code) {
+    case 0x08:
+      val = BR ;
+      break;
+    case 0x09:
+      val = CR;
+      break;
+    case 0x0A:
+      val = DR;
+      break;
+    case 0x0B:
+      val = ER;
+      break;
+    case 0x0C:
+      val = HR;
+      break;
+    case 0x0D:
+      val = LR;
+      break;
+    case 0x0F:
+      val = AR;
+      break;
+  }
+  if (val & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (val >> 1) + ((val & 0b00000001) << 7);
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec += 8;
+  pc++;
+}
+
+void set_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+  r |= mask;
+  put_byte(HL(HR, LR), r);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void res_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+  r &= (~mask);
+  put_byte(HL(HR, LR), r);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void bit_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+
+  r = r & mask;
+  if (r) {
+    FR &= 0b01111111;
+  } else {
+    FR |= 0b10000000;
+  }
+  FR |= 0b00100000;
+  FR &= 0b10110000;
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+```
