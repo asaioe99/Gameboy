@@ -480,7 +480,7 @@ void execute() {
     case 0x25: //DEC_H
     case 0x2D: //DEC_L
     case 0x3D: //DEC_A
-      DEC_r();
+      dec_r8();
       break;
     case 0xA8: //XOR_B
     case 0xA9: //XOR_C

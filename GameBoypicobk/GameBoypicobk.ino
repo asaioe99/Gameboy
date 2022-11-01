@@ -1,5 +1,5 @@
 #include "rom.h"
-//#include "cpu_instrs.h"
+#include "cpu_instrs.h"
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)

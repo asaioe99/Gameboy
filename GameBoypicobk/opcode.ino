@@ -299,31 +299,33 @@ void inc_r8() {
   pc++;
 }
 
-void DEC_r() {
+void dec_r8() {
   uint8_t *r;
-  switch (code & 0b00111000) {
-    case 0b00000000:
+  uint8_t t;
+  switch (code) {
+    case 0x05:
       r = &BR ;
       break;
-    case 0b00001000:
+    case 0x0D:
       r = &CR;
       break;
-    case 0b00010000:
+    case 0x15:
       r = &DR;
       break;
-    case 0b00011000:
+    case 0x1D:
       r = &ER;
       break;
-    case 0b00100000:
+    case 0x25:
       r = &HR;
       break;
-    case 0b00101000:
+    case 0x2D:
       r = &LR;
       break;
-    case 0b00111000:
+    case 0x3D:
       r = &AR;
       break;
   }
+  t = *r;
   *r = *r - 1;
   if (*r == 0) {
     FR |= 0b11000000;
@@ -331,7 +333,7 @@ void DEC_r() {
     FR &= 0b01111111;
     FR |= 0b01000000;
   }
-  if (*r & 0x0F == 0x0F) {
+  if (t & 0x0F == 0x00) {
     FR |= 0b00100000;
   } else {
     FR &= 0b11010000;
@@ -340,6 +342,7 @@ void DEC_r() {
   cc_dec = 4;
   pc++;
 }
+
 void XOR_r() {
   switch (code) {
     case 0xA8:
