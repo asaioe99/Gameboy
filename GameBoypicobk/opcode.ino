@@ -1,24 +1,24 @@
-void LD_r_n() {
-  switch (code & 0b00111000) {
-    case 0b00000000:
+void ld_r8_d8() {
+  switch (code) {
+    case 0x06:
       BR = get_byte(++pc);
       break;
-    case 0b00001000:
+    case 0x0E:
       CR = get_byte(++pc);
       break;
-    case 0b00010000:
+    case 0x16:
       DR = get_byte(++pc);
       break;
-    case 0b00011000:
+    case 0x1E:
       ER = get_byte(++pc);
       break;
-    case 0b00100000:
+    case 0x26:
       HR = get_byte(++pc);
       break;
-    case 0b00101000:
+    case 0x2E:
       LR = get_byte(++pc);
       break;
-    case 0b00111000:
+    case 0x3E:
       AR = get_byte(++pc);
       break;
   }
@@ -27,27 +27,27 @@ void LD_r_n() {
   pc++;
 }
 
-void LD_r_HL() {
-  switch (code & 0b00111000) {
-    case 0b00000000:
+void ld_r8_phl() {
+  switch (code) {
+    case 0x46:
       BR = get_byte(HL(HR, LR));
       break;
-    case 0b00001000:
+    case 0x4E:
       CR = get_byte(HL(HR, LR));
       break;
-    case 0b00010000:
+    case 0x56:
       DR = get_byte(HL(HR, LR));
       break;
-    case 0b00011000:
+    case 0x5E:
       ER = get_byte(HL(HR, LR));
       break;
-    case 0b00100000:
+    case 0x66:
       HR = get_byte(HL(HR, LR));
       break;
-    case 0b00101000:
+    case 0x6E:
       LR = get_byte(HL(HR, LR));
       break;
-    case 0b00111000:
+    case 0x7E:
       AR = get_byte(HL(HR, LR));
       break;
   }
@@ -56,7 +56,7 @@ void LD_r_HL() {
   pc++;
 }
 
-void LD_r_r() {
+void ld_r8_r8() {
   uint8_t *t1;
   switch (code & 0b00111000) {
     case 0b00000000:
@@ -109,27 +109,27 @@ void LD_r_r() {
   pc++;
 }
 
-void LD_HL_r() {
-  switch (code & 0b00000111) {
-    case 0b00000000:
-      put_byte(HL(HR, LR), BR );
+void ld_phl_r8() {
+  switch (code) {
+    case 0x70:
+      put_byte(HL(HR, LR), BR);
       break;
-    case 0b00000001:
+    case 0x71:
       put_byte(HL(HR, LR), CR);
       break;
-    case 0b00000010:
+    case 0x72:
       put_byte(HL(HR, LR), DR);
       break;
-    case 0b00000011:
+    case 0x73:
       put_byte(HL(HR, LR), ER);
       break;
-    case 0b00000100:
+    case 0x74:
       put_byte(HL(HR, LR), HR);
       break;
-    case 0b00000101:
+    case 0x75:
       put_byte(HL(HR, LR), LR);
       break;
-    case 0b00000111:
+    case 0x77:
       put_byte(HL(HR, LR), AR);
       break;
   }
@@ -138,25 +138,28 @@ void LD_HL_r() {
   pc++;
 }
 
-void LD_HL_n() {
-  put_byte((uint16_t)(HR << 8) + LR, get_byte(++pc));
+void ld_phl_d8() {
+  put_byte(HL(HR, LR), get_byte(++pc));
   cc += 12;
   cc_dec = 12;
   pc++;
 }
-void LD_A_BC() {
-  AR = get_byte(((uint16_t)BR << 8) + CR);
+
+void ld_ar_pr16() {
+  switch (code) {
+    case 0x0A:
+      AR = get_byte(BC(BR, CR));
+      break;
+    case 0x1A:
+      AR = get_byte(DE(DR, ER));
+      break;
+  }
   cc += 8;
   cc_dec = 8;
   pc++;
 }
-void LD_A_DE() {
-  AR = get_byte(((uint16_t)DR << 8) + ER);
-  cc += 8;
-  cc_dec = 8;
-  pc++;
-}
-void LD_A_HLi() {
+
+void ld_ar_phli() {
   AR = get_byte(HL(HR, LR));
   LR++;
   if (LR == 0x00) HR++;
@@ -164,7 +167,7 @@ void LD_A_HLi() {
   cc_dec = 8;
   pc++;
 }
-void LD_A_HLd() {
+void ld_ar_phld() {
   AR = get_byte(HL(HR, LR));
   LR--;
   if (LR == 0xFF) HR--;
@@ -172,19 +175,21 @@ void LD_A_HLd() {
   cc_dec = 8;
   pc++;
 }
-void LD_BC_A() {
-  put_byte(((uint16_t)BR  << 8) + CR, AR);
+void ld_pr16_ar() {
+  switch (code) {
+    case 0x02:
+      put_byte(BC(BR, CR), AR);
+      break;
+    case 0x12:
+      put_byte(DE(DR, ER), AR);
+      break;
+  }
   cc += 8;
   cc_dec = 8;
   pc++;
 }
-void LD_DE_A() {
-  put_byte(((uint16_t)DR << 8) + ER, AR);
-  cc += 8;
-  cc_dec = 8;
-  pc++;
-}
-void LD_HLi_A() {
+
+void ld_phli_ar() {
   put_byte(HL(HR, LR), AR);
   LR++;
   if (LR == 0x00) HR++;
@@ -192,7 +197,7 @@ void LD_HLi_A() {
   cc_dec = 8;
   pc++;
 }
-void LD_HLd_A() {
+void ld_phld_ar() {
   put_byte(HL(HR, LR), AR);
   LR--;
   if (LR == 0xFF) HR--;
@@ -200,26 +205,26 @@ void LD_HLd_A() {
   cc_dec = 8;
   pc++;
 }
-void NOP() {
+void nop() {
   cc += 4;
   cc_dec = 4;
   pc++;
 }
-void INC_rr() {
-  switch ((code & 0b00110000) >> 4) {
-    case 0b00:
+void inc_r16() {
+  switch (code) {
+    case 0x03:
       CR++;
-      if (CR == 0x00) BR ++;
+      if (CR == 0x00) BR++;
       break;
-    case 0b01:
+    case 0x13:
       ER++;
       if (ER == 0x00) DR++;
       break;
-    case 0b10:
+    case 0x23:
       LR++;
       if (LR == 0x00) HR++;
       break;
-    case 0b11:
+    case 0x33:
       sp++;
       break;
   }
@@ -227,21 +232,21 @@ void INC_rr() {
   cc_dec = 8;
   pc++;
 }
-void DEC_rr() {
-  switch (code & 0b00110000) {
-    case 0b00000000:
+void dec_r16() {
+  switch (code) {
+    case 0x0B:
       CR--;
-      if (CR == 0xFF) BR --;
+      if (CR == 0xFF) BR--;
       break;
-    case 0b00010000:
+    case 0x1B:
       ER--;
       if (ER == 0xFF) DR--;
       break;
-    case 0b00100000:
+    case 0x2B:
       LR--;
       if (LR == 0xFF) HR--;
       break;
-    case 0b00110000:
+    case 0x3B:
       sp--;
       break;
   }
@@ -249,29 +254,30 @@ void DEC_rr() {
   cc_dec = 8;
   pc++;
 }
-void INC_r() {
+
+void inc_r8() {
   uint8_t *r;
   uint8_t t;
-  switch (code & 0b00111000) {
-    case 0b00000000:
+  switch (code) {
+    case 0x04:
       r = &BR ;
       break;
-    case 0b00001000:
+    case 0x0C:
       r = &CR;
       break;
-    case 0b00010000:
+    case 0x14:
       r = &DR;
       break;
-    case 0b00011000:
+    case 0x1C:
       r = &ER;
       break;
-    case 0b00100000:
+    case 0x24:
       r = &HR;
       break;
-    case 0b00101000:
+    case 0x2C:
       r = &LR;
       break;
-    case 0b00111000:
+    case 0x3C:
       r = &AR;
       break;
   }
@@ -292,6 +298,7 @@ void INC_r() {
   cc_dec = 4;
   pc++;
 }
+
 void DEC_r() {
   uint8_t *r;
   switch (code & 0b00111000) {
@@ -334,30 +341,30 @@ void DEC_r() {
   pc++;
 }
 void XOR_r() {
-  switch (code & 0b00000111) {
-    case 0b000:
+  switch (code) {
+    case 0xA8:
       AR = AR ^ BR ;
       break;
-    case 0b001:
+    case 0xA9:
       AR = AR ^ CR;
       break;
-    case 0b010:
+    case 0xAA:
       AR = AR ^ DR;
       break;
-    case 0b011:
+    case 0xAB:
       AR = AR ^ ER;
       break;
-    case 0b100:
+    case 0xAC:
       AR = AR ^ HR;
       break;
-    case 0b101:
+    case 0xAD:
       AR = AR ^ LR;
       break;
-    case 0b110:
+    case 0xAE:
       AR = AR ^ get_byte(HL(HR, LR));
       cc += 4;
       break;
-    case 0b111:
+    case 0xAF:
       AR = AR ^ AR;
       break;
   }
@@ -750,7 +757,7 @@ void RL_r() {
     *r = (*r << 1) + ((FR & 0b00010000) >> 4);
     FR = 0b00000000;
   }
-  if (*r == 0) FR | 0b10000000;
+  if (*r == 0) FR |= 0b10000000;
   cc += 8;
   cc_dec = 8;
   pc++;
@@ -1102,7 +1109,7 @@ void add_hl_r16() { //動作怪しい
       break;
   }
   if ((HL & 0x0FFF) + (r16 & 0x0FFF) > 0x0FFF) { //N H
-    FR |= 0b10100000;
+    FR |= 0b00100000;
     FR &= 0b10100000;
   } else {
     FR &= 0b10000000;
@@ -1113,6 +1120,7 @@ void add_hl_r16() { //動作怪しい
   }
   HR = (uint8_t)(t & 0x0000FF00);
   LR = (uint8_t)(t & 0x000000FF);
+  pc++;
 }
 void stop_0() {
   pc += 2;
@@ -1233,7 +1241,7 @@ void rst_vec() {
   put_byte(--sp, (uint8_t)((pc + 1) & 0x00FF));
   cc += 16;
   cc_dec = 16;
-  pc = (uint16_t)code - 0xC7; 
+  pc = (uint16_t)code - 0xC7;
 }
 
 void sbc_r() {
@@ -1295,7 +1303,7 @@ void add_a_d8() {
   AR = AR + val;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -1313,7 +1321,7 @@ void adc_a_d8() {
   AR = AR + val;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -1330,7 +1338,7 @@ void sub_a_d8() {
   AR = AR - val;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec += 8;
+  cc_dec = 8;
   pc++;
 }
 
@@ -1348,79 +1356,606 @@ void sbc_a_d8() {
   AR = AR - val;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec += 8;
+  cc_dec = 8;
   pc++;
 }
 
 void sla_r8() {
-  uint8_t val;
+  uint8_t *val;
   switch (code) {
     case 0x20:
-      val = BR ;
+      *val = BR ;
       break;
     case 0x21:
-      val = CR;
+      *val = CR;
       break;
     case 0x22:
-      val = DR;
+      *val = DR;
       break;
     case 0x23:
-      val = ER;
+      *val = ER;
       break;
     case 0x24:
-      val = HR;
+      *val = HR;
       break;
     case 0x25:
-      val = LR;
+      *val = LR;
       break;
     case 0x27:
-      val = AR;
+      *val = AR;
       break;
   }
-  if (val & 0b10000000 > 0) {
+  if (*val & 0b10000000 > 0) {
     FR = 0b00010000;
   } else {
     FR = 0b00000000;
   }
-  AR = val << 1;
+  *val = *val << 1;
+  if (*val == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+void rlc_r8() {
+  uint8_t* val;
+  switch (code) {
+    case 0x00:
+      *val = BR ;
+      break;
+    case 0x01:
+      *val = CR;
+      break;
+    case 0x02:
+      *val = DR;
+      break;
+    case 0x03:
+      *val = ER;
+      break;
+    case 0x04:
+      *val = HR;
+      break;
+    case 0x05:
+      *val = LR;
+      break;
+    case 0x07:
+      *val = AR;
+      break;
+  }
+  if (*val & 0b10000000 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  *val  = (*val << 1) + ((*val & 0b10000000) >> 7);
+  if (*val  == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void srl_r8() {
+  uint8_t* val;
+  switch (code) {
+    case 0x38:
+      *val = BR ;
+      break;
+    case 0x39:
+      *val = CR;
+      break;
+    case 0x3A:
+      *val = DR;
+      break;
+    case 0x3B:
+      *val = ER;
+      break;
+    case 0x3C:
+      *val = HR;
+      break;
+    case 0x3D:
+      *val = LR;
+      break;
+    case 0x3F:
+      *val = AR;
+      break;
+  }
+  if (*val & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  *val = *val >> 1;
+  if (*val == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void sra_r8() {
+  uint8_t* val;
+  switch (code) {
+    case 0x28:
+      *val = BR ;
+      break;
+    case 0x29:
+      *val = CR;
+      break;
+    case 0x2A:
+      *val = DR;
+      break;
+    case 0x2B:
+      *val = ER;
+      break;
+    case 0x2C:
+      *val = HR;
+      break;
+    case 0x2D:
+      *val = LR;
+      break;
+    case 0x2F:
+      *val = AR;
+      break;
+  }
+  if (*val & 0b00000001 > 0) { // 矛盾あり　無条件で0とするという記述もある
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  *val = (*val >> 1) + (*val & 0b10000000);
+  if (AR == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void rr_r8() {
+  uint8_t* val;
+  switch (code) {
+    case 0x18:
+      val = &BR;
+      break;
+    case 0x19:
+      val = &CR;
+      break;
+    case 0x1A:
+      val = &DR;
+      break;
+    case 0x1B:
+      val = &ER;
+      break;
+    case 0x1C:
+      val = &HR;
+      break;
+    case 0x1D:
+      val = &LR;
+      break;
+    case 0x1F:
+      val = &AR;
+      break;
+  }
+  uint8_t bit_0 = *val & 0b00000001;
+  if (FR & 0b00010000) {
+    *val = (*val >> 1) | 0b10000000;
+  } else {
+    *val = (*val >> 1);
+  }
+  if (bit_0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  if (*val == 0) FR |= 0b10000000;
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void rra() {
+  uint8_t bit_0 = AR & 0b00000001;
+  if (FR & 0b00010000) {
+    AR = (AR >> 1) | 0b10000000;
+  } else {
+    AR = (AR >> 1);
+  }
+  if (bit_0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void xor_d8() {
+  AR = AR ^ get_byte(++pc);
+  if (AR == 0) {
+    FR = 0b10000000;
+  } else {
+    FR = 0b00000000;
+  }
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void or_phl() {
+  AR |= get_byte(HL(HR, LR));
+  if (AR == 0) {
+    FR = 0b10000000;
+  } else {
+    FR = 0b00000000;
+  }
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void and_phl() {
+  AR &= get_byte(HL(HR, LR));
+  if (AR == 0) {
+    FR = 0b10000000;
+  } else {
+    FR = 0b00000000;
+  }
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void dec_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  if ((val & 0x0F) == 0x00) {
+    FR |= 0b00100000;
+  } else {
+    FR &= 0b11010000;
+  }
+  put_byte(HL(HR, LR), val - 1);
+  if (val == 0x01) {
+    FR |= 0b10000000;
+  } else {
+    FR &= 0b01110000;
+  }
+  FR |= 0b01000000;
+  cc += 12;
+  cc_dec = 12;
+  pc++;
+}
+
+void inc_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  if ((val & 0x0F) == 0x0F) {
+    FR |= 0b00100000;
+  } else {
+    FR &= 0b11010000;
+  }
+  put_byte(HL(HR, LR), val + 1);
+  if (val == 0xFF) {
+    FR |= 0b10000000;
+  } else {
+    FR &= 0b01110000;
+  }
+  FR &= 0b10110000;
+  cc += 12;
+  cc_dec = 12;
+  pc++;
+}
+void halt() {
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void rlca() {
+  if (AR & 0b10000000 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (AR << 1) | (AR >> 7);
+
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+void daa() {
+  if (!(FR & 0b01000000)) {
+    if ((FR & 0b00010000) || AR > 0x99) {
+      AR += 0x60;
+      FR |= 0b00010000;
+    }
+    if ((FR & 0b00100000) || ((AR & 0x0F) > 0x09)) AR -= 0x06;
+  } else {
+    if (FR & 0b00010000) AR -= 0x60;
+    if (FR & 0b00100000) AR -= 0x06;
+  }
+  if (AR == 0) {
+    FR |= 0b10000000;
+  } else {
+    FR &= 0b01110000;
+  }
+  FR &= 0b11010000;
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void scf() {
+  FR &= 0b10000000;
+  FR |= 0b00010000;
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void ld_pd16_sp() {
+  put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1), (uint8_t)(sp & 0x00FF));
+  put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1) + 1, (uint8_t)(sp >> 8));
+  cc += 20;
+  cc_dec = 20;
+  pc += 3;
+}
+
+void add_sp_d8() {
+  uint8_t val = get_byte(++pc);
+
+  if (sp & 0x0F + val & 0x0F > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if (sp & 0xFF + (uint16_t)val & 0xFF > 0xFF) FR |= 0b00010000;
+
+  sp += val;
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void jp_hl() {
+  pc = HL(HR, LR);
+  cc += 4;
+  cc_dec = 4;
+}
+
+void ld_sp_hl() {
+  sp = HL(HR, LR);
+  cc += 8;
+  cc_dec = 8;
+  pc++;
+}
+
+void rrca() {
+  if (AR & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (AR >> 1) | (AR << 7);
+
+  cc += 4;
+  cc_dec = 4;
+  pc++;
+}
+
+void ld_hl_sp_d8() {
+  uint16_t val = get_byte(++pc);
+
+  if (sp & 0x0F + val & 0x0F > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if (sp & 0xFF + (uint16_t)val & 0xFF > 0xFF) FR |= 0b00010000;
+
+  val += sp;
+  HR = (uint8_t)(val >> 8);
+  LR = (uint8_t)(val & 0x00FF);
+  cc += 12;
+  cc_dec = 12;
+  pc++;
+}
+
+void swap_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  val = ((val << 4) & 0xF0) + (val >> 4);
+  if (val) {
+    FR = 0b00000000;
+  } else {
+    FR = 0b10000000;
+  }
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc += 2;
+}
+
+void sla_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  if (val & 0b10000000) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  val = val << 1;
+  if (!val) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc += 2;
+}
+void rrc_r8() {
+  uint8_t val;
+  switch (code) {
+    case 0x08:
+      val = BR ;
+      break;
+    case 0x09:
+      val = CR;
+      break;
+    case 0x0A:
+      val = DR;
+      break;
+    case 0x0B:
+      val = ER;
+      break;
+    case 0x0C:
+      val = HR;
+      break;
+    case 0x0D:
+      val = LR;
+      break;
+    case 0x0F:
+      val = AR;
+      break;
+  }
+  if (val & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (val >> 1) + ((val & 0b00000001) << 7);
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
   cc_dec += 8;
   pc++;
 }
-void rlc_r8() {
-  uint8_t val;
-  switch (code) {
-    case 0x00:
-      val = BR ;
-      break;
-    case 0x01:
-      val = CR;
-      break;
-    case 0x02:
-      val = DR;
-      break;
-    case 0x03:
-      val = ER;
-      break;
-    case 0x04:
-      val = HR;
-      break;
-    case 0x05:
-      val = LR;
-      break;
-    case 0x07:
-      val = AR;
-      break;
+
+void set_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+  r |= mask;
+  put_byte(HL(HR, LR), r);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void res_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+  r &= (~mask);
+  put_byte(HL(HR, LR), r);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void bit_phl() {
+  uint8_t b = (code & 0b00111000) >> 3;
+  uint8_t mask = 0b00000001 << b;
+  uint8_t r = get_byte(HL(HR, LR));
+
+  r = r & mask;
+  if (r) {
+    FR &= 0b01111111;
+  } else {
+    FR |= 0b10000000;
   }
+  FR |= 0b00100000;
+  FR &= 0b10110000;
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void rlc_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+
   if (val & 0b10000000 > 0) {
     FR = 0b00010000;
   } else {
     FR = 0b00000000;
   }
-  AR = (val << 1) + ((val & 0b10000000) >> 7);
+  val  = (val << 1) + ((val & 0b10000000) >> 7);
+  if (val  == 0) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void rl_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+
+  if (val >> 7) {
+    val = (val << 1) + ((FR & 0b00010000) >> 4);
+    FR = 0b00010000;
+  } else {
+    val = (val << 1) + ((FR & 0b00010000) >> 4);
+    FR = 0b00000000;
+  }
+  if (val == 0) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void rrc_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+
+  if (val & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  AR = (val >> 1) + ((val & 0b00000001) << 7);
   if (AR == 0) FR |= 0b10000000;
-  cc += 8;
-  cc_dec += 8;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void rr_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  uint8_t bit_0 = val & 0b00000001;
+  if (FR & 0b00010000) {
+    val = (val >> 1) | 0b10000000;
+  } else {
+    val = (val >> 1);
+  }
+  if (bit_0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  if (val == 0) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void sra_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+
+  if (val & 0b00000001 > 0) { // 矛盾あり　無条件で0とするという記述もある
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  val = (val >> 1) + (val & 0b10000000);
+  if (AR == 0) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc++;
+}
+
+void srl_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  if (val & 0b00000001 > 0) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  val = val >> 1;
+  if (val == 0) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
   pc++;
 }

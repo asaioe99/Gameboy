@@ -1,16 +1,34 @@
 void execute() {
   code = get_byte(pc);
 
-  /*
-    char buf[64];
-    if (pc >= 0x100) {
-      sprintf(buf, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
-      Serial.println(buf);
-      sprintf(buf, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
-      Serial.println(buf);
-      delay(1000);
+  if (pc >= 0x0150) {
+    //for (int i = 0; i < 64; i++) {
+    //  *(buf_f1 + i) = *(buf_b1 + i);
+    //  *(buf_f2 + i) = *(buf_b2 + i);
+    //}
+    if (sp < 0xFF80) {
+      gpio_put(25, HIGH);
+      while (1) {
+        Serial.print("pc:");
+        Serial.print(pc, HEX);
+        Serial.print(" code:");
+        Serial.println(code, HEX);
+        Serial.print("rom_bank_num:");
+        Serial.println(rom_bank_num, HEX);
+        Serial.println("sp is less than 0xFF80");
+        chk_init_regs();
+        dump_tilemap();
+        delay(10000);
+      }
     }
-  */
+    sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
+    //sprintf(buf_b2, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
+    //if (pc >= 0xC000) {
+    Serial.println(buf_b1);
+    //Serial.println(buf_b2);
+    //delay(1000);
+    //}
+  }
 
   cc_dec = 0;
   switch (code) {
@@ -43,6 +61,15 @@ void execute() {
         case 0x15:
         case 0x17:
           RL_r();
+          break;
+        case 0x18:
+        case 0x19:
+        case 0x1A:
+        case 0x1B:
+        case 0x1C:
+        case 0x1D:
+        case 0x1F:
+          rr_r8();
           break;
         case 0x30:
         case 0x31:
@@ -225,6 +252,87 @@ void execute() {
         case 0xFF:
           SET();
           break;
+        case 0x38:
+        case 0x39:
+        case 0x3A:
+        case 0x3B:
+        case 0x3C:
+        case 0x3D:
+        case 0x3F:
+          srl_r8();
+          break;
+        case 0x28:
+        case 0x29:
+        case 0x2A:
+        case 0x2B:
+        case 0x2C:
+        case 0x2D:
+        case 0x2F:
+          sra_r8();
+          break;
+        case 0x08:
+        case 0x09:
+        case 0x0A:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
+        case 0x0F:
+          rrc_r8();
+          break;
+        case 0xC6:
+        case 0xD6:
+        case 0xE6:
+        case 0xF6:
+        case 0xCE:
+        case 0xDE:
+        case 0xEE:
+        case 0xFE:
+          set_phl();
+          break;
+        case 0x86:
+        case 0x96:
+        case 0xA6:
+        case 0xB6:
+        case 0x8E:
+        case 0x9E:
+        case 0xAE:
+        case 0xBE:
+          res_phl();
+          break;
+        case 0x46:
+        case 0x56:
+        case 0x66:
+        case 0x76:
+        case 0x4E:
+        case 0x5E:
+        case 0x6E:
+        case 0x7E:
+          bit_phl();
+          break;
+        case 0x36:
+          swap_phl();
+          break;
+        case 0x26:
+          sla_phl();
+          break;
+        case 0x06:
+          rlc_phl();
+          break;
+        case 0x16:
+          rl_phl();
+          break;
+        case 0x0E:
+          rrc_phl();
+          break;
+        case 0x1E:
+          rr_phl();
+          break;
+        case 0x2E:
+          sra_phl();
+          break;
+        case 0x3E:
+          srl_phl();
+          break;
         default:
           gpio_put(25, HIGH);
           while (1) {
@@ -240,14 +348,14 @@ void execute() {
           }
       }
       break;
-    case 0x06: //LD_B_n
-    case 0x0E: //LD_C_n
-    case 0x16: //LD_D_n
-    case 0x1E: //LD_E_n
-    case 0x26: //LD_H_n
-    case 0x2E: //LD_L_n
-    case 0x3E: //LD_A_n
-      LD_r_n();
+    case 0x06: //B
+    case 0x0E: //C
+    case 0x16: //D
+    case 0x1E: //E
+    case 0x26: //H
+    case 0x2E: //L
+    case 0x3E: //A
+      ld_r8_d8();
       break;
     case 0x46: //LD_B_(HL)
     case 0x4E: //LD_C_(HL)
@@ -256,7 +364,7 @@ void execute() {
     case 0x66: //LD_H_(HL)
     case 0x6E: //LD_L_(HL)
     case 0x7E: //LD_A_(HL)
-      LD_r_HL();
+      ld_r8_phl();
       break;
     case 0x40: //LD_B_B
     case 0x41: //LD_B_C
@@ -300,14 +408,14 @@ void execute() {
     case 0x6C: //LD_L_H
     case 0x6D: //LD_L_L
     case 0x6F: //LD_L_A
-    case 0x7F: //LD_A_A
     case 0x78: //LD_A_C
     case 0x79: //LD_A_C
     case 0x7A: //LD_A_D
     case 0x7B: //LD_A_E
     case 0x7C: //LD_A_H
     case 0x7D: //LD_A_L
-      LD_r_r();
+    case 0x7F: //LD_A_A
+      ld_r8_r8();
       break;
     case 0x70: //LD_(HL)_B
     case 0x71: //LD_(HL)_C
@@ -316,49 +424,45 @@ void execute() {
     case 0x74: //LD_(HL)_H
     case 0x75: //LD_(HL)_L
     case 0x77: //LD_(HL)_A
-      LD_HL_r();
+      ld_phl_r8();
       break;
     case 0x36:
-      LD_HL_n();
+      ld_phl_d8();
       break;
     case 0x0A:
-      LD_A_BC();
-      break;
     case 0x1A:
-      LD_A_DE();
+      ld_ar_pr16();
       break;
     case 0x2A:
-      LD_A_HLi();
+      ld_ar_phli();
       break;
     case 0x3A:
-      LD_A_HLd();
+      ld_ar_phld();
       break;
     case 0x02:
-      LD_BC_A();
-      break;
     case 0x12:
-      LD_DE_A();
+      ld_pr16_ar();
       break;
     case 0x22:
-      LD_HLi_A();
+      ld_phli_ar();
       break;
     case 0x32:
-      LD_HLd_A();
+      ld_phld_ar();
       break;
     case 0x00:
-      NOP();
+      nop();
       break;
     case 0x03: //INC_BC
     case 0x13: //INC_DE
     case 0x23: //INC_HL
     case 0x33: //INC_SP
-      INC_rr();
+      inc_r16();
       break;
     case 0x0B: //DEC_BC
     case 0x1B: //DEC_DE
     case 0x2B: //DEC_HL
     case 0x3B: //DEC_SP
-      DEC_rr();
+      dec_r16();
       break;
     case 0x04: //INC_B
     case 0x0C: //INC_C
@@ -367,7 +471,7 @@ void execute() {
     case 0x24: //INC_H
     case 0x2C: //INC_L
     case 0x3C: //INC_A
-      INC_r();
+      inc_r8();
       break;
     case 0x05: //DEC_B
     case 0x0D: //DEC_C
@@ -584,6 +688,54 @@ void execute() {
     case 0xDE:
       sbc_a_d8();
       break;
+    case 0x1F:
+      rra();
+      break;
+    case 0xEE:
+      xor_d8();
+      break;
+    case 0xB6:
+      or_phl();
+      break;
+    case 0xA6:
+      and_phl();
+      break;
+    case 0x35:
+      dec_phl();
+      break;
+    case 0x34:
+      inc_phl();
+      break;
+    case 0x76:
+      halt();
+      break;
+    case 0x07:
+      rlca();
+      break;
+    case 0x27:
+      daa();
+      break;
+    case 0x37:
+      scf();
+      break;
+    case 0x08:
+      ld_pd16_sp();
+      break;
+    case 0xE8:
+      add_sp_d8();
+      break;
+    case 0xE9:
+      jp_hl();
+      break;
+    case 0xF9:
+      ld_sp_hl();
+      break;
+    case 0x0F:
+      rrca();
+      break;
+    case 0xF8:
+      ld_hl_sp_d8();
+      break;
     default:
       gpio_put(25, HIGH);
       while (1) {
@@ -597,6 +749,6 @@ void execute() {
         dump_tilemap();
         delay(10000);
       }
-      NOP();
+      nop();
   }
 }

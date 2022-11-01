@@ -1,13 +1,16 @@
 #include "rom.h"
-#include "cpu_instrrs.h"
+//#include "cpu_instrs.h"
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
+#define AF(A, F) ((uint16_t)A << 8) + F
+#define BC(B, C) ((uint16_t)B << 8) + C
+#define DE(D, E) ((uint16_t)D << 8) + E
 #define HL(H, L) ((uint16_t)H << 8) + L
 
 #define MOSI  11    // MOSI　本来ならGP3 ArduinoIDE上でpinassignが変更可能になったらHWSPIに切り替え
 #define CLK   10    // CLK　本来ならGP2
-#define CS    9   　// Data/Command
+#define CS    9     // Data/Command
 #define DC    8     // Data/Command
 #define RST   12    // RESET
 #define BL    13    // BACK LIGHT
@@ -19,6 +22,12 @@
 #define MBC_3               3
 #define MBC_5               5
 
+//for debug
+char buf_f1[64];
+char buf_f2[64];
+char buf_b1[64];
+char buf_b2[64];
+
 uint8_t SPIBuf[360] ; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
 
@@ -26,6 +35,8 @@ uint8_t VRAM[0x2000];
 uint8_t oam[0xa0];
 uint8_t io[0x80];
 uint8_t hram[0x7F];
+uint8_t WRAM[0x2000];
+uint8_t CRAM[0x2000];
 uint8_t ie;
 
 uint16_t pc;
@@ -48,21 +59,6 @@ uint8_t rom_bank_num;
 uint8_t cc_dec;
 uint8_t code;
 int16_t scaline_counter;
-
-// romの指定アドレスから1Byte読み出し
-uint8_t get_rom_byte(uint16_t address) {
-  return 0x00;
-}
-// ramの指定アドレスから1Byte読み出し
-byte get_ram_byte(uint16_t address) {
-  return 0x00;
-}
-// 指定アドレスに1Byte書き込み
-void put_rom_byte(uint16_t address, uint8_t data) {
-}
-
-void put_ram_byte(uint16_t address, uint8_t data) {
-}
 
 // GPIO割り当て（レジスタにより）
 void ini() {
@@ -93,9 +89,9 @@ uint8_t get_byte(uint16_t addr) {
   } else if (addr >= 0x8000 && addr < 0xA000) {
     return *(VRAM + addr - 0x8000);
   } else if (addr >= 0xA000 && addr < 0xC000) {
-
+    return *(CRAM + addr - 0xA000);
   } else if (addr >= 0xC000 && addr < 0xE000) {
-
+    return *(WRAM + addr - 0xC000);
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
 
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
@@ -124,7 +120,6 @@ uint8_t get_byte(uint16_t addr) {
     dump_tilemap();
     delay(10000);
   }
-
   return 0x00;
 }
 
@@ -136,9 +131,9 @@ void put_byte(uint16_t addr, uint8_t data) {
   } else if (addr >= 0x8000 && addr < 0xA000) {
     *(VRAM + addr - 0x8000) = data;
   } else if (addr >= 0xA000 && addr < 0xC000) {
-
+    *(CRAM + addr - 0xA000) = data;
   } else if (addr >= 0xC000 && addr < 0xE000) {
-
+    *(WRAM + addr - 0xC000) = data;
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
 
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)

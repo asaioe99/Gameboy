@@ -6,6 +6,7 @@ uint8_t mbc_get_rom(uint16_t addr) {
       return *(rom_bank02 + addr - 0x4000);
     case 0x03:
       return *(rom_bank03 + addr - 0x4000);
+      /*
     case 0x04:
       return *(rom_bank04 + addr - 0x4000);
     case 0x05:
@@ -64,6 +65,7 @@ uint8_t mbc_get_rom(uint16_t addr) {
       return *(rom_bank1F + addr - 0x4000);
     case 0x21:
       return *(rom_bank21 + addr - 0x4000);
+      */
     default:
       return 0xFD; //未定義の命令
   }
@@ -76,6 +78,14 @@ uint8_t switch_rom_bank(uint8_t data) {
   }
   Serial.print("bank switch:");
   Serial.println(rom_bank_num, HEX);
+}
+
+// ramの指定アドレスから1Byte読み出し
+uint8_t mbc_get_ram(uint16_t addr) {
+  return *(WRAM + addr - 0xC000);
+}
+
+void mbc_put_ram(uint16_t addr, uint8_t data) {
 }
 
 // カートリッジタイプの取得
