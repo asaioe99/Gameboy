@@ -58,6 +58,10 @@
 
 目標：エミュレータの作り方を学ぶ
 
+### 補足資料
+- https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+- https://github.com/pokemium/gb-docs-ja
+
 ## 5. SPI仕様の理解
 ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライブラリを利用できません。そこで、SPIをソフトウェア上で実装する必要があります。そのためには、SPIとは何か、大まかに理解する必要があります。
 
@@ -66,6 +70,9 @@ ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライ
 どれでも好きなものを読んで理解すれば良いでしょう。難しい部分は、pinの名称がドキュメントによって異なることです。対応表みたいなのを作ると良いですね。あとは、負論理という言葉にピンとこない方（手順１で必要なはずですが）は、一度調べてみよう。
 
 目標：SPIの仕組みを理解する
+
+### 補足資料
+- http://www.musashinodenpa.com/arduino/ref/index.php?f=1&pos=539 （公式リファレンス）
 
 ## 6. PICO 1.3 LCDの仕様理解
 以下のLCDを使います。
@@ -80,8 +87,14 @@ ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライ
 目標：LCDドライバの仕組みを理解する
 
 ## 7. PICO 1.3 LCD用デバイスドライバの作成
+ここまでの理解をもとに、実際にLCD上に任意の画像を表示させるようになります。しかしながら、ある程度まとまった機能として管理しないと、ソースコードが複雑になってしまします。そのため、ST7789内部のレジスタへの値書き込み等を機能としてまとめて、簡易なデバイスドライバとAPIを作成することになります。
+
+目標：任意のbitmapデータと座標を入力として、LCDに表示可能なデバイスドライバとAPIを作成する
 
 ## 8. PPUのBGのみ実装（ここまでで、電源ON後のロゴスクロールが成功する）
+ここまでの作業では、実際にエミュレータが動作していても、シリアルコンソール等でしか内部の状態（レジスタの値等）が分かりません。そこで、bootstrapが表示する任天堂のロゴを確認するためにも、PPUのBG機能のみ実装してみます。これには、前手順で作成したAPIが不可欠です。
+
+目標：任天堂のロゴを確認する
 
 ## 9. test ROMを利用して残りの命令を実装（←今ココ）
 
@@ -90,63 +103,6 @@ ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライ
 - https://monoworks.co.jp/post/2020-05-26-output-pdf-docx-html-from-markdown-with-vscode/
 - https://qiita.com/pooshikin/items/b6fa4b9341b50cacddaf
 - https://qiita.com/sta/items/c88093b1b9da9c77b577
-
-### Arduino SPIについて
-- http://www.musashinodenpa.com/arduino/ref/index.php?f=1&pos=539 （公式リファレンス）
-
-Arduino Mega: 50(MISO)、51(MOSI)、52(SCK)、53(SS)
-
-### 液晶（ST7789 TFT）
-- ananevilya/Arduino-ST7789-Library
-- https://shikarunochi.matrix.jp/?p=2834
-- https://simple-circuit.com/arduino-st7789-ips-tft-display-example/
-- http://kako.com/blog/?p=47810 (CSピンを取り出す方法についての考察)
-- https://www.switch-science.com/products/7327?_pos=17&_sid=2ec415bed&_ss=r (転用可能？)
-  - https://www.waveshare.com/wiki/Pico-LCD-1.3 (上記wiki ST7789でCS有りなのでたぶん行ける！)
-
-CSpinがあればSPI_MODE0で動くかも知れない。要実験
-
-液晶について知っておくべきことは、SPI対応のものでも、コストカット品にはCSピンがない製品もあり、それ故に複数スレーブに利用できない（かも知れない）可能性があることである。CSがない場合、SPI_MODEが2でないと動作しないらしく（理由不明）、このためにSRAM（SPI_MODE0）との共用が不可能になる。
-
-解決方法としては、同じST7789チップを搭載した1.54インチのLCDが販売されており、これはCSピンがあり、恐らくSPI_MODE0で動作するとのことなので、これを利用することが挙げられる。
-
-また、より合理的な解決方法は、同じくST7789制御の1.3インチLCDを搭載した、ラズパイpico用のジョイスティック＋ボタン×4（GameBoyエミュとしては申し分ない）のLCDがあり、これはCSがきちんと省略されずに使用可能である！
-
-未確認の情報であるが、CS省略品でも、バラして基板上のパターンをカットしてCSを取り出せば（どうやらGNDに繋がっているらしい）、SPI_MODE0かつ複数スレーブで利用できる可能性がある。
-
-(1.54インチの製品はCSあり)
-
-ひょっとしたら、CSがないため動作させられない可能性。他のSPIデバイスにアクセスしている間にどういう動作をするか不明
-
-- http://try3dcg.world.coocan.jp/note/spi/st7789.html
-
-### SRAM
-- https://ameblo.jp/pi-poh/entry-12667969903.html　（プルアップについて）
-
-SPI＿MODE0で動作。液晶はMODE2なので共用不可
-
-
-### MBCについて
-以下を読む
-- http://gameboy.mongenel.com/dmg/asmmemmap.html
-
-### ST7789(pico LCD 1.3)
-四の五の言わずに以下を読め
-- https://github.com/adafruit/Adafruit-ST7735-Library
-
-
-### エミュレータの実装例
-- https://github.com/keichi/gbr
-
-### CPU opcode一覧
-- https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
-- https://github.com/pokemium/gb-docs-ja
-
-
-https://github.com/adafruit/Adafruit-ST7735-Library/blob/master/examples/graphicstest_st7789/graphicstest_st7789.ino
-
-### picoに移行
-SPIのpinは公式ArduinoIDEからでは割り当て変更不可なので、ソフトウェアSPIを実装すべき。
 
 
 ### 追加の関数等
