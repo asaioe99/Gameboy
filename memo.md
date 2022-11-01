@@ -122,7 +122,6 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
 
 ### 追加の関数等（動作未検証）
 ```c
-
   case 0x76:
     halt();
     break;
@@ -149,6 +148,9 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
     break;
   case 0x0F:
     rrca();
+    break;
+  case 0xF8:
+    ld_hl_sp_d8();
     break;
 
 void halt() {
@@ -246,6 +248,24 @@ void rrca() {
 
   cc += 4;
   cc_dec = 4;
+  pc++;
+}
+
+void ld_hl_sp_d8() {
+  uint16_t val = get_byte(++pc);
+
+  if (sp & 0x0F + val & 0x0F > 0x0F) {
+    FR = 0b00100000;
+  } else {
+    FR = 0b00000000;
+  }
+  if (sp & 0xFF + (uint16_t)val & 0xFF > 0xFF) FR |= 0b00010000;
+
+  val += sp;
+  HR = (uint8_t)(val >> 8);
+  LR = (uint8_t)(val & 0x00FF);
+  cc += 12;
+  cc_dec = 12;
   pc++;
 }
 
