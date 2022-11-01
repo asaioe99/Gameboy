@@ -101,13 +101,17 @@ ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライ
 ## 9. test ROMを利用して残りの命令を実装（←今ココ）
 
 
+
+
+## 以下は個人的メモ
+
 ### ドキュメント作成について
 - https://monoworks.co.jp/post/2020-05-26-output-pdf-docx-html-from-markdown-with-vscode/
 - https://qiita.com/pooshikin/items/b6fa4b9341b50cacddaf
 - https://qiita.com/sta/items/c88093b1b9da9c77b577
 
 
-### 追加の関数等
+### 追加の関数等（動作未検証）
 ```c
 
   case 0x76:
