@@ -122,6 +122,7 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
 
 ### 追加の関数等（動作未検証）
 ```c
+
   case 0x76:
     halt();
     break;
@@ -151,6 +152,12 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
     break;
   case 0xF8:
     ld_hl_sp_d8();
+    break;
+  case 0x36:
+    swap_phl();
+    break;
+  case 0x26:
+    sla_phl();
     break;
 
 void halt() {
@@ -267,6 +274,35 @@ void ld_hl_sp_d8() {
   cc += 12;
   cc_dec = 12;
   pc++;
+}
+
+void swap_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  val = ((val << 4) & 0xF0) + (val >> 4);
+  if (val) {
+    FR = 0b00000000;
+  } else {
+    FR = 0b10000000;
+  }
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc += 2;
+}
+
+void sla_phl() {
+  uint8_t val = get_byte(HL(HR, LR));
+  if (val & 0b10000000) {
+    FR = 0b00010000;
+  } else {
+    FR = 0b00000000;
+  }
+  val = val << 1;
+  if (!val) FR |= 0b10000000;
+  put_byte(HL(HR, LR), val);
+  cc += 16;
+  cc_dec = 16;
+  pc += 2;
 }
 
   case 0x08:
