@@ -696,13 +696,13 @@ void execute() {
       rra();
       break;
     case 0xEE:
-      xor_d8();
+      xor_ar_d8();
       break;
     case 0xB6:
-      or_phl();
+      or_ar_phl();
       break;
     case 0xA6:
-      and_phl();
+      and_ar_phl();
       break;
     case 0x35:
       dec_phl();

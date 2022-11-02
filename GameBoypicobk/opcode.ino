@@ -1351,29 +1351,29 @@ void sbc_ar_d8() {
   pc++;
 }
 
-void sla_r8() {////////////////////////////////////
+void sla_r8() {
   uint8_t *val;
   switch (code) {
     case 0x20:
-      *val = BR ;
+      *val = &BR ;
       break;
     case 0x21:
-      *val = CR;
+      *val = &CR;
       break;
     case 0x22:
-      *val = DR;
+      *val = &DR;
       break;
     case 0x23:
-      *val = ER;
+      *val = &ER;
       break;
     case 0x24:
-      *val = HR;
+      *val = &HR;
       break;
     case 0x25:
-      *val = LR;
+      *val = &LR;
       break;
     case 0x27:
-      *val = AR;
+      *val = &AR;
       break;
   }
   if (*val & 0b10000000 > 0) {
@@ -1391,25 +1391,25 @@ void rlc_r8() {
   uint8_t* val;
   switch (code) {
     case 0x00:
-      *val = BR ;
+      *val = &BR ;
       break;
     case 0x01:
-      *val = CR;
+      *val = &CR;
       break;
     case 0x02:
-      *val = DR;
+      *val = &DR;
       break;
     case 0x03:
-      *val = ER;
+      *val = &ER;
       break;
     case 0x04:
-      *val = HR;
+      *val = &HR;
       break;
     case 0x05:
-      *val = LR;
+      *val = L&R;
       break;
     case 0x07:
-      *val = AR;
+      *val = &AR;
       break;
   }
   if (*val & 0b10000000 > 0) {
@@ -1428,25 +1428,25 @@ void srl_r8() {
   uint8_t* val;
   switch (code) {
     case 0x38:
-      *val = BR ;
+      *val = &BR ;
       break;
     case 0x39:
-      *val = CR;
+      *val = &CR;
       break;
     case 0x3A:
-      *val = DR;
+      *val = &DR;
       break;
     case 0x3B:
-      *val = ER;
+      *val = &ER;
       break;
     case 0x3C:
-      *val = HR;
+      *val = &HR;
       break;
     case 0x3D:
-      *val = LR;
+      *val = &LR;
       break;
     case 0x3F:
-      *val = AR;
+      *val = &AR;
       break;
   }
   if (*val & 0b00000001 > 0) {
@@ -1465,25 +1465,25 @@ void sra_r8() {
   uint8_t* val;
   switch (code) {
     case 0x28:
-      *val = BR ;
+      *val = &BR ;
       break;
     case 0x29:
-      *val = CR;
+      *val = &CR;
       break;
     case 0x2A:
-      *val = DR;
+      *val = &DR;
       break;
     case 0x2B:
-      *val = ER;
+      *val = &ER;
       break;
     case 0x2C:
-      *val = HR;
+      *val = &HR;
       break;
     case 0x2D:
-      *val = LR;
+      *val = &LR;
       break;
     case 0x2F:
-      *val = AR;
+      *val = &AR;
       break;
   }
   if (*val & 0b00000001 > 0) { // 矛盾あり　無条件で0とするという記述もある
@@ -1557,7 +1557,7 @@ void rra() {
   pc++;
 }
 
-void xor_d8() {
+void xor_ar_d8() {
   AR = AR ^ get_byte(++pc);
   if (AR == 0) {
     FR = 0b10000000;
@@ -1569,7 +1569,7 @@ void xor_d8() {
   pc++;
 }
 
-void or_phl() {
+void or_ar_phl() {
   AR |= get_byte(HL(HR, LR));
   if (AR == 0) {
     FR = 0b10000000;
@@ -1581,7 +1581,7 @@ void or_phl() {
   pc++;
 }
 
-void and_phl() {
+void and_ar_phl() {
   AR &= get_byte(HL(HR, LR));
   if (AR == 0) {
     FR = 0b10000000;
@@ -1678,7 +1678,7 @@ void scf() {
   pc++;
 }
 
-void ld_pd16_sp() {
+void ld_pd16_sp() {/////////////////////////////////////////
   put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1), (uint8_t)(sp & 0x00FF));
   put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1) + 1, (uint8_t)(sp >> 8));
   cc += 20;
@@ -1775,37 +1775,37 @@ void sla_phl() {
   pc += 2;
 }
 void rrc_r8() {
-  uint8_t val;
+  uint8_t* val;
   switch (code) {
     case 0x08:
-      val = BR ;
+      *val = &BR ;
       break;
     case 0x09:
-      val = CR;
+      *val = &CR;
       break;
     case 0x0A:
-      val = DR;
+      *val = &DR;
       break;
     case 0x0B:
-      val = ER;
+      *val = &ER;
       break;
     case 0x0C:
-      val = HR;
+      *val = &HR;
       break;
     case 0x0D:
-      val = LR;
+      *val = &LR;
       break;
     case 0x0F:
-      val = AR;
+      *val = &AR;
       break;
   }
-  if (val & 0b00000001 > 0) {
+  if (*val & 0b00000001 > 0) {
     FR = 0b00010000;
   } else {
     FR = 0b00000000;
   }
-  AR = (val >> 1) + ((val & 0b00000001) << 7);
-  if (AR == 0) FR |= 0b10000000;
+  *val = (*val >> 1) + ((*val & 0b00000001) << 7);
+  if (*val == 0) FR |= 0b10000000;
   cc += 8;
   cc_dec += 8;
   pc++;
