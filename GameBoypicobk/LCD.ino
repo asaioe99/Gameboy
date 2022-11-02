@@ -13,12 +13,12 @@ void ini_LCD() {
   // --- HARD Ware Reset
   gpio_put(RST, HIGH);
   delay(120);                  // VDD goes high at start, pause for 500 ms
-  gpio_put(RST, LOW);  // Bring reset low
+  gpio_put(RST, LOW);          // Bring reset low
   delay(120);                  // Wait 100 ms
-  gpio_put(RST, HIGH); // Bring out of reset
+  gpio_put(RST, HIGH);         // Bring out of reset
   delay(120);                  // Wait 500 ms, more then 120 ms
   // --- SOFT Ware Reset
-  SendCommand(0x01);       // SOFTWARE RESET
+  SendCommand(0x01);           // SOFTWARE RESET
   delay(50);
 
   // --- Initial Comands

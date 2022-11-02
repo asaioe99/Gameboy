@@ -6,7 +6,8 @@ void execute() {
     //  *(buf_f1 + i) = *(buf_b1 + i);
     //  *(buf_f2 + i) = *(buf_b2 + i);
     //}
-    if (sp < 0xFF80) {
+    /*
+      if (sp < 0xFF80) {
       gpio_put(25, HIGH);
       while (1) {
         Serial.print("pc:");
@@ -20,7 +21,8 @@ void execute() {
         dump_tilemap();
         delay(10000);
       }
-    }
+      }
+    */
     sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
     //sprintf(buf_b2, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
     //if (pc >= 0xC000) {
@@ -60,7 +62,7 @@ void execute() {
         case 0x14:
         case 0x15:
         case 0x17:
-          RL_r();
+          rl_r8();
           break;
         case 0x18:
         case 0x19:
@@ -78,7 +80,7 @@ void execute() {
         case 0x34:
         case 0x35:
         case 0x37:
-          SWAP();
+          swap();
           break;
         case 0x40:
         case 0x41:
@@ -136,7 +138,7 @@ void execute() {
         case 0x7C:
         case 0x7D:
         case 0x7F:
-          BIT();
+          bit();
           break;
         case 0x80:
         case 0x81:
@@ -194,7 +196,7 @@ void execute() {
         case 0xBC:
         case 0xBD:
         case 0xBF:
-          RES();
+          res();
           break;
         case 0xC0:
         case 0xC1:
@@ -207,6 +209,8 @@ void execute() {
         case 0xC9:
         case 0xCA:
         case 0xCB:
+        case 0xCC:
+        case 0xCD:
         case 0xCF:
         case 0xD0:
         case 0xD1:
@@ -250,7 +254,7 @@ void execute() {
         case 0xFC:
         case 0xFD:
         case 0xFF:
-          SET();
+          set();
           break;
         case 0x38:
         case 0x39:
@@ -490,7 +494,7 @@ void execute() {
     case 0xAD: //XOR_L
     case 0xAE: //XOR_(HL)
     case 0xAF: //XOR_L
-      XOR_r();
+      xor_ar_r8();
       break;
     case 0x90: //SUB_B
     case 0x91: //SUB_C
@@ -500,7 +504,7 @@ void execute() {
     case 0x95: //SUB_L
     case 0x96: //SUB_(HL)
     case 0x97: //SUB_L
-      sub_a_r8();
+      sub_ar_r8();
       break;
     case 0x80: //ADD_B
     case 0x81: //ADD_C
@@ -510,7 +514,7 @@ void execute() {
     case 0x85: //ADD_L
     case 0x86: //ADD_(HL)
     case 0x87: //ADD_L
-      add_a_r8();
+      add_ar_r8();
       break;
     case 0xB8: //CP_B
     case 0xB9: //CP_C
@@ -520,65 +524,65 @@ void execute() {
     case 0xBD: //CP_L
     case 0xBE: //CP_(HL)
     case 0xBF: //CP_L
-      CP_r();
+      cp_r8();
       break;
     case 0x20:
     case 0x30:
     case 0x18:
     case 0x28:
     case 0x38:
-      JR_cc_d8();
+      jr_cc_d8();
       break;
     case 0x01:
     case 0x11:
     case 0x21:
     case 0x31:
-      LD_r16_d16();
+      ld_r16_d16();
       break;
     case 0xE0:
-      LDH_a8_a();
+      ldh_pd8_ar();
       break;
     case 0xF0:
-      LDH_a_a8();
+      ldh_ar_pd8();
       break;
     case 0xC1:
     case 0xD1:
     case 0xE1:
     case 0xF1:
-      POP_r16();
+      pop_r16();
       break;
     case 0xE2:
-      LDH_c_a();
+      ld_pcr_ar();
       break;
     case 0xF2:
-      LDH_a_c();
+      ld_ar_pcr();
       break;
     case 0xF3:
-      DI();
+      di();
       break;
     case 0xFB:
-      EI();
+      ei();
       break;
     case 0xC5:
     case 0xD5:
     case 0xE5:
     case 0xF5:
-      PUSH_r16();
+      push_r16();
       break;
     case 0xC9:
-      RET();
+      ret();
       break;
     case 0xCD:
-      call_a16();
+      call_d16();
       break;
     case 0xFE:
-      CP_d8();
+      cp_d8();
       break;
     case 0x17:
-      RLA();
+      rla();
       break;
     case 0xC3:
-      jp_a16();
+      jp_d16();
       break;
     case 0x2F:
       cpl();
@@ -611,10 +615,10 @@ void execute() {
       and_r8();
       break;
     case 0xFA:
-      ld_a_pa16();
+      ld_ar_pa16();
       break;
     case 0xEA:
-      ld_pa16_a();
+      ld_pa16_ar();
       break;
     case 0xC0:
     case 0xD0:
@@ -638,13 +642,13 @@ void execute() {
     case 0xD2:
     case 0xCA:
     case 0xDA:
-      jp_cc_a16();
+      jp_cc_d16();
       break;
     case 0xC4:
     case 0xD4:
     case 0xCC:
     case 0xDC:
-      call_cc_a16();
+      call_cc_d16();
       break;
     case 0x88: //ADC_B
     case 0x89: //ADC_C
@@ -654,7 +658,7 @@ void execute() {
     case 0x8D: //ADC_L
     case 0x8E: //ADC_(HL)
     case 0x8F: //ADC_A
-      adc_r();
+      adc_ar_r8();
       break;
     case 0xC7: //RST 00H
     case 0xD7: //RST 10H
@@ -674,19 +678,19 @@ void execute() {
     case 0x9D: //SBC_L
     case 0x9E: //SBC_(HL)
     case 0x9F: //SBC_A
-      sbc_r();
+      sbc_ar_r8();
       break;
     case 0xC6:
-      add_a_d8();
+      add_ar_d8();
       break;
     case 0xCE:
-      adc_a_d8();
+      adc_ar_d8();
       break;
     case 0xD6:
-      sub_a_d8();
+      sub_ar_d8();
       break;
     case 0xDE:
-      sbc_a_d8();
+      sbc_ar_d8();
       break;
     case 0x1F:
       rra();
