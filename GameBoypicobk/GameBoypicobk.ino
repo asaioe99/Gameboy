@@ -1,5 +1,9 @@
 #include "rom.h"
-#include "cpu_instrs.h"
+//#include "cpu_instrs.h"
+//#include "instr_timing.h"
+//#include "helloworld.h"
+//#include "vblank.h"
+#include "any_test.h"
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
@@ -39,6 +43,8 @@ uint8_t WRAM[0x2000];
 uint8_t CRAM[0x2000];
 uint8_t ie;
 
+bool start_flag = 1;
+
 uint16_t pc;
 uint16_t sp;
 uint8_t  AR;
@@ -75,14 +81,38 @@ void ini() {
   LR = 0x00;
   cc = 0x00;
 
+  io[0x00] = 0x91; //JOYP
+  io[0x01] = 0x91; //SB
+  io[0x02] = 0x91; //SC
+  
+  io[0x04] = 0xD3; //DIV
+  io[0x05] = 0x00; //TIMA
+  io[0x06] = 0x00; //TMA
+  io[0x07] = 0xF8; //TAC
+  
+  io[0x40] = 0x91; //LCDC
+  io[0x41] = 0x80; //STAT
+  io[0x42] = 0x00; //SCY
+  io[0x43] = 0x00; //SCX
+  io[0x44] = 0x00; //LY
+  io[0x45] = 0x00; //LYC
+  io[0x46] = 0xFF; //DMA
+  io[0x47] = 0xFC; //BGP
+  io[0x48] = 0xFF; //OBP0
+  io[0x49] = 0xFF; //OBP1
+  io[0x4A] = 0x00; //WY
+  io[0x4B] = 0x00; //WX
+
   rom_bank_num = 1;
   ime = true;
+
+  scaline_counter = 456;
 }
 
 uint8_t get_byte(uint16_t addr) {
-  if (addr < 0x0100) {
+  if (addr < 0x0100 && (start_flag == 1)) {
     return *(bootstrap + addr);
-  } else if (addr >= 0x0100 && addr < 0x4000) {
+  } else if (addr < 0x4000) {
     return *(rom_bank00 + addr);
   } else if (addr >= 0x4000 && addr < 0x8000) {
     return mbc_get_rom(addr);
@@ -93,7 +123,7 @@ uint8_t get_byte(uint16_t addr) {
   } else if (addr >= 0xC000 && addr < 0xE000) {
     return *(WRAM + addr - 0xC000);
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-
+    return *(WRAM + ((addr - 0xE000) & 0x1FFF)); // ?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     return *(oam + addr - 0xFE00);
   } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
@@ -120,6 +150,7 @@ uint8_t get_byte(uint16_t addr) {
     dump_tilemap();
     delay(10000);
   }
+  
   return 0x00;
 }
 
@@ -135,7 +166,7 @@ void put_byte(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xC000 && addr < 0xE000) {
     *(WRAM + addr - 0xC000) = data;
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-
+    *(WRAM + ((addr - 0xE000) & 0x1FFF)) = data; //?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     *(oam + addr - 0xFE00) = data;
   } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
@@ -152,6 +183,7 @@ void setup() {
   ini_LCD();
   Get_cartridge_Type();
   pinMode(25, OUTPUT);
+  delay(5000);
 }
 
 void loop() {

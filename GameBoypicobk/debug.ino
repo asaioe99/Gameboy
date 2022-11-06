@@ -117,66 +117,35 @@ void chk_init_regs() {
   Serial.print("pc:");
   Serial.println(pc, HEX);
 
-  Serial.print("FF05:");
-  Serial.println(get_byte(0xFF05), HEX);
-  Serial.print("FF06:");
-  Serial.println(get_byte(0xFF06), HEX);
-  Serial.print("FF07:");
-  Serial.println(get_byte(0xFF07), HEX);
-  Serial.print("FF10:");
-  Serial.println(get_byte(0xFF10), HEX);
-  Serial.print("FF11:");
-  Serial.println(get_byte(0xFF11), HEX);
-  Serial.print("FF12:");
-  Serial.println(get_byte(0xFF12), HEX);
-  Serial.print("FF14:");
-  Serial.println(get_byte(0xFF14), HEX);
-  Serial.print("FF16:");
-  Serial.println(get_byte(0xFF16), HEX);
-  Serial.print("FF17:");
-  Serial.println(get_byte(0xFF17), HEX);
-  Serial.print("FF19:");
-  Serial.println(get_byte(0xFF19), HEX);
-  Serial.print("FF1A:");
-  Serial.println(get_byte(0xFF1A), HEX);
-  Serial.print("FF1B:");
-  Serial.println(get_byte(0xFF1B), HEX);
-  Serial.print("FF1C:");
-  Serial.println(get_byte(0xFF1C), HEX);
-  Serial.print("FF1E:");
-  Serial.println(get_byte(0xFF1E), HEX);
-  Serial.print("FF20:");
-  Serial.println(get_byte(0xFF20), HEX);
-  Serial.print("FF21:");
-  Serial.println(get_byte(0xFF21), HEX);
-  Serial.print("FF22:");
-  Serial.println(get_byte(0xFF22), HEX);
-  Serial.print("FF23:");
-  Serial.println(get_byte(0xFF23), HEX);
-  Serial.print("FF24:");
-  Serial.println(get_byte(0xFF24), HEX);
-  Serial.print("FF25:");
-  Serial.println(get_byte(0xFF25), HEX);
-  Serial.print("FF26:");
-  Serial.println(get_byte(0xFF26), HEX);
-  Serial.print("FF40:");
-  Serial.println(get_byte(0xFF40), HEX);
-  Serial.print("FF42:");
-  Serial.println(get_byte(0xFF42), HEX);
-  Serial.print("FF43:");
-  Serial.println(get_byte(0xFF43), HEX);
-  Serial.print("FF45:");
-  Serial.println(get_byte(0xFF45), HEX);
-  Serial.print("FF47:");
-  Serial.println(get_byte(0xFF47), HEX);
-  Serial.print("FF48:");
-  Serial.println(get_byte(0xFF48), HEX);
-  Serial.print("FF49:");
-  Serial.println(get_byte(0xFF49), HEX);
-  Serial.print("FF4A:");
-  Serial.println(get_byte(0xFF4A), HEX);
-  Serial.print("FF4B:");
-  Serial.println(get_byte(0xFF4B), HEX);
-  Serial.print("FFFF:");
-  Serial.println(get_byte(0xFFFF), HEX);
+  Serial.print("FF05:00 -> ");Serial.println(get_byte(0xFF05), HEX);//TIME
+  Serial.print("FF06:00 -> ");Serial.println(get_byte(0xFF06), HEX);//TMA
+  Serial.print("FF07:00 -> ");Serial.println(get_byte(0xFF07), HEX);//TAC
+  Serial.print("FF10:80 -> ");Serial.println(get_byte(0xFF10), HEX);//NR10
+  Serial.print("FF11:BF -> ");Serial.println(get_byte(0xFF11), HEX);//NR11
+  Serial.print("FF12:F3 -> ");Serial.println(get_byte(0xFF12), HEX);//NR12
+  Serial.print("FF14:BF -> ");Serial.println(get_byte(0xFF14), HEX);//NR14
+  Serial.print("FF16:3F -> ");Serial.println(get_byte(0xFF16), HEX);//NR21
+  Serial.print("FF17:00 -> ");Serial.println(get_byte(0xFF17), HEX);//NR22
+  Serial.print("FF19:BF -> ");Serial.println(get_byte(0xFF19), HEX);//NR24
+  Serial.print("FF1A:7F -> ");Serial.println(get_byte(0xFF1A), HEX);//NR30
+  Serial.print("FF1B:FF -> ");Serial.println(get_byte(0xFF1B), HEX);//NR31
+  Serial.print("FF1C:9F -> ");Serial.println(get_byte(0xFF1C), HEX);//NR32
+  Serial.print("FF1E:BF -> ");Serial.println(get_byte(0xFF1E), HEX);//NR33
+  Serial.print("FF20:FF -> ");Serial.println(get_byte(0xFF20), HEX);//NR41
+  Serial.print("FF21:00 -> ");Serial.println(get_byte(0xFF21), HEX);//NR42
+  Serial.print("FF22:00 -> ");Serial.println(get_byte(0xFF22), HEX);//NR43
+  Serial.print("FF23:BF -> ");Serial.println(get_byte(0xFF23), HEX);//NR30
+  Serial.print("FF24:77 -> ");Serial.println(get_byte(0xFF24), HEX);//NR50
+  Serial.print("FF25:F3 -> ");Serial.println(get_byte(0xFF25), HEX);//NR51
+  Serial.print("FF26:F1 -> ");Serial.println(get_byte(0xFF26), HEX);//NR52
+  Serial.print("FF40:91 -> ");Serial.println(get_byte(0xFF40), HEX);//LCDC
+  Serial.print("FF42:00 -> ");Serial.println(get_byte(0xFF42), HEX);//SCY
+  Serial.print("FF43:00 -> ");Serial.println(get_byte(0xFF43), HEX);//SCX
+  Serial.print("FF45:00 -> ");Serial.println(get_byte(0xFF45), HEX);//LYC
+  Serial.print("FF47:FC -> ");Serial.println(get_byte(0xFF47), HEX);//BGP
+  Serial.print("FF48:FF -> ");Serial.println(get_byte(0xFF48), HEX);//OBP0
+  Serial.print("FF49:FF -> ");Serial.println(get_byte(0xFF49), HEX);//OBP1
+  Serial.print("FF4A:00 -> ");Serial.println(get_byte(0xFF4A), HEX);//WY
+  Serial.print("FF4B:00 -> ");Serial.println(get_byte(0xFF4B), HEX);//WX
+  Serial.print("FFFF:00 -> ");Serial.println(get_byte(0xFFFF), HEX);//IE
 }

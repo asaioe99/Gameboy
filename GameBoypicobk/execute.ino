@@ -1,34 +1,24 @@
 void execute() {
   code = get_byte(pc);
 
-  if (pc >= 0x0150) {
-    //for (int i = 0; i < 64; i++) {
-    //  *(buf_f1 + i) = *(buf_b1 + i);
-    //  *(buf_f2 + i) = *(buf_b2 + i);
-    //}
-    /*
-      if (sp < 0xFF80) {
-      gpio_put(25, HIGH);
-      while (1) {
-        Serial.print("pc:");
-        Serial.print(pc, HEX);
-        Serial.print(" code:");
-        Serial.println(code, HEX);
-        Serial.print("rom_bank_num:");
-        Serial.println(rom_bank_num, HEX);
-        Serial.println("sp is less than 0xFF80");
-        chk_init_regs();
-        dump_tilemap();
-        delay(10000);
-      }
-      }
-    */
+  if (pc == 0x100) {
+    chk_init_regs();
+    start_flag = 0;
+  }
+
+  if (pc >= 0x150) {
+
     sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
-    //sprintf(buf_b2, "LCDC:%02X LCDS:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45));
+    //sprintf(buf_b2, "[sp]:%02X%02X", get_byte(sp + 1), get_byte(sp));
+
+    sprintf(buf_b2, "LCDC:%02X STAT:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X WY:%02X WX:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45), *(io + 0x4A), *(io + 0x4B));
     //if (pc >= 0xC000) {
     Serial.println(buf_b1);
-    //Serial.println(buf_b2);
-    //delay(1000);
+    Serial.println(buf_b2);
+    //delay(5000);
+    //}
+    //if (pc >= 0xC000 && pc < 0xE000) {
+    //  while (1) {}
     //}
   }
 
@@ -138,7 +128,7 @@ void execute() {
         case 0x7C:
         case 0x7D:
         case 0x7F:
-          bit();
+          bit_();
           break;
         case 0x80:
         case 0x81:
