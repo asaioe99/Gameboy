@@ -116,10 +116,15 @@ ArduinoIDEでpico＋LCDを使用する際、「ある問題」によりSPIライ
 
 まずは、500個の命令をすべて実装してください。なるべくひとまとめに実装する方が誤りが少なく、修正も簡単です。最適化はもっと後にするので、正確に動作することのみを考えてください。恐らく、想像以上に実装上の誤りがあり、test romの起動すら困難だと思います。
 
-次に、test romにより動作を確認します。
+次に、以下のtest romにより動作を確認します。
 - https://github.com/retrio/gb-test-roms
 
-cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始めます。
+cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始めます。しかし、それは容易ではありません。以下の点に注意することが重要です。
+
+- 割り込みの理解と実装
+- ドキュメントの誤り（命令長が異なると致命的）
+- 信頼できるエミュレータとの比較（おすすめはhttps://bgb.bircd.org/）
+- 複数の他のtest romでのデバッグ（https://github.com/c-sp/gameboy-test-roms）
 
 目標：test romのクリア
 
