@@ -23,7 +23,7 @@ void ld_r8_d8() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -52,7 +52,7 @@ void ld_r8_phl() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -105,7 +105,7 @@ void ld_r8_r8() {
       break;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -134,14 +134,14 @@ void ld_phl_r8() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
 void ld_phl_d8() {
   put_byte(HL(HR, LR), get_byte(++pc));
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
@@ -155,7 +155,7 @@ void ld_ar_pr16() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -164,7 +164,7 @@ void ld_ar_phli() {
   LR++;
   if (LR == 0x00) HR++;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void ld_ar_phld() {
@@ -172,7 +172,7 @@ void ld_ar_phld() {
   LR--;
   if (LR == 0xFF) HR--;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void ld_pr16_ar() {
@@ -185,7 +185,7 @@ void ld_pr16_ar() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -194,7 +194,7 @@ void ld_phli_ar() {
   LR++;
   if (LR == 0x00) HR++;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void ld_phld_ar() {
@@ -202,12 +202,12 @@ void ld_phld_ar() {
   LR--;
   if (LR == 0xFF) HR--;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void nop() {
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 void inc_r16() {
@@ -229,7 +229,7 @@ void inc_r16() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void dec_r16() {
@@ -251,7 +251,7 @@ void dec_r16() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -295,7 +295,7 @@ void inc_r8() {
     FR &= 0b11010000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -339,7 +339,7 @@ void dec_r8() {
     FR &= 0b11010000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -366,7 +366,7 @@ void xor_ar_r8() {
     case 0xAE:
       AR ^= get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0xAF:
       AR ^= AR;
@@ -378,7 +378,7 @@ void xor_ar_r8() {
     FR = 0b00000000;
   }
   cc += 4;
-  cc_dec += 4; // cc_decは都度0リセットされる。これで正しい
+  scaline_counter -= 4; // cc_decは都度0リセットされる。これで正しい
   pc++;
 }
 
@@ -406,7 +406,7 @@ void sub_ar_r8() {
     case 0x96:
       val_t = get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0x97:
       val_t = AR;
@@ -423,7 +423,7 @@ void sub_ar_r8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 4;
-  cc_dec += 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -451,7 +451,7 @@ void add_ar_r8() {
     case 0x86:
       val_t = get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0x87:
       val_t = AR;
@@ -468,7 +468,7 @@ void add_ar_r8() {
   AR += val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 4;
-  cc_dec += 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -496,7 +496,7 @@ void cp_r8() {
     case 0xBE:
       val_t = get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0xBF:
       val_t = AR;
@@ -512,7 +512,7 @@ void cp_r8() {
   }
   if (AR == val_t) FR |= 0b10000000;
   cc += 4;
-  cc_dec += 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -521,13 +521,13 @@ void jr_cc_d8() {
     case 0x18:
       pc = pc + 2 + (int8_t)get_byte(pc + 1);
       cc += 12;
-      cc_dec = 12;
+      scaline_counter -= 12;
       return;
     case 0x20:
       if (!(FR & 0b10000000)) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
-        cc_dec = 12;
+        scaline_counter -= 12;
         return;
       }
       break;
@@ -535,7 +535,7 @@ void jr_cc_d8() {
       if (FR & 0b10000000) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
-        cc_dec = 12;
+        scaline_counter -= 12;
         return;
       }
       break;
@@ -543,7 +543,7 @@ void jr_cc_d8() {
       if (!(FR & 0b00010000)) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
-        cc_dec = 12;
+        scaline_counter -= 12;
         return;
       }
       break;
@@ -551,13 +551,13 @@ void jr_cc_d8() {
       if (FR & 0b00010000) {
         pc = pc + 2 + (int8_t)get_byte(pc + 1);
         cc += 12;
-        cc_dec = 12;
+        scaline_counter -= 12;
         return;
       }
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc += 2;
 }
 
@@ -581,7 +581,7 @@ void ld_r16_d16() {
       break;
   }
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
@@ -594,21 +594,21 @@ void rla() {
     FR = 0b00000000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
 void ldh_pd8_ar() {
   put_byte(0xFF00 + (uint16_t)get_byte(++pc), AR);
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
 void ldh_ar_pd8() {
   AR = get_byte(0xFF00 + (uint16_t)get_byte(++pc));
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
@@ -632,35 +632,35 @@ void pop_r16() {
       break;
   }
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
 void ld_pcr_ar() {
   put_byte(0xFF00 + CR, AR);
   cc += 8;
-  cc_dec = 8;
-  pc += 2;
+  scaline_counter -= 8;
+  pc++; //表では2だった
 }
 
 void ld_ar_pcr() {
   AR = get_byte(0xFF00 + CR);
   cc += 8;
-  cc_dec = 8;
-  pc += 2;
+  scaline_counter -= 8;
+  pc++; //表では2だった
 }
 
 void di() {
   ime = 0;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
 void ei() {
   ime = 1;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -684,7 +684,7 @@ void push_r16() {
       break;
   }
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -692,14 +692,14 @@ void ret() {
   pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
   sp += 2;
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
 }
 
 void call_d16() { ///// not correct push a return address
   put_byte(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
   put_byte(--sp, (uint8_t)((pc + 3) & 0x00FF));
   cc += 24;
-  cc_dec = 24;
+  scaline_counter -= 24;
   pc = (uint16_t)get_byte(pc + 1) + ((uint16_t)get_byte(pc + 2) << 8);
 }
 
@@ -715,7 +715,7 @@ void cp_d8() {
   }
   if (AR == val_t) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -754,7 +754,7 @@ void rl_r8() {
   }
   if (*r == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -790,7 +790,7 @@ void swap() {
     FR = 0b10000000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -830,7 +830,7 @@ void bit_() {
   FR |= 0b00100000;
   FR &= 0b10110000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -863,7 +863,7 @@ void res() {
   }
   *r &= (~mask);
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -896,21 +896,21 @@ void set() {
   }
   *r |= mask;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
 void jp_d16() {
   pc = (uint16_t)get_byte(pc + 1) + ((uint16_t)get_byte(pc + 2) << 8);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
 }
 
 void cpl() {
   AR = ~AR;
   FR |= 0b01100000;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -922,7 +922,7 @@ void ccf() {
     FR |= 0b00010000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -934,7 +934,7 @@ void and_d8() {
     FR = 0b10100000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void or_d8() {
@@ -945,7 +945,7 @@ void or_d8() {
     FR = 0b10000000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -979,7 +979,7 @@ void or_r8() {
     FR = 0b10000000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 void and_r8() {
@@ -1012,20 +1012,20 @@ void and_r8() {
     FR = 0b10100000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 void ld_ar_pa16() {
   AR = get_byte((uint16_t)get_byte(pc + 1) + (uint16_t)(get_byte(pc + 2) << 8));
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc += 3;
 }
 
 void ld_pa16_ar() {
   put_byte((uint16_t)get_byte(pc + 1) + (uint16_t)(get_byte(pc + 2) << 8), AR);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc += 3;
 }
 
@@ -1034,7 +1034,7 @@ void ret_cc() {
     case 0xC0: //not zero
       if (!(FR & 0b10000000)) {
         cc += 20;
-        cc_dec += 20;
+        scaline_counter -= 20;
         pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
         sp += 2;
         return;
@@ -1043,7 +1043,7 @@ void ret_cc() {
     case 0xD0: //not carry
       if (!(FR & 0b00010000)) {
         cc += 20;
-        cc_dec += 20;
+        scaline_counter -= 20;
         pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
         sp += 2;
         return;
@@ -1052,7 +1052,7 @@ void ret_cc() {
     case 0xC8: //zero
       if (FR & 0b10000000) {
         cc += 20;
-        cc_dec += 20;
+        scaline_counter -= 20;
         pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
         sp += 2;
         return;
@@ -1061,7 +1061,7 @@ void ret_cc() {
     case 0xD8: //carry
       if (FR & 0b00010000) {
         cc += 20;
-        cc_dec += 20;
+        scaline_counter -= 20;
         pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
         sp += 2;
         return;
@@ -1069,7 +1069,7 @@ void ret_cc() {
       break;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void reti() {
@@ -1077,7 +1077,7 @@ void reti() {
   pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
   sp += 2;
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
 }
 
 void add_hl_r16() { //動作怪しい
@@ -1114,7 +1114,7 @@ void add_hl_r16() { //動作怪しい
 }
 void stop_0() {
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc += 2;
 }
 
@@ -1146,7 +1146,7 @@ void jp_cc_d16() {
       break;
   }
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc += 3;
 }
 
@@ -1178,7 +1178,7 @@ void call_cc_d16() {
       break;
   }
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc += 3;
 }
 
@@ -1207,7 +1207,7 @@ void adc_ar_r8() {
     case 0x8E:
       val_t = get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0x8F:
       val_t = AR;
@@ -1224,7 +1224,7 @@ void adc_ar_r8() {
   AR = AR + val_t + c_val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 4;
-  cc_dec += 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1232,7 +1232,7 @@ void rst_vec() {
   put_byte(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
   put_byte(--sp, (uint8_t)((pc + 1) & 0x00FF));
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc = (uint16_t)code - 0xC7;
 }
 
@@ -1261,7 +1261,7 @@ void sbc_ar_r8() {
     case 0x9e:
       val_t = get_byte(HL(HR, LR));
       cc += 4;
-      cc_dec = 4;
+      scaline_counter -= 4;
       break;
     case 0x9f:
       val_t = AR;
@@ -1278,7 +1278,7 @@ void sbc_ar_r8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 4;
-  cc_dec += 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1295,7 +1295,7 @@ void add_ar_d8() {
   AR = AR + val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1313,7 +1313,7 @@ void adc_ar_d8() {
   AR = AR + val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1330,7 +1330,7 @@ void sub_ar_d8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1348,7 +1348,7 @@ void sbc_ar_d8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1385,7 +1385,7 @@ void sla_r8() {
   *val_t = *val_t << 1;
   if (*val_t == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 void rlc_r8() {
@@ -1421,7 +1421,7 @@ void rlc_r8() {
   *val_t  = (*val_t << 1) + ((*val_t & 0b10000000) >> 7);
   if (*val_t  == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1458,7 +1458,7 @@ void srl_r8() {
   *val_t = *val_t >> 1;
   if (*val_t == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1495,7 +1495,7 @@ void sra_r8() {
   *val_t = (*val_t >> 1) + (*val_t & 0b10000000);
   if (AR == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1537,7 +1537,7 @@ void rr_r8() {
   }
   if (*val_t == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1554,7 +1554,7 @@ void rra() {
     FR = 0b00000000;
   }
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1566,7 +1566,7 @@ void xor_ar_d8() {
     FR = 0b00000000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1578,7 +1578,7 @@ void or_ar_phl() {
     FR = 0b00000000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1590,7 +1590,7 @@ void and_ar_phl() {
     FR = 0b00000000;
   }
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1609,7 +1609,7 @@ void dec_phl() {
   }
   FR |= 0b01000000;
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
@@ -1628,12 +1628,18 @@ void inc_phl() {
   }
   FR &= 0b10110000;
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
-void halt() {
+void halt() { //Timer未実装のため、halt後のtimer割り込みがなくループになるので、手抜き中
+  if (ime) {
+    //省電力モード？
+  } else {
+    
+  }
+  //halted = 1;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1646,7 +1652,7 @@ void rlca() {
   AR = (AR << 1) | (AR >> 7);
 
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 void daa() {
@@ -1667,7 +1673,7 @@ void daa() {
   }
   FR &= 0b11010000;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1675,7 +1681,7 @@ void scf() {
   FR &= 0b10000000;
   FR |= 0b00010000;
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1683,7 +1689,7 @@ void ld_pd16_sp() {
   put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1), (uint8_t)(sp & 0x00FF));
   put_byte(((uint16_t)get_byte(pc + 2) << 8) + get_byte(pc + 1) + 1, (uint8_t)(sp >> 8));
   cc += 20;
-  cc_dec = 20;
+  scaline_counter -= 20;
   pc += 3;
 }
 
@@ -1699,20 +1705,20 @@ void add_sp_d8() {
 
   sp += val_t;
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
 void jp_hl() {
   pc = HL(HR, LR);
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
 }
 
 void ld_sp_hl() {
   sp = HL(HR, LR);
   cc += 8;
-  cc_dec = 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1725,7 +1731,7 @@ void rrca() {
   AR = (AR >> 1) | (AR << 7);
 
   cc += 4;
-  cc_dec = 4;
+  scaline_counter -= 4;
   pc++;
 }
 
@@ -1743,7 +1749,7 @@ void ld_hl_sp_d8() {
   HR = (uint8_t)(val_t >> 8);
   LR = (uint8_t)(val_t & 0x00FF);
   cc += 12;
-  cc_dec = 12;
+  scaline_counter -= 12;
   pc++;
 }
 
@@ -1757,7 +1763,7 @@ void swap_phl() {
   }
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc += 2;
 }
 
@@ -1772,7 +1778,7 @@ void sla_phl() {
   if (!val_t) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc += 2;
 }
 void rrc_r8() {
@@ -1808,7 +1814,7 @@ void rrc_r8() {
   *val_t = (*val_t >> 1) | ((*val_t & 0b00000001) << 7);
   if (*val_t == 0) FR |= 0b10000000;
   cc += 8;
-  cc_dec += 8;
+  scaline_counter -= 8;
   pc++;
 }
 
@@ -1819,7 +1825,7 @@ void set_phl() {
   r |= mask;
   put_byte(HL(HR, LR), r);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1830,7 +1836,7 @@ void res_phl() {
   r &= (~mask);
   put_byte(HL(HR, LR), r);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1848,7 +1854,7 @@ void bit_phl() {
   FR |= 0b00100000;
   FR &= 0b10110000;
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1864,7 +1870,7 @@ void rlc_phl() {
   if (val_t  == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1881,7 +1887,7 @@ void rl_phl() {
   if (val_t == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1897,7 +1903,7 @@ void rrc_phl() {
   if (AR == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1917,7 +1923,7 @@ void rr_phl() {
   if (val_t == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1933,7 +1939,7 @@ void sra_phl() {
   if (AR == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
 }
 
@@ -1948,6 +1954,14 @@ void srl_phl() {
   if (val_t == 0) FR |= 0b10000000;
   put_byte(HL(HR, LR), val_t);
   cc += 16;
-  cc_dec = 16;
+  scaline_counter -= 16;
   pc++;
+}
+
+void call_irpt(uint16_t addr) { ///// not correct push a return address
+  put_byte(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  put_byte(--sp, (uint8_t)(pc & 0x00FF));
+  cc += 32; //正しいのか分からないけど、多分これくらい
+  scaline_counter -= 32;
+  pc = addr;
 }

@@ -37,9 +37,7 @@ void ppu() {
   p_flag_update();
 
   // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
-  if (*(io + 0x40) & 0b10000000) {
-    scaline_counter -= cc_dec;
-  } else {
+  if (!(*(io + 0x40) & 0b10000000)) {
     return;
   }
 
@@ -51,13 +49,12 @@ void ppu() {
     // 非ブランクゾーンの場合の処理
     if (*t_FF44 < 144) {
       display_scanline();
-      //gpio_put(25, LOW);
     } else if (*t_FF44 == 144) {
       drowBitMap();
       //gpio_put(25, HIGH);
       //dump_tilemap();
       //tile_display(0x0d, 1, 1);
-      *(io + 0x0F) = *(io + 0x0F) | 0b00010000; // v-blank割り込み発生
+      *(io + 0x0F) |= 0b00000001; // v-blank割り込み発生
     } else if (*t_FF44 > 153) {
       *t_FF44 = 0;
     }

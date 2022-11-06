@@ -3,7 +3,8 @@
 //#include "instr_timing.h"
 //#include "helloworld.h"
 //#include "vblank.h"
-#include "any_test.h"
+//#include "any_test.h"
+#include "btn_test.h"
 
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
@@ -59,10 +60,10 @@ uint32_t cc;
 
 // 内容不明（忘れた）
 bool ime; //割り込み許可
+bool halted;
 
 uint8_t mbcType;
 uint8_t rom_bank_num;
-uint8_t cc_dec;
 uint8_t code;
 int16_t scaline_counter;
 
@@ -84,12 +85,14 @@ void ini() {
   io[0x00] = 0x91; //JOYP
   io[0x01] = 0x91; //SB
   io[0x02] = 0x91; //SC
-  
+
   io[0x04] = 0xD3; //DIV
   io[0x05] = 0x00; //TIMA
   io[0x06] = 0x00; //TMA
   io[0x07] = 0xF8; //TAC
-  
+
+  io[0x0F] = 0x00; //TAC
+
   io[0x40] = 0x91; //LCDC
   io[0x41] = 0x80; //STAT
   io[0x42] = 0x00; //SCY
@@ -104,7 +107,9 @@ void ini() {
   io[0x4B] = 0x00; //WX
 
   rom_bank_num = 1;
-  ime = true;
+  ime = 1; // 初期値0だとhaltで死ぬ
+  ie = 0;
+  halted = 0;
 
   scaline_counter = 456;
 }
@@ -144,13 +149,13 @@ uint8_t get_byte(uint16_t addr) {
     Serial.println(code, HEX);
     Serial.print("rom_bank_num:");
     Serial.println(rom_bank_num, HEX);
-    Serial.print("get_byte() at an unassigned address :");
+    Serial.print("get_byte() from an unassigned address :");
     Serial.println(addr, HEX);
     chk_init_regs();
     dump_tilemap();
     delay(10000);
   }
-  
+
   return 0x00;
 }
 
@@ -183,13 +188,51 @@ void setup() {
   ini_LCD();
   Get_cartridge_Type();
   pinMode(25, OUTPUT);
-  delay(5000);
+  delay(3000);
 }
 
 void loop() {
   while (cc < 70224) {
-    execute();
+    // haltなら16クロックスルーするように書き換え
+    if (!halted) {
+      execute();
+    } else {
+      cc += 16;
+    }
     ppu();
+    // 割り込み処置 timer未実装のため、haltは正しく実装していない
+    gpio_put(25, ime);
+    if (ime) { //IMEフラグが0の場合はそもそも考慮しない
+      for (uint8_t i = 0; i < 5; i++) {
+        bool int_flag = (*(io + 0x0F) & (0x00000001 << i)) > 0;
+        bool int_enbl = (ie & (0x00000001 << i)) > 0;
+        if (int_flag && int_enbl) {
+
+          *(io + 0x0F) &= ~(0x00000001 << i);
+
+          ime = 0; //割り込み無効化
+          halted = 0; //不明
+
+          switch (i) { //割り込みの優先順位はこの通り
+            case 0:
+              call_irpt(0x0040);
+              break;
+            case 1:
+              call_irpt(0x0048);
+              break;
+            case 2:
+              call_irpt(0x0050);
+              break;
+            case 3:
+              call_irpt(0x0058); //Rustの実装では0x0080
+              break;
+            case 4:
+              call_irpt(0x0060); //Rustの実装では0x0070
+              break;
+          }
+        }
+      }
+    }
   }
   cc = 0;
 }

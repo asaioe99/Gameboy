@@ -1,4 +1,5 @@
 void execute() {
+
   code = get_byte(pc);
 
   if (pc == 0x100) {
@@ -11,10 +12,10 @@ void execute() {
     sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
     //sprintf(buf_b2, "[sp]:%02X%02X", get_byte(sp + 1), get_byte(sp));
 
-    sprintf(buf_b2, "LCDC:%02X STAT:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X WY:%02X WX:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45), *(io + 0x4A), *(io + 0x4B));
+    //sprintf(buf_b2, "LCDC:%02X STAT:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X WY:%02X WX:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45), *(io + 0x4A), *(io + 0x4B));
     //if (pc >= 0xC000) {
     Serial.println(buf_b1);
-    Serial.println(buf_b2);
+    //Serial.println(buf_b2);
     //delay(5000);
     //}
     //if (pc >= 0xC000 && pc < 0xE000) {
@@ -22,7 +23,6 @@ void execute() {
     //}
   }
 
-  cc_dec = 0;
   switch (code) {
     case 0xCB: // prefix
       code = get_byte(++pc);
