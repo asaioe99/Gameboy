@@ -86,13 +86,6 @@ void display_scanline() {
   uint16_t base_tile_number;
   uint16_t tile_number_w;
 
-/* SCY循環未対応
-  if (*t_FF40 & 0b00001000) {
-    base_tile_number = 0x9C00 + out_tile_x_offset + out_tile_y_offset; // LYに対応したタイルデータ
-  } else {
-    base_tile_number = 0x9800 + out_tile_x_offset + out_tile_y_offset;
-  }
-*/
   // SCY循環対応？
   if (*t_FF40 & 0b00001000) {
     base_tile_number = 0x9C00 + out_tile_y_offset; // LYに対応したタイルデータ
@@ -144,6 +137,7 @@ void display_scanline() {
       end_bit = in_tile_x_offset ;
     }
 
+    // パレット処理　まだその場しのぎ
     for (uint8_t n = start_bit; n < end_bit; n++) {
       *tmp = 0b0000000000000000;
       uint8_t tile_mask = 0b10000000 >> n;
