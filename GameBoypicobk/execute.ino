@@ -7,6 +7,7 @@ void execute() {
     start_flag = 0;
   }
 
+/*
   if (pc >= 0x150) {
 
     sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
@@ -22,7 +23,7 @@ void execute() {
     //  while (1) {}
     //}
   }
-
+*/
   switch (code) {
     case 0xCB: // prefix
       code = get_byte(++pc);

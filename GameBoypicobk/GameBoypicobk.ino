@@ -201,7 +201,7 @@ void loop() {
     }
     ppu();
     // 割り込み処置 timer未実装のため、haltは正しく実装していない
-    gpio_put(25, ime);
+    //gpio_put(25, ime);
     if (ime) { //IMEフラグが0の場合はそもそも考慮しない
       for (uint8_t i = 0; i < 5; i++) {
         bool int_flag = (*(io + 0x0F) & (0x00000001 << i)) > 0;

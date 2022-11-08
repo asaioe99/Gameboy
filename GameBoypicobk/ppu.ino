@@ -65,100 +65,122 @@ void ppu() {
 void display_scanline() {
 
   uint8_t *t_FF40 = io + 0x40;
+  uint16_t LY  = (uint16_t) * (io + 0x44);
   uint16_t SCY = (uint16_t) * (io + 0x42); // SCY BGの描画位置
   uint16_t SCX = (uint16_t) * (io + 0x43); // SCX
   uint16_t WY  = (uint16_t) * (io + 0x4A); // WY windowの描画位置
-  uint16_t WX  = (uint16_t) * (io + 0x4B); // WX - 7
-  uint16_t LY  = (uint16_t) * (io + 0x44);
+  uint16_t WX  = (uint16_t) * (io + 0x4B) - 7; // WX
 
-  uint8_t  tile_l;
-  uint8_t  tile_h;
-  uint8_t  tile_l_w;
-  uint8_t  tile_h_w;
-  uint16_t tile_number;
-  uint16_t *tmp = FIFO_bg_wnd + LY * 160;
+  uint16_t *pix_mixture = FIFO_bg_wnd + LY * 160;
+  uint8_t tile_number;
+  uint8_t win_pix_C_number;
+  uint8_t bg_pix_C_number;
 
-  uint8_t  in_tile_x_offset = SCX & 0b00000111;
-  uint16_t out_tile_x_offset  = ((SCX & 0b11111000) >> 3) & 0b00011111;
+  // LY is given from 0xFF44
+  for (uint16_t LX = 0; LX < 160; LX++) {
+    if (*t_FF40 & 0b00000001) { // both BG and window enable
+      // get back ground pixel color number of given LY and LX, SCY, SCX
+      tile_number = get_tile_number(((LY + SCY) >> 3) & 0x1F, ((LX + SCX) >> 3) & 0x1F);
+      bg_pix_C_number = get_pix_C_number(tile_number, LY + SCY, LX + SCX);
 
-  uint16_t in_tile_y_offset  = ((LY + SCY) & 0b00000111) << 1;
-  uint16_t out_tile_y_offset = (((LY + SCY) % 256) & 0b11111000) << 2;
-  uint16_t base_tile_number;
-  uint16_t tile_number_w;
-
-  // SCY循環対応？
-  if (*t_FF40 & 0b00001000) {
-    base_tile_number = 0x9C00 + out_tile_y_offset; // LYに対応したタイルデータ
-  } else {
-    base_tile_number = 0x9800 + out_tile_y_offset;
-  }
-
-  for (uint16_t i = 0; i < 21 ; i++) {
-    tile_number = get_byte(base_tile_number + ((i + out_tile_x_offset) % 32)); // numberだけどアドレス
-
-    // window overlay
-    tile_l_w = 0x00;
-    tile_h_w = 0x00;
-    if (*t_FF40 & 0b00100000) {
-      if ((LY >> 3) >= WY) {
-        if ((base_tile_number + i) >= (WX - 7)) {
-
-          if (*t_FF40 & 0b01000000) {
-            uint16_t tile_number_w = 0x9C00 + ((base_tile_number + i - WX + 7) & 0b00011111) + ((WY - (LY >> 3)) << 5); // LYに対応したタイルデータ
-          } else {
-            uint16_t tile_number_w = 0x9800 + ((base_tile_number + i - WX + 7) & 0b00011111) + ((WY - (LY >> 3)) << 5);
+      // get window pixel color number of given LY and LX, WY, WX
+      win_pix_C_number = 0;
+      if (*t_FF40 & 0b00100000) { // window enable
+        if (SCY + LY >= WY) {
+          if (SCX + LX >= WX) {
+            tile_number = get_tile_number((SCY + LY - WY) & 0x1F, (SCX + LX - WX) & 0x1F);
+            win_pix_C_number = get_pix_C_number(tile_number, SCY + LY - WY, SCX + LX - WX);
           }
+        }
+      }
+    }
+    // sprite
+    uint8_t* obj;
+    uint8_t y_pos;
+    uint8_t x_pos;
+    uint8_t sp_tile_num;
+    uint8_t sp_atr;
+    if (*t_FF40 & 0b00000010) { //sprite enable
+      for (uint8_t i = 0; i < 40; i++) {
+        obj = (oam + (i << 2)); // get object base address
+        y_pos = *obj;
+        x_pos = *(obj + 1);
+        sp_tile_num = *(obj + 2);
+        sp_atr = *(obj + 3);
+        if (*t_FF40 & 0b00000100) { // sprite size 8x16
 
-          if (*t_FF40 & 0b00010000) {
-            tile_l_w = get_byte(0x8000 + (tile_number_w << 4) + in_tile_y_offset);
-            tile_h_w = get_byte(0x8001 + (tile_number_w << 4) + in_tile_y_offset);
-          } else {
-            tile_l_w = get_byte(0x9000 + ((int16_t)tile_number_w << 4) + (int16_t)in_tile_y_offset);
-            tile_h_w = get_byte(0x9001 + ((int16_t)tile_number_w << 4) + (int16_t)in_tile_y_offset);
-          } // base addr is 8800?
+        } else {                    // sprite size 8x8
+
+          // Y-position
+          if (y_pos - 16 <= LY && y_pos - 8 > LY) {
+            // X-position
+            if (x_pos - 8 <= LX && x_pos > LX) {
+
+            }
+          }
         }
       }
     }
 
-    if (*t_FF40 & 0b00010000) {
-      tile_l = get_byte(0x8000 + (tile_number << 4) + in_tile_y_offset);
-      tile_h = get_byte(0x8001 + (tile_number << 4) + in_tile_y_offset);
+
+
+    // overray window above back ground
+    if (win_pix_C_number) {
+      *pix_mixture = bw_color_number2bit(win_pix_C_number);
     } else {
-      tile_l = get_byte(0x9000 + ((int16_t)tile_number << 4) + (int16_t)in_tile_y_offset);
-      tile_h = get_byte(0x9001 + ((int16_t)tile_number << 4) + (int16_t)in_tile_y_offset);
-    } // base addr is 8800?
-
-    uint8_t start_bit = 0;
-    uint8_t end_bit   = 8;
-
-    if (i == 0) {
-      start_bit = in_tile_x_offset ;
-    } else if (i == 20) {
-      end_bit = in_tile_x_offset ;
+      *pix_mixture = bw_color_number2bit(bg_pix_C_number);
     }
-
-    // パレット処理　まだその場しのぎ
-    for (uint8_t n = start_bit; n < end_bit; n++) {
-      *tmp = 0b0000000000000000;
-      uint8_t tile_mask = 0b10000000 >> n;
-
-      if ((tile_l_w | tile_h_w ) & tile_mask) { // overlay
-        if (tile_l_w & tile_mask) {
-          *tmp  = 0b0011100111000111;
-        }
-        if (tile_h_w & tile_mask) {
-          *tmp |= 0b1100011000011000;
-        }
-      } else {
-        if (tile_l & tile_mask) {
-          *tmp  = 0b0011100111000111;
-        }
-        if (tile_h & tile_mask) {
-          *tmp |= 0b1100011000011000;
-        }
-      }
-      tmp++;
-    }
+    pix_mixture++;
   }
-  return;
+}
+
+uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
+  if (*(io + 0x40) & 0b00001000) { // bg offset address select
+    return get_byte(0x9c00 + (offset_y << 5) + offset_x);
+  } else {
+    return get_byte(0x9800 + (offset_y << 5) + offset_x);
+  }
+}
+
+uint8_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
+  uint8_t h8_tile_l;
+  uint8_t h8_tile_h;
+  if (*(io + 0x40) & 0b00010000) { // get pixel color number
+    h8_tile_l = get_byte(0x8000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_h = get_byte(0x8001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+  } else {
+    h8_tile_l = get_byte(0x9000 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_h = get_byte(0x9001 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+  } // base addr is 8800?
+  return ((h8_tile_l & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07)) + ((h8_tile_h & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07));
+}
+
+uint16_t bw_color_number2bit(uint8_t color_number) {
+  //Serial.println(color_number);
+  uint8_t color;
+  switch (color_number) {
+    case 0: // color number 0
+      color = (*(io + 0x47) & 0x03) >> 0;
+      break;
+    case 1: // color number 1
+      color = (*(io + 0x47) & 0x0C) >> 2;
+      break;
+    case 2: // color number 2
+      color = (*(io + 0x47) & 0x30) >> 4;
+      break;
+    case 3: // color number 3
+      color = (*(io + 0x47) & 0xC0) >> 6;
+      break;
+  }
+  //Serial.println(color);
+  switch (color) {
+    case 0: // White
+      return ~0b1111011110011110;
+    case 1: // Light gray
+      return ~0b1010010100010100;
+    case 2: // Dark gray
+      return ~0b0101001010001010;
+    case 3: // Black
+      return ~0b0000000000000000;
+  }
 }
