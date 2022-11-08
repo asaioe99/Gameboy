@@ -44,8 +44,6 @@ void ppu() {
   uint8_t *t_FF44 = io + 0x44;
   //　スキャンラインの右端に達したらlyをインクリメントしてスキャンラインナンバーを下に進める
   if (scaline_counter < 0) {
-    *t_FF44 += 1;
-    scaline_counter += 456;
     // 非ブランクゾーンの場合の処理
     if (*t_FF44 < 144) {
       display_scanline();
@@ -58,6 +56,8 @@ void ppu() {
     } else if (*t_FF44 > 153) {
       *t_FF44 = 0;
     }
+    *t_FF44 += 1;
+    scaline_counter += 456;
   }
 }
 
