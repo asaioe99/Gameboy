@@ -104,8 +104,7 @@ void display_scanline() {
     uint8_t sp_atr;
     uint8_t num_stripe = 0;
     bool sp_enable = false;
-    if (*t_FF40 & 0b00000010) { //sprite enable
-      gpio_put(25, HIGH);
+    if (*t_FF40 & 0x02) { //sprite enable
       for (uint16_t i = 0; i < 40; i++) { // scaning OAM
         obj = oam + (i << 2); // get object base address
         y_pos = (uint16_t)*obj;
@@ -115,20 +114,19 @@ void display_scanline() {
         gpio_put(25, HIGH);
         sp_tile_num = *(obj + 2);
         sp_atr = *(obj + 3);
-        if (*t_FF40 & 0b00000100) { // sprite size 8x16
+        if (*t_FF40 & 0x04) { // sprite size 8x16
           if (y_pos <= (LY + 16) && y_pos > (LY + 8)) { // upper tile selected
             // X-position
             if (x_pos <= (LX + 8) && x_pos > LX) {
               sp_enable = true;
-              gpio_put(25, HIGH);
-              if (sp_atr & 0b01000000) { // Vertically mirrored
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+              if (sp_atr & 0x40) { // Vertically mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num & 0xFE, y_pos - LY - 9, x_pos - LX - 1); // V&H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num & 0xFE, y_pos - LY - 9, LX - x_pos + 8); // V-mirrored
                 }
               } else {
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num & 0xFE, LY - y_pos + 16, x_pos - LX - 1); // H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num & 0xFE, LY - y_pos + 16, LX - x_pos + 8); // normal
@@ -139,15 +137,14 @@ void display_scanline() {
             // X-position
             if (x_pos <= (LX + 8) && x_pos > LX) {
               sp_enable = true;
-              gpio_put(25, HIGH);
-              if (sp_atr & 0b01000000) { // Vertically mirrored
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+              if (sp_atr & 0x40) { // Vertically mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num | 0x01, y_pos - LY - 1, x_pos - LX + 7); // V&H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num | 0x01, y_pos - LY - 1, LX - x_pos); // V-mirrored
                 }
               } else {
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num | 0x01, LY - y_pos + 8, x_pos - LX + 7); // H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num | 0x01, LY - y_pos + 8, LX - x_pos); // normal
@@ -162,15 +159,14 @@ void display_scanline() {
             // X-position
             if (x_pos <= (LX + 8) && LX < x_pos) {
               sp_enable = true;
-              gpio_put(25, HIGH);
-              if (sp_atr & 0b01000000) { // Vertically mirrored
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+              if (sp_atr & 0x40) { // Vertically mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num, y_pos - LY - 9, x_pos - LX - 1); // V&H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num, y_pos - LY - 9, LX - x_pos + 8); // V-mirrored
                 }
               } else {
-                if (sp_atr & 0b00100000) { // Horizontally mirrored
+                if (sp_atr & 0x20) { // Horizontally mirrored
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num, LY - y_pos + 16, x_pos - LX - 1); // H-mirrored
                 } else {
                   sp_pix_C_number = get_pix_C_num_sp(sp_tile_num, LY - y_pos + 16, LX - x_pos + 8); // normal
@@ -190,37 +186,31 @@ void display_scanline() {
     } else { // window disable
       bg_pix_mixed_c_num = bg_pix_C_number;
     }
-
-    if (*t_FF40 & 0b00000001) { // both BG and window enable
-      if (*t_FF40 & 0b00000010 && sp_enable) { //sprite enable
-
+    if (*t_FF40 & 0x01) { // both BG and window enable
+      if (*t_FF40 & 0x02 && sp_enable) { //sprite enable
         if (!sp_pix_C_number) { // sprite pix color is 0
           *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num); //ok
-        }
-        if (sp_atr & 0b10000000) { // BG-to-OBJ-Priority is true
+        } else if (sp_atr & 0x80) { // BG-to-OBJ-Priority is true
           if (bg_pix_mixed_c_num) { // and bg-w pix color is not 0
             *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num); //ok
           }
+        } else {
+          *pix_mixer = sp_color_number2bit(sp_pix_C_number, sp_atr); // none of the above conditions apply
         }
-        // none of the above conditions apply
-        *pix_mixer = sp_color_number2bit(sp_pix_C_number, sp_atr);
-
       } else { //sprite disable
         *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
       }
-
     } else { // both BG and window disable
-      if (*t_FF40 & 0b00000010) { //sprite enable
+      if (*t_FF40 & 0x02 && sp_enable) { //sprite enable
         *pix_mixer = sp_color_number2bit(sp_pix_C_number, sp_atr);
       }
     }
-
     pix_mixer++;
   }
 }
 
 uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
-  if (*(io + 0x40) & 0b00001000) { // bg offset address select
+  if (*(io + 0x40) & 0x08) { // bg offset address select
     return get_byte(0x9c00 + (offset_y << 5) + offset_x);
   } else {
     return get_byte(0x9800 + (offset_y << 5) + offset_x);
@@ -250,7 +240,6 @@ uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x
 
 uint16_t bw_color_number2bit(uint8_t color_number) {
   gpio_put(25, LOW);
-  //Serial.println(color_number);
   uint8_t color;
   switch (color_number) {
     case 0: // color number 0
@@ -266,7 +255,6 @@ uint16_t bw_color_number2bit(uint8_t color_number) {
       color = (*(io + 0x47) & 0xC0) >> 6;
       break;
   }
-  //Serial.println(color);
   switch (color) {
     case 0: // White
       return ~0b1111011110011110;
