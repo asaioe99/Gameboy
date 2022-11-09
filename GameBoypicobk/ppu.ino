@@ -4,6 +4,8 @@ void p_flag_update() {
   uint8_t *t_FF41 = io + 0x41;
   uint8_t *t_FF44 = io + 0x44; //LY
 
+  *t_FF41 &= 0b10000111; // interrupt flag reset (every flag update)
+
   if (!(*t_FF40 & 0b10000000)) { //reset ppu
     *t_FF44 = 0x00;
     scaline_counter = 456;
@@ -24,12 +26,30 @@ void p_flag_update() {
       *t_FF41 |= 0b00000011;
     }
   }
-
+  // LCDS interrupt trigger
+  if (mode != (*t_FF41 & 0b00000011)) {
+    mode = *t_FF41 & 0b00000011;
+    switch(mode) {
+      case 0:
+        *t_FF41 |= 0b00001000;
+        break;
+      case 1:
+        *t_FF41 |= 0b00010000;
+        break;
+      case 2:
+        *t_FF41 |= 0b00100000;
+        break;
+    }
+  }
+  // Coincidence Flag and LYC=LY Coincidence Interrupt
   if (*t_FF44 == *(io + 0x45)) {
+    *t_FF41 |= 0b01000000;
     *t_FF41 = *t_FF41 | 0b00000100;
   } else {
     *t_FF41 = *t_FF41 & 0b11111011;
   }
+  // 0xFF08 interrupt flag switch
+  if (*t_FF41 & 0b011110000) *(io + 0x0F) |= 0b00000010;
 }
 
 void ppu() {
@@ -97,7 +117,6 @@ void display_scanline() {
       }
     }
     // sprite
-    uint8_t* obj;
     uint16_t y_pos;
     uint16_t x_pos;
     uint8_t sp_tile_num;
@@ -106,14 +125,25 @@ void display_scanline() {
     bool sp_enable = false;
     if (*t_FF40 & 0x02) { //sprite enable
       for (uint16_t i = 0; i < 40; i++) { // scaning OAM
-        obj = oam + (i << 2); // get object base address
-        y_pos = (uint16_t)*obj;
+        //obj = oam + (i << 2); // get object base address
+        y_pos = (uint16_t) * (oam + (i << 2) + 0);
+        x_pos = (uint16_t) * (oam + (i << 2) + 1);
+        sp_tile_num       = *(oam + (i << 2) + 2);
+        sp_atr            = *(oam + (i << 2) + 3);
+        //Serial.print(i, HEX);
+        //Serial.print(":");
+        //Serial.print(y_pos, HEX);
+        //Serial.print(" ");
+        //Serial.print(x_pos, HEX);
+        //Serial.print(" ");
+        //Serial.print(sp_tile_num, HEX);
+        //Serial.print(" ");
+        //Serial.println(sp_atr, HEX);
+
         if (y_pos == 0 || y_pos >= 160) continue;
-        x_pos = (uint16_t)*(obj + 1);
         if (x_pos == 0 || x_pos >= 168) continue;
         gpio_put(25, HIGH);
-        sp_tile_num = *(obj + 2);
-        sp_atr = *(obj + 3);
+
         if (*t_FF40 & 0x04) { // sprite size 8x16
           if (y_pos <= (LY + 16) && y_pos > (LY + 8)) { // upper tile selected
             // X-position
@@ -313,4 +343,10 @@ uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
       return ~0b0000000000000000;
   }
   return 0;
+}
+
+void dma(uint8_t addr_h) {
+  for (uint16_t i = 0x00; i < 0xa0; i++) {
+    put_byte(0xFE00 + i, get_byte(((uint16_t)addr_h << 8) + i));
+  }
 }

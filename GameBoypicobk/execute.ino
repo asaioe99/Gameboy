@@ -7,10 +7,12 @@ void execute() {
     start_flag = 0;
   }
 
-/*
-  if (pc >= 0x150) {
 
-    sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
+  //if (pc >= 0x15A && pc <= 0x1EF) {
+  if (pc >= 0x40 && pc <= 0x69 && !start_flag) {
+
+    //sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
+    sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", get_byte(0xFE00), get_byte(0xFE01), get_byte(0xFE02), get_byte(0xFE03));
     //sprintf(buf_b2, "[sp]:%02X%02X", get_byte(sp + 1), get_byte(sp));
 
     //sprintf(buf_b2, "LCDC:%02X STAT:%02X SCY:%02X SCX:%02X LY:%02X LYC:%02X WY:%02X WX:%02X", *(io + 0x40), *(io + 0x41), *(io + 0x42), *(io + 0x43), *(io + 0x44), *(io + 0x45), *(io + 0x4A), *(io + 0x4B));
@@ -23,7 +25,7 @@ void execute() {
     //  while (1) {}
     //}
   }
-*/
+
   switch (code) {
     case 0xCB: // prefix
       code = get_byte(++pc);

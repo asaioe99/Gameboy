@@ -44,6 +44,8 @@ uint8_t WRAM[0x2000];
 uint8_t CRAM[0x2000];
 uint8_t ie;
 
+uint8_t mode; // LCD mode status
+
 bool start_flag = 1;
 
 uint16_t pc;
@@ -162,6 +164,7 @@ uint8_t get_byte(uint16_t addr) {
 void put_byte(uint16_t addr, uint8_t data) {
   if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     *(io + addr - 0xFF00) = data;
+    if (addr == 0xFF46) dma(data);
   } else if (addr >= 0x2000 && addr < 0x4000) { // this area is not for write but used for change rom bank
     switch_rom_bank(data & 0b00011111);
   } else if (addr >= 0x8000 && addr < 0xA000) {
@@ -215,24 +218,26 @@ void loop() {
 
           switch (i) { //割り込みの優先順位はこの通り
             case 0:
-              call_irpt(0x0040);
+              call_irpt(0x0040); // v-blank
               break;
             case 1:
-              call_irpt(0x0048);
+              call_irpt(0x0048); // LCD
               break;
             case 2:
-              call_irpt(0x0050);
+              call_irpt(0x0050); // timer
               break;
             case 3:
-              call_irpt(0x0058); //Rustの実装では0x0080
+              call_irpt(0x0058); // serial Rustの実装では0x0080
               break;
             case 4:
-              call_irpt(0x0060); //Rustの実装では0x0070
+              call_irpt(0x0060); // joypad Rustの実装では0x0070
               break;
           }
+          Serial.println("interrupt!");
         }
       }
     }
+    *(io + 0x0F) &= 0b11100000; // flag reset
   }
   cc = 0;
 }
