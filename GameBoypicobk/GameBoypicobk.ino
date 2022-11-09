@@ -173,7 +173,7 @@ void put_byte(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
     *(WRAM + ((addr - 0xE000) & 0x1FFF)) = data; //?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
-    *(oam + addr - 0xFE00) = data;
+    *(oam + addr - 0xFE00)  = data;
   } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
 
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
