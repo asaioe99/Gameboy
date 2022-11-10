@@ -17,7 +17,7 @@ void p_flag_update() {
 
   //現時点のmodeが何であるか取得し更新
   *t_FF41 &= 0b11111100;                 // mode0 H-Blank
-  if (*t_FF44 >  144) {                  // mode1 V-Blank
+  if (*t_FF44 >  143) {                  // mode1 V-Blank
     *t_FF41 |= 0b00000001;
   } else {
     if (scaline_counter >= 376 && scaline_counter <= 456) {       // mode2 OAM Scan
@@ -29,7 +29,7 @@ void p_flag_update() {
   // LCDS interrupt trigger
   if (mode != (*t_FF41 & 0b00000011)) {
     mode = *t_FF41 & 0b00000011;
-    switch(mode) {
+    switch (mode) {
       case 0:
         *t_FF41 |= 0b00001000;
         break;
@@ -43,13 +43,16 @@ void p_flag_update() {
   }
   // Coincidence Flag and LYC=LY Coincidence Interrupt
   if (*t_FF44 == *(io + 0x45)) {
-    *t_FF41 |= 0b01000000;
+    *t_FF41 |= 0b01000000; // coincident interrupt
     *t_FF41 = *t_FF41 | 0b00000100;
   } else {
     *t_FF41 = *t_FF41 & 0b11111011;
   }
   // 0xFF08 interrupt flag switch
-  if (*t_FF41 & 0b011110000) *(io + 0x0F) |= 0b00000010;
+  if (*t_FF41 & 0b01111000) {
+    *(io + 0x0F) |= 0b00000010;
+    //gpio_put(25, HIGH);
+  }
 }
 
 void ppu() {
@@ -123,6 +126,7 @@ void display_scanline() {
     uint8_t sp_atr;
     uint8_t num_stripe = 0;
     bool sp_enable = false;
+    
     if (*t_FF40 & 0x02) { //sprite enable
       for (uint16_t i = 0; i < 40; i++) { // scaning OAM
         //obj = oam + (i << 2); // get object base address
@@ -142,7 +146,6 @@ void display_scanline() {
 
         if (y_pos == 0 || y_pos >= 160) continue;
         if (x_pos == 0 || x_pos >= 168) continue;
-        gpio_put(25, HIGH);
 
         if (*t_FF40 & 0x04) { // sprite size 8x16
           if (y_pos <= (LY + 16) && y_pos > (LY + 8)) { // upper tile selected
@@ -185,7 +188,6 @@ void display_scanline() {
         } else { // sprite size 8x8
           // Y-position
           if (y_pos <= (LY + 16) && (LY + 8) < y_pos) {
-            gpio_put(25, HIGH);
             // X-position
             if (x_pos <= (LX + 8) && LX < x_pos) {
               sp_enable = true;
@@ -207,7 +209,6 @@ void display_scanline() {
         } // end of sprite size 8x8
       } // endo of scaning OAM
     } // end of sprite enable
-    gpio_put(25, LOW);
 
     // mix bg FIFO and sp FIFO
     // mix bg and win
@@ -269,7 +270,6 @@ uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x
 }
 
 uint16_t bw_color_number2bit(uint8_t color_number) {
-  gpio_put(25, LOW);
   uint8_t color;
   switch (color_number) {
     case 0: // color number 0
@@ -299,7 +299,6 @@ uint16_t bw_color_number2bit(uint8_t color_number) {
 }
 
 uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
-  gpio_put(25, HIGH);
   uint8_t color;
   if (sp_atr & 0b00010000) { // OBP1
     switch (color_number) {
@@ -348,5 +347,6 @@ uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
 void dma(uint8_t addr_h) {
   for (uint16_t i = 0x00; i < 0xa0; i++) {
     put_byte(0xFE00 + i, get_byte(((uint16_t)addr_h << 8) + i));
+    //gpio_put(25, HIGH);
   }
 }

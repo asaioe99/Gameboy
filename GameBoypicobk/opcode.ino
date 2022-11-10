@@ -1073,7 +1073,7 @@ void ret_cc() {
   pc++;
 }
 void reti() {
-  ime = true;
+  ime = 1;
   pc = ((uint16_t)get_byte(sp + 1) << 8) + (uint16_t)get_byte(sp);
   sp += 2;
   cc += 16;

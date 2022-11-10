@@ -93,7 +93,7 @@ void ini() {
   io[0x06] = 0x00; //TMA
   io[0x07] = 0xF8; //TAC
 
-  io[0x0F] = 0x00; //TAC
+  io[0x0F] = 0x00; //IF
 
   io[0x40] = 0x91; //LCDC
   io[0x41] = 0x80; //STAT
@@ -157,7 +157,6 @@ uint8_t get_byte(uint16_t addr) {
     dump_tilemap();
     delay(10000);
   }
-
   return 0x00;
 }
 
@@ -165,6 +164,8 @@ void put_byte(uint16_t addr, uint8_t data) {
   if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     *(io + addr - 0xFF00) = data;
     if (addr == 0xFF46) dma(data);
+    if (addr == 0xFF04) *(io + 0x04) = 0x00; // Divider regster reset
+    if (addr == 0xFF07) *(io + 0x07) = data & 0x07; // Divider regster reset
   } else if (addr >= 0x2000 && addr < 0x4000) { // this area is not for write but used for change rom bank
     switch_rom_bank(data & 0b00011111);
   } else if (addr >= 0x8000 && addr < 0xA000) {
@@ -182,6 +183,7 @@ void put_byte(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
     *(hram + addr - 0xFF80) = data;
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
+    ie = data;
   }
 }
 // 初期化
@@ -191,10 +193,13 @@ void setup() {
   ini_LCD();
   Get_cartridge_Type();
   pinMode(25, OUTPUT);
-  delay(3000);
+  delay(1000);
 }
 
 void loop() {
+  bool int_flag;
+  bool int_enbl;
+  
   while (cc < 70224) {
     // haltなら16クロックスルーするように書き換え
     if (!halted) {
@@ -202,42 +207,62 @@ void loop() {
     } else {
       cc += 16;
     }
+    // Timer
+    if (!(cc % 0xFF)) *(io + 0x04) += 1; // increment DIV
+    if (*(io + 0x07) & 0b00000100) { // TAC
+      switch (*(io + 0x07) & 0b00000011) {
+        case 0:
+          if (!(cc % 0x04FF)) *(io + 0x05) += 1;
+          break;
+        case 1:
+          if (!(cc % 0x0F))   *(io + 0x05) += 1;
+          break;
+        case 2:
+          if (!(cc % 0x4F))   *(io + 0x05) += 1;
+          break;
+        case 3:
+          if (!(cc % 0xFF))   *(io + 0x05) += 1;
+          break;
+      }
+      if (!*(io + 0x05)) { // TIMA count up
+        *(io + 0x05) = *(io + 0x06); // TMA
+        *(io + 0x0F) |= 0b00000100; // timer interrupt
+      }
+    }
+
+    // ppu
     ppu();
-    // 割り込み処置 timer未実装のため、haltは正しく実装していない
-    //gpio_put(25, ime);
+
+    // 割り込み処置
     if (ime) { //IMEフラグが0の場合はそもそも考慮しない
       for (uint8_t i = 0; i < 5; i++) {
-        bool int_flag = (*(io + 0x0F) & (0x00000001 << i)) > 0;
-        bool int_enbl = (ie & (0x00000001 << i)) > 0;
+        int_flag = *(io + 0x0F) & (1 << i) > 0;
+        int_enbl = ie & (1 << i) > 0;
         if (int_flag && int_enbl) {
-
-          *(io + 0x0F) &= ~(0x00000001 << i);
-
+          *(io + 0x0F) &= ~(1 << i); // reset
           ime = 0; //割り込み無効化
           halted = 0; //不明
-
           switch (i) { //割り込みの優先順位はこの通り
             case 0:
-              call_irpt(0x0040); // v-blank
+              call_irpt(0x0040); // v-blank 実装済み
               break;
             case 1:
-              call_irpt(0x0048); // LCD
+              call_irpt(0x0048); // LCD 実装済み？ -> できていないかも
               break;
             case 2:
-              call_irpt(0x0050); // timer
+              call_irpt(0x0050); // timer 実装したつもり -> できてないかも
               break;
             case 3:
-              call_irpt(0x0058); // serial Rustの実装では0x0080
+              call_irpt(0x0058); // serial Rustの実装では0x0080 未実装
               break;
             case 4:
               call_irpt(0x0060); // joypad Rustの実装では0x0070
               break;
           }
-          Serial.println("interrupt!");
+          break;
         }
       }
     }
-    *(io + 0x0F) &= 0b11100000; // flag reset
   }
   cc = 0;
 }
