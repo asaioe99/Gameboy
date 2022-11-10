@@ -84,7 +84,7 @@ void ini() {
   LR = 0x00;
   cc = 0x00;
 
-  io[0x00] = 0x91; //JOYP
+  io[0x00] = 0x3F; //JOYP
   io[0x01] = 0x91; //SB
   io[0x02] = 0x91; //SC
 
@@ -136,6 +136,7 @@ uint8_t get_byte(uint16_t addr) {
   } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
 
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
+    if (addr == 0xFF00) return *(io + addr - 0xFF00) | 0xCF;
     return *(io + addr - 0xFF00);
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(hram + addr - 0xFF80);
