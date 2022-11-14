@@ -708,7 +708,7 @@ void pop_r16() {
       HR = mmu_read(sp++);
       break;
     case 0xF1:
-      FR = mmu_read(sp++) & 0xF0;
+      FR = mmu_read(sp++);
       AR = mmu_read(sp++);
       break;
   }
