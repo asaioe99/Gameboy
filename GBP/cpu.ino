@@ -9,21 +9,21 @@ uint8_t cpu_step() {
     execute();
   }
 
-  //total_clock += tmp_clock;
+  total_clock += tmp_clock;
 
   // mmu.update??
-  //mmu_update(tmp_clock);
+  mmu_update(tmp_clock);
 
   if (ime) {
-    //tmp_clock = 0;
+    tmp_clock = 0;
     int_check();
     //mmu.update
-    //mmu_update(tmp_clock);
+    mmu_update(tmp_clock);
 
-    //total_clock += tmp_clock;
+    total_clock += tmp_clock;
   }
-  mmu_update(tmp_clock);
-  total_clock += tmp_clock;
+  //mmu_update(tmp_clock);
+  //total_clock += tmp_clock;
 
   return total_clock;
 }
@@ -65,11 +65,11 @@ void execute() {
     boot = false;
   }
 
-  if (pc >= 0x213 && pc <= 0x23E && !boot) {
-    sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
-    //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
-    Serial.println(buf_b1);
-  }
+  //if (pc >= 0x213 && pc <= 0x23E && !boot) {
+  //  sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
+  //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
+  //  Serial.println(buf_b1);
+  //}
 
   if (code == 0xCB) {
     code = mmu_read(++pc);
@@ -79,61 +79,87 @@ void execute() {
   }
 }
 
-void ld_r8_d8() {
-  switch (code) {
-    case 0x06:
-      BR = mmu_read(++pc);
-      break;
-    case 0x0E:
-      CR = mmu_read(++pc);
-      break;
-    case 0x16:
-      DR = mmu_read(++pc);
-      break;
-    case 0x1E:
-      ER = mmu_read(++pc);
-      break;
-    case 0x26:
-      HR = mmu_read(++pc);
-      break;
-    case 0x2E:
-      LR = mmu_read(++pc);
-      break;
-    case 0x3E:
-      AR = mmu_read(++pc);
-      break;
-  }
+void ld_br_d8() {
+  BR = mmu_read(++pc);
   tmp_clock += 8;
-
   pc++;
 }
 
-void ld_r8_phl() {
-  switch (code) {
-    case 0x46:
-      BR = mmu_read(HL(HR, LR));
-      break;
-    case 0x4E:
-      CR = mmu_read(HL(HR, LR));
-      break;
-    case 0x56:
-      DR = mmu_read(HL(HR, LR));
-      break;
-    case 0x5E:
-      ER = mmu_read(HL(HR, LR));
-      break;
-    case 0x66:
-      HR = mmu_read(HL(HR, LR));
-      break;
-    case 0x6E:
-      LR = mmu_read(HL(HR, LR));
-      break;
-    case 0x7E:
-      AR = mmu_read(HL(HR, LR));
-      break;
-  }
+void ld_cr_d8() {
+  CR = mmu_read(++pc);
   tmp_clock += 8;
+  pc++;
+}
 
+void ld_dr_d8() {
+  DR = mmu_read(++pc);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_er_d8() {
+  ER = mmu_read(++pc);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_hr_d8() {
+  HR = mmu_read(++pc);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_lr_d8() {
+  LR = mmu_read(++pc);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_ar_d8() {
+  AR = mmu_read(++pc);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_br_phl() {
+  BR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_cr_phl() {
+  CR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_dr_phl() {
+  DR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_er_phl() {
+  ER = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_hr_phl() {
+  HR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_lr_phl() {
+  LR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_ar_phl() {
+  AR = mmu_read(HL(HR, LR));
+  tmp_clock += 8;
   pc++;
 }
 
@@ -143,7 +169,7 @@ void ld_r8_r8() {
     case 0x00:
       t1 = &BR ;
       break;
-    case 0b00001000:
+    case 0x08:
       t1 = &CR;
       break;
     case 0x10:
@@ -186,43 +212,54 @@ void ld_r8_r8() {
       break;
   }
   tmp_clock += 4;
-
   pc++;
 }
 
-void ld_phl_r8() {
-  switch (code) {
-    case 0x70:
-      mmu_write(HL(HR, LR), BR);
-      break;
-    case 0x71:
-      mmu_write(HL(HR, LR), CR);
-      break;
-    case 0x72:
-      mmu_write(HL(HR, LR), DR);
-      break;
-    case 0x73:
-      mmu_write(HL(HR, LR), ER);
-      break;
-    case 0x74:
-      mmu_write(HL(HR, LR), HR);
-      break;
-    case 0x75:
-      mmu_write(HL(HR, LR), LR);
-      break;
-    case 0x77:
-      mmu_write(HL(HR, LR), AR);
-      break;
-  }
+void ld_phl_br() {
+  mmu_write(HL(HR, LR), BR);
   tmp_clock += 8;
+  pc++;
+}
 
+void ld_phl_cr() {
+  mmu_write(HL(HR, LR), CR);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_phl_dr() {
+  mmu_write(HL(HR, LR), DR);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_phl_er() {
+  mmu_write(HL(HR, LR), ER);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_phl_hr() {
+  mmu_write(HL(HR, LR), HR);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_phl_lr() {
+  mmu_write(HL(HR, LR), LR);
+  tmp_clock += 8;
+  pc++;
+}
+
+void ld_phl_ar() {
+  mmu_write(HL(HR, LR), AR);
+  tmp_clock += 8;
   pc++;
 }
 
 void ld_phl_d8() {
   mmu_write(HL(HR, LR), mmu_read(++pc));
   tmp_clock += 12;
-
   pc++;
 }
 
@@ -236,7 +273,6 @@ void ld_ar_pr16() {
       break;
   }
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -288,31 +324,36 @@ void ld_phld_ar() {
 }
 void nop() {
   tmp_clock += 4;
-
   pc++;
 }
-void inc_r16() {
-  switch (code) {
-    case 0x03:
-      CR++;
-      if (CR == 0x00) BR++;
-      break;
-    case 0x13:
-      ER++;
-      if (ER == 0x00) DR++;
-      break;
-    case 0x23:
-      LR++;
-      if (LR == 0x00) HR++;
-      break;
-    case 0x33:
-      sp++;
-      break;
-  }
+
+void inc_bc() {
+  CR++;
+  if (CR == 0x00) BR++;
   tmp_clock += 8;
-
   pc++;
 }
+
+void inc_de() {
+  ER++;
+  if (ER == 0x00) DR++;
+  tmp_clock += 8;
+  pc++;
+}
+
+void inc_hl() {
+  LR++;
+  if (LR == 0x00) HR++;
+  tmp_clock += 8;
+  pc++;
+}
+
+void inc_sp() {
+  sp++;
+  tmp_clock += 8;
+  pc++;
+}
+
 void dec_r16() {
   switch (code) {
     case 0x0B:
@@ -332,39 +373,13 @@ void dec_r16() {
       break;
   }
   tmp_clock += 8;
-
   pc++;
 }
 
-void inc_r8() {
-  uint8_t *r;
-  uint8_t t;
-  switch (code) {
-    case 0x04:
-      r = &BR ;
-      break;
-    case 0x0C:
-      r = &CR;
-      break;
-    case 0x14:
-      r = &DR;
-      break;
-    case 0x1C:
-      r = &ER;
-      break;
-    case 0x24:
-      r = &HR;
-      break;
-    case 0x2C:
-      r = &LR;
-      break;
-    case 0x3C:
-      r = &AR;
-      break;
-  }
-  t = *r;
-  *r = *r + 1;
-  if (*r == 0) {
+void inc_br() {
+  uint8_t t = BR;
+  BR++;
+  if (BR == 0) {
     FR |= 0x80;
     FR &= 0b10110000;
   } else {
@@ -376,39 +391,223 @@ void inc_r8() {
     FR &= 0b11010000;
   }
   tmp_clock += 4;
-
   pc++;
 }
 
-void dec_r8() {
-  uint8_t *r;
-  uint8_t t;
-  switch (code) {
-    case 0x05:
-      r = &BR ;
-      break;
-    case 0x0D:
-      r = &CR;
-      break;
-    case 0x15:
-      r = &DR;
-      break;
-    case 0x1D:
-      r = &ER;
-      break;
-    case 0x25:
-      r = &HR;
-      break;
-    case 0x2D:
-      r = &LR;
-      break;
-    case 0x3D:
-      r = &AR;
-      break;
+void inc_cr() {
+  uint8_t t = CR;
+  CR++;
+  if (CR == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
   }
-  t = *r;
-  *r = *r - 1;
-  if (*r == 0) {
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void inc_dr() {
+  uint8_t t = DR;
+  DR++;
+  if (DR == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void inc_er() {
+  uint8_t t = ER;
+  ER++;
+  if (ER == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void inc_hr() {
+  uint8_t t = HR;
+  HR++;
+  if (HR == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void inc_lr() {
+  uint8_t t = LR;
+  LR++;
+  if (LR == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void inc_ar() {
+  uint8_t t = AR;
+  AR++;
+  if (AR == 0) {
+    FR |= 0x80;
+    FR &= 0b10110000;
+  } else {
+    FR &= 0b00110000;
+  }
+  if ((t & 0x0F) == 0x0F) {
+    FR |= 0x20;
+  } else {
+    FR &= 0b11010000;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+
+void dec_br() {
+  uint8_t t = BR ;
+  BR--;
+  if (BR == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_cr() {
+  uint8_t t = CR ;
+  CR--;
+  if (CR == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_dr() {
+  uint8_t t = DR ;
+  DR--;
+  if (DR == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_er() {
+  uint8_t t = ER ;
+  ER--;
+  if (ER == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_hr() {
+  uint8_t t = HR ;
+  HR--;
+  if (HR == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_lr() {
+  uint8_t t = LR ;
+  LR--;
+  if (LR == 0) {
+    FR |= 0xC0;
+  } else {
+    FR &= 0x7F;
+    FR |= 0x40;
+  }
+  if ((t & 0x0F) == 0x00) {
+    FR |= 0x20;
+  } else {
+    FR &= 0xD0;
+  }
+  tmp_clock += 4;
+  pc++;
+}
+void dec_ar() {
+  uint8_t t = AR ;
+  AR--;
+  if (AR == 0) {
     FR |= 0xC0;
   } else {
     FR &= 0x7F;
@@ -446,7 +645,6 @@ void xor_ar_r8() {
     case 0xAE:
       AR ^= mmu_read(HL(HR, LR));
       tmp_clock += 4;
-
       break;
     case 0xAF:
       AR ^= AR;
@@ -486,7 +684,6 @@ void sub_ar_r8() {
     case 0x96:
       val_t = mmu_read(HL(HR, LR));
       tmp_clock += 4;
-
       break;
     case 0x97:
       val_t = AR;
@@ -503,7 +700,6 @@ void sub_ar_r8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -531,7 +727,6 @@ void add_ar_r8() {
     case 0x86:
       val_t = mmu_read(HL(HR, LR));
       tmp_clock += 4;
-
       break;
     case 0x87:
       val_t = AR;
@@ -548,96 +743,156 @@ void add_ar_r8() {
   AR += val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 4;
-
   pc++;
 }
 
-void cp_r8() {
-  uint8_t val_t;
-  switch (code) {
-    case 0xB8:
-      val_t = BR;
-      break;
-    case 0xB9:
-      val_t = CR;
-      break;
-    case 0xBA:
-      val_t = DR;
-      break;
-    case 0xBB:
-      val_t = ER;
-      break;
-    case 0xBC:
-      val_t = HR;
-      break;
-    case 0xBD:
-      val_t = LR;
-      break;
-    case 0xBE:
-      val_t = mmu_read(HL(HR, LR));
-      tmp_clock += 4;
-
-      break;
-    case 0xBF:
-      val_t = AR;
-      break;
-  }
-  if ((AR & 0x0F) < (val_t & 0x0F)) {
-    FR = 0b01100000;
+void cp_br() {
+  if ((AR & 0x0F) < (BR & 0x0F)) {
+    FR = 0x60;
   } else {
-    FR = 0b01000000;
+    FR = 0x40;
+  }
+  if (AR < BR) {
+    FR |= 0x10;
+  }
+  if (AR == BR) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_cr() {
+  if ((AR & 0x0F) < (CR & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
+  }
+  if (AR < CR) {
+    FR |= 0x10;
+  }
+  if (AR == CR) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_dr() {
+  if ((AR & 0x0F) < (DR & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
+  }
+  if (AR < DR) {
+    FR |= 0x10;
+  }
+  if (AR == DR) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_er() {
+  if ((AR & 0x0F) < (ER & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
+  }
+  if (AR < ER) {
+    FR |= 0x10;
+  }
+  if (AR == ER) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_hr() {
+  if ((AR & 0x0F) < (HR & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
+  }
+  if (AR < HR) {
+    FR |= 0x10;
+  }
+  if (AR == HR) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_lr() {
+  if ((AR & 0x0F) < (LR & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
+  }
+  if (AR < LR) {
+    FR |= 0x10;
+  }
+  if (AR == LR) FR |= 0x80;
+  tmp_clock += 4;
+  pc++;
+}
+
+void cp_phl() {
+  uint8_t val_t = mmu_read(HL(HR, LR));
+  if ((AR & 0x0F) < (val_t & 0x0F)) {
+    FR = 0x60;
+  } else {
+    FR = 0x40;
   }
   if (AR < val_t) {
     FR |= 0x10;
   }
   if (AR == val_t) FR |= 0x80;
   tmp_clock += 4;
-
   pc++;
 }
 
-void jr_cc_d8() {
-  switch (code) {
-    case 0x18:
-      pc = pc + 2 + (int8_t)mmu_read(pc + 1);
-      tmp_clock += 12;
+void cp_ar() {
+  FR = 0xC0;
+  tmp_clock += 4;
+  pc++;
+}
 
-      return;
-    case 0x20:
-      if (!(FR & 0x80)) {
-        pc = pc + 2 + (int8_t)mmu_read(pc + 1);
-        tmp_clock += 12;
+void jr_d8() {
+  pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+  tmp_clock += 12;
+}
 
-        return;
-      }
-      break;
-    case 0x28:
-      if (FR & 0x80) {
-        pc = pc + 2 + (int8_t)mmu_read(pc + 1);
-        tmp_clock += 12;
-
-        return;
-      }
-      break;
-    case 0x30:
-      if (!(FR & 0x10)) {
-        pc = pc + 2 + (int8_t)mmu_read(pc + 1);
-        tmp_clock += 12;
-
-        return;
-      }
-      break;
-    case 0x38:
-      if (FR & 0x10) {
-        pc = pc + 2 + (int8_t)mmu_read(pc + 1);
-        tmp_clock += 12;
-
-        return;
-      }
-      break;
+void jr_nz_d8() {
+  if (!(FR & 0x80)) {
+    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    tmp_clock += 12;
+    return;
   }
   tmp_clock += 8;
+  pc += 2;
+}
 
+void jr_z_d8() {
+  if (FR & 0x80) {
+    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    tmp_clock += 12;
+    return;
+  }
+  tmp_clock += 8;
+  pc += 2;
+}
+
+void jr_nc_d8() {
+  if (!(FR & 0x10)) {
+    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    tmp_clock += 12;
+    return;
+  }
+  tmp_clock += 8;
+  pc += 2;
+}
+
+void jr_c_d8() {
+  if (FR & 0x10) {
+    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    tmp_clock += 12;
+    return;
+  }
+  tmp_clock += 8;
   pc += 2;
 }
 
@@ -661,7 +916,6 @@ void ld_r16_d16() {
       break;
   }
   tmp_clock += 12;
-
   pc++;
 }
 
@@ -674,21 +928,18 @@ void rla() {
     FR = 0x00;
   }
   tmp_clock += 4;
-
   pc++;
 }
 
 void ldh_pd8_ar() {
   mmu_write(0xFF00 + (uint16_t)mmu_read(++pc), AR);
   tmp_clock += 12;
-
   pc++;
 }
 
 void ldh_ar_pd8() {
   AR = mmu_read(0xFF00 + (uint16_t)mmu_read(++pc));
   tmp_clock += 12;
-
   pc++;
 }
 
@@ -712,35 +963,30 @@ void pop_r16() {
       break;
   }
   tmp_clock += 12;
-
   pc++;
 }
 
 void ld_pcr_ar() {
   mmu_write(0xFF00 + CR, AR);
   tmp_clock += 8;
-
   pc++; //表では2だった
 }
 
 void ld_ar_pcr() {
   AR = mmu_read(0xFF00 + CR);
   tmp_clock += 8;
-
   pc++; //表では2だった
 }
 
 void di() {
   ime = 0;
   tmp_clock += 4;
-
   pc++;
 }
 
 void ei() {
   ime = 1;
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -764,7 +1010,6 @@ void push_r16() {
       break;
   }
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -772,14 +1017,12 @@ void ret() {
   pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
   sp += 2;
   tmp_clock += 16;
-
 }
 
 void call_d16() { ///// not correct push a return address
   mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
   tmp_clock += 24;
-
   pc = (uint16_t)mmu_read(pc + 1) + ((uint16_t)mmu_read(pc + 2) << 8);
 }
 
@@ -803,7 +1046,7 @@ void rl_r8() {
   uint8_t t;
   switch (code) {
     case 0x10:
-      r = &BR ;
+      r = &BR;
       break;
     case 0x11:
       r = &CR;
@@ -833,7 +1076,6 @@ void rl_r8() {
   }
   if (*r == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -869,7 +1111,6 @@ void swap() {
     FR = 0x80;
   }
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -879,7 +1120,7 @@ void bit_() {
   uint8_t mask = 0x01 << b;
   switch (code & 0b00000111) {
     case 0b000:
-      r = BR ;
+      r = BR;
       break;
     case 0b001:
       r = CR;
@@ -909,7 +1150,6 @@ void bit_() {
   FR |= 0x20;
   FR &= 0b10110000;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -942,7 +1182,6 @@ void res() {
   }
   *r &= (~mask);
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -975,7 +1214,6 @@ void set() {
   }
   *r |= mask;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -989,7 +1227,6 @@ void cpl() {
   AR = ~AR;
   FR |= 0b01100000;
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -1001,7 +1238,6 @@ void ccf() {
     FR |= 0x10;
   }
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -1013,7 +1249,6 @@ void and_d8() {
     FR = 0b10100000;
   }
   tmp_clock += 8;
-
   pc++;
 }
 void or_d8() {
@@ -1024,7 +1259,6 @@ void or_d8() {
     FR = 0x80;
   }
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1058,7 +1292,6 @@ void or_r8() {
     FR = 0x80;
   }
   tmp_clock += 4;
-
   pc++;
 }
 void and_r8() {
@@ -1091,72 +1324,70 @@ void and_r8() {
     FR = 0b10100000;
   }
   tmp_clock += 4;
-
   pc++;
 }
+
 void ld_ar_pa16() {
   AR = mmu_read((uint16_t)mmu_read(pc + 1) + (uint16_t)(mmu_read(pc + 2) << 8));
   tmp_clock += 16;
-
   pc += 3;
 }
 
 void ld_pa16_ar() {
   mmu_write((uint16_t)mmu_read(pc + 1) + (uint16_t)(mmu_read(pc + 2) << 8), AR);
   tmp_clock += 16;
-
   pc += 3;
 }
 
-void ret_cc() {
-  switch (code) {
-    case 0xC0: //not zero
-      if (!(FR & 0x80)) {
-        tmp_clock += 20;
-
-        pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
-        sp += 2;
-        return;
-      }
-      break;
-    case 0xD0: //not carry
-      if (!(FR & 0x10)) {
-        tmp_clock += 20;
-
-        pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
-        sp += 2;
-        return;
-      }
-      break;
-    case 0xC8: //zero
-      if (FR & 0x80) {
-        tmp_clock += 20;
-
-        pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
-        sp += 2;
-        return;
-      }
-      break;
-    case 0xD8: //carry
-      if (FR & 0x10) {
-        tmp_clock += 20;
-
-        pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
-        sp += 2;
-        return;
-      }
-      break;
+void ret_nz() {
+  if (!(FR & 0x80)) {
+    tmp_clock += 20;
+    pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
+    sp += 2;
+    return;
   }
   tmp_clock += 8;
-
   pc++;
 }
+
+void ret_nc() {
+  if (!(FR & 0x10)) {
+    tmp_clock += 20;
+    pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
+    sp += 2;
+    return;
+  }
+  tmp_clock += 8;
+  pc++;
+}
+
+void ret_c() {
+  if (FR & 0x10) {
+    tmp_clock += 20;
+    pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
+    sp += 2;
+    return;
+  }
+  tmp_clock += 8;
+  pc++;
+}
+
+void ret_z() {
+  if (FR & 0x80) {
+    tmp_clock += 20;
+    pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
+    sp += 2;
+    return;
+  }
+  tmp_clock += 8;
+  pc++;
+}
+
 void reti() {
   ime = 1;
   pc = ((uint16_t)mmu_read(sp + 1) << 8) + (uint16_t)mmu_read(sp);
   sp += 2;
   tmp_clock += 16;
-
 }
 
 void add_hl_r16() { //動作怪しい
@@ -1191,9 +1422,9 @@ void add_hl_r16() { //動作怪しい
   LR = (uint8_t)(t & 0x000000FF);
   pc++;
 }
+
 void stop_0() {
   tmp_clock += 4;
-
   pc += 2;
 }
 
@@ -1225,7 +1456,6 @@ void jp_cc_d16() {
       break;
   }
   tmp_clock += 12;
-
   pc += 3;
 }
 
@@ -1257,7 +1487,6 @@ void call_cc_d16() {
       break;
   }
   tmp_clock += 12;
-
   pc += 3;
 }
 
@@ -1286,7 +1515,6 @@ void adc_ar_r8() {
     case 0x8E:
       val_t = mmu_read(HL(HR, LR));
       tmp_clock += 4;
-
       break;
     case 0x8F:
       val_t = AR;
@@ -1303,7 +1531,6 @@ void adc_ar_r8() {
   AR = AR + val_t + c_val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -1311,7 +1538,6 @@ void rst_vec() {
   mmu_write(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)((pc + 1) & 0x00FF));
   tmp_clock += 16;
-
   pc = (uint16_t)code - 0xC7;
 }
 
@@ -1340,7 +1566,6 @@ void sbc_ar_r8() {
     case 0x9e:
       val_t = mmu_read(HL(HR, LR));
       tmp_clock += 4;
-
       break;
     case 0x9f:
       val_t = AR;
@@ -1357,7 +1582,6 @@ void sbc_ar_r8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 4;
-
   pc++;
 }
 
@@ -1374,7 +1598,6 @@ void add_ar_d8() {
   AR = AR + val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1392,7 +1615,6 @@ void adc_ar_d8() {
   AR = AR + val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1409,7 +1631,6 @@ void sub_ar_d8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1427,7 +1648,6 @@ void sbc_ar_d8() {
   AR = AR - val_t;
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1464,7 +1684,6 @@ void sla_r8() {
   *val_t = *val_t << 1;
   if (*val_t == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 void rlc_r8() {
@@ -1500,7 +1719,6 @@ void rlc_r8() {
   *val_t  = (*val_t << 1) + ((*val_t & 0x80) >> 7);
   if (*val_t  == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1537,7 +1755,6 @@ void srl_r8() {
   *val_t = *val_t >> 1;
   if (*val_t == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1574,7 +1791,6 @@ void sra_r8() {
   *val_t = (*val_t >> 1) + (*val_t & 0x80);
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1721,10 +1937,10 @@ void rlca() {
     FR = 0x00;
   }
   AR = (AR << 1) | (AR >> 7);
-
   tmp_clock += 4;
   pc++;
 }
+
 void daa() {
   if (!(FR & 0b01000000)) {
     if ((FR & 0x10) || AR > 0x99) {
@@ -1762,14 +1978,12 @@ void ld_pd16_sp() {
 
 void add_sp_d8() {
   uint16_t val_t = (uint16_t)mmu_read(++pc);
-
   if ((sp & 0x0F) + (val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
   }
   if ((sp & 0xFF) + (val_t & 0xFF) > 0xFF) FR |= 0x10;
-
   sp += val_t;
   tmp_clock += 16;
   pc++;
@@ -1793,27 +2007,22 @@ void rrca() {
     FR = 0x00;
   }
   AR = (AR >> 1) | (AR << 7);
-
   tmp_clock += 4;
-
   pc++;
 }
 
 void ld_hl_sp_d8() {
   uint16_t val_t = (uint16_t)mmu_read(++pc);
-
   if ((sp & 0x0F) + (val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
   }
   if ((sp & 0xFF) + (uint16_t)(val_t & 0xFF) > 0xFF) FR |= 0x10;
-
   val_t += sp;
   HR = (uint8_t)(val_t >> 8);
   LR = (uint8_t)(val_t & 0x00FF);
   tmp_clock += 12;
-
   pc++;
 }
 
@@ -1827,7 +2036,6 @@ void swap_phl() {
   }
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc += 2;
 }
 
@@ -1842,9 +2050,9 @@ void sla_phl() {
   if (!val_t) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc += 2;
 }
+
 void rrc_r8() {
   uint8_t* val_t;
   switch (code) {
@@ -1878,7 +2086,6 @@ void rrc_r8() {
   *val_t = (*val_t >> 1) | ((*val_t & 0x01) << 7);
   if (*val_t == 0) FR |= 0x80;
   tmp_clock += 8;
-
   pc++;
 }
 
@@ -1889,7 +2096,6 @@ void set_phl() {
   r |= mask;
   mmu_write(HL(HR, LR), r);
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -1908,7 +2114,6 @@ void bit_phl() {
   uint8_t b = (code & 0x38) >> 3;
   uint8_t mask = 0x01 << b;
   uint8_t r = mmu_read(HL(HR, LR));
-
   r = r & mask;
   if (r) {
     FR &= 0x7F;
@@ -1923,7 +2128,6 @@ void bit_phl() {
 
 void rlc_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-
   if (val_t & 0x80 > 0) {
     FR = 0x10;
   } else {
@@ -1949,7 +2153,6 @@ void rl_phl() {
   if (val_t == 0) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -1965,7 +2168,6 @@ void rrc_phl() {
   if (AR == 0) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -1985,7 +2187,6 @@ void rr_phl() {
   if (val_t == 0) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -2001,7 +2202,6 @@ void sra_phl() {
   if (AR == 0) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc++;
 }
 
@@ -2016,7 +2216,6 @@ void srl_phl() {
   if (val_t == 0) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
-
   pc++;
 }
 

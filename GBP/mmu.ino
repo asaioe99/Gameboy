@@ -1,19 +1,19 @@
 void mmu_update(uint8_t _clock) {
   //self.catridge.update(_clock);
   ppu_update(_clock);
-  timer_update(_clock);
+  //timer_update(_clock);
   //self.joypad.update(_clock);
 
   if (int_vblank) {
-    IF |= 0x1;
+    IF |= 0x01;
     int_vblank = false;
   }
   if (int_lcdc) {
-    IF |= 0x2;
+    IF |= 0x02;
     int_lcdc   = false;
   }
   if (int_timer) {
-    IF |= 0x4;
+    IF |= 0x04;
     int_timer  = false;
   }
   if (int_joypad) {
@@ -23,7 +23,7 @@ void mmu_update(uint8_t _clock) {
 }
 
 uint8_t mmu_read(uint16_t addr) {
-  if (addr < 0x0100 && (boot == 1)) {
+  if (addr < 0x0100 && boot) {
     return *(bootstrap + addr);
   } else if (addr < 0x4000) {
     return *(rom_bank00 + addr);
@@ -39,7 +39,7 @@ uint8_t mmu_read(uint16_t addr) {
     return *(WRAM + addr - 0xE000); // ?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     return *(OAM + addr - 0xFE00);
-  } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
+    //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
 
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) return *(IO + addr - 0xFF00) | 0xCF;
@@ -54,8 +54,7 @@ uint8_t mmu_read(uint16_t addr) {
 void mmu_write(uint16_t addr, uint8_t data) {
   if (addr >= 0x2000 && addr < 0x4000) { // this area is not for write but used for change rom bank
     switch_rom_bank(data & 0x1F);
-  } else if (addr >= 0x4000 && addr < 0x8000) {
-    //
+    //} else if (addr >= 0x4000 && addr < 0x8000) {
   } else if (addr >= 0x8000 && addr < 0xA000) {
     *(VRAM + addr - 0x8000) = data;
   } else if (addr >= 0xA000 && addr < 0xC000) {
@@ -63,13 +62,13 @@ void mmu_write(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xC000 && addr < 0xE000) {
     *(WRAM + addr - 0xC000) = data;
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-    *(WRAM + ((addr - 0xE000) & 0x1FFF)) = data; //?
+    *(WRAM + (addr - 0xE000) ) = data; //?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     *(OAM + addr - 0xFE00)  = data;
-  } else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
-    //
+    //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     *(IO + addr - 0xFF00) = data;
+    if (addr == 0xFF43) gpio_put(25, HIGH);
     if (addr == 0xFF46) dma(data);
     if (addr == 0xFF04) *(IO + 0x04) = 0x00; // Divider regster reset
     if (addr == 0xFF07) *(IO + 0x07) = data & 0x07; // Divider regster reset
@@ -84,12 +83,12 @@ uint8_t mbc_read_rom(uint16_t addr) {
   switch (rom_bank_num) {
     case 0x01:
       return *(rom_bank01 + addr - 0x4000);
-
-    case 0x02:
-      return *(rom_bank02 + addr - 0x4000);
-    case 0x03:
-      return *(rom_bank03 + addr - 0x4000);
     /*
+      case 0x02:
+      return *(rom_bank02 + addr - 0x4000);
+      case 0x03:
+      return *(rom_bank03 + addr - 0x4000);
+
       case 0x04:
       return *(rom_bank04 + addr - 0x4000);
       case 0x05:

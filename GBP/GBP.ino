@@ -1,7 +1,7 @@
 #include "gbp_define.h"
 #include "bootstrap.h"
-#include "cpu_instrs.h"
-//#include "btn_test.h"
+//#include "cpu_instrs.h"
+#include "btn_test.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
@@ -94,7 +94,7 @@ void loop() {
 
   uint32_t clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154) {
+  while (clock_cycle < 456 * 154 * 10) { // 6Hz
     clock_cycle += (uint32_t)cpu_step();
   }
 

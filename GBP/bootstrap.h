@@ -24,69 +24,69 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0x00
     ld_r16_d16, //0x01
     ld_pr16_ar, //0x02
-    inc_r16,    //0x03
-    inc_r8,     //0x04
-    dec_r8,     //0x05
-    ld_r8_d8,   //0x06
+    inc_bc,     //0x03
+    inc_br,     //0x04
+    dec_br,     //0x05
+    ld_br_d8,   //0x06
     rlca,       //0x07
     ld_pd16_sp, //0x08
     add_hl_r16, //0x09
     ld_ar_pr16, //0x0A
     dec_r16,    //0x0B
-    inc_r8,     //0x0C
-    dec_r8,     //0x0D
-    ld_r8_d8,   //0x0E
+    inc_cr,     //0x0C
+    dec_cr,     //0x0D
+    ld_cr_d8,   //0x0E
     rrca,       //0x0F
 
     stop_0,     //0x10
     ld_r16_d16, //0x11
     ld_pr16_ar, //0x12
-    inc_r16,    //0x13
-    inc_r8,     //0x14
-    dec_r8,     //0x15
-    ld_r8_d8,   //0x16
+    inc_de,     //0x13
+    inc_dr,     //0x14
+    dec_dr,     //0x15
+    ld_dr_d8,   //0x16
     rla,        //0x17
-    jr_cc_d8,   //0x18
+    jr_d8,      //0x18
     add_hl_r16, //0x19
     ld_ar_pr16, //0x1A
     dec_r16,    //0x1B
-    inc_r8,     //0x1C
-    dec_r8,     //0x1D
-    ld_r8_d8,   //0x1E
+    inc_er,     //0x1C
+    dec_er,     //0x1D
+    ld_er_d8,   //0x1E
     rra,        //0x1F
 
-    jr_cc_d8,   //0x20
+    jr_nz_d8,   //0x20
     ld_r16_d16, //0x21
     ld_phli_ar, //0x22
-    inc_r16,    //0x23
-    inc_r8,     //0x24
-    dec_r8,     //0x25
-    ld_r8_d8,   //0x26
+    inc_hl,     //0x23
+    inc_hr,     //0x24
+    dec_hr,     //0x25
+    ld_hr_d8,   //0x26
     daa,        //0x27
-    jr_cc_d8,   //0x28
+    jr_z_d8,    //0x28
     add_hl_r16, //0x29
     ld_ar_phli, //0x2A
     dec_r16,    //0x2B
-    inc_r8,     //0x2C
-    dec_r8,     //0x2D
-    ld_r8_d8,   //0x2E
+    inc_lr,     //0x2C
+    dec_lr,     //0x2D
+    ld_lr_d8,   //0x2E
     cpl,        //0x2F
 
-    jr_cc_d8,   //0x30
+    jr_nc_d8,   //0x30
     ld_r16_d16, //0x31
     ld_phld_ar, //0x32
-    inc_r16,    //0x33
+    inc_sp,     //0x33
     inc_phl,    //0x34
     dec_phl,    //0x35
     ld_phl_d8,  //0x36
     scf,        //0x37
-    jr_cc_d8,   //0x38
+    jr_c_d8,    //0x38
     add_hl_r16, //0x39
     ld_ar_phld, //0x3A
     dec_r16,    //0x3B
-    inc_r8,     //0x3C
-    dec_r8,     //0x3D
-    ld_r8_d8,   //0x3E
+    inc_ar,     //0x3C
+    dec_ar,     //0x3D
+    ld_ar_d8,   //0x3E
     ccf,        //0x3F
 
     ld_r8_r8,   //0x40
@@ -95,7 +95,7 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x43
     ld_r8_r8,   //0x44
     ld_r8_r8,   //0x45
-    ld_r8_phl,  //0x46
+    ld_br_phl,  //0x46
     ld_r8_r8,   //0x47
     ld_r8_r8,   //0x48
     ld_r8_r8,   //0x49
@@ -103,7 +103,7 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x4B
     ld_r8_r8,   //0x4C
     ld_r8_r8,   //0x4D
-    ld_r8_phl,  //0x4E
+    ld_cr_phl,  //0x4E
     ld_r8_r8,   //0x4F
 
     ld_r8_r8,   //0x50
@@ -112,7 +112,7 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x53
     ld_r8_r8,   //0x54
     ld_r8_r8,   //0x55
-    ld_r8_phl,  //0x56
+    ld_dr_phl,  //0x56
     ld_r8_r8,   //0x57
     ld_r8_r8,   //0x58
     ld_r8_r8,   //0x59
@@ -120,7 +120,7 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x5B
     ld_r8_r8,   //0x5C
     ld_r8_r8,   //0x5D
-    ld_r8_phl,  //0x5E
+    ld_er_phl,  //0x5E
     ld_r8_r8,   //0x5F
 
     ld_r8_r8,   //0x60
@@ -129,7 +129,7 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x63
     ld_r8_r8,   //0x64
     ld_r8_r8,   //0x65
-    ld_r8_phl,  //0x66
+    ld_hr_phl,  //0x66
     ld_r8_r8,   //0x67
     ld_r8_r8,   //0x68
     ld_r8_r8,   //0x69
@@ -137,24 +137,24 @@ void (* const op_ptr_array[])(void) = {
     ld_r8_r8,   //0x6B
     ld_r8_r8,   //0x6C
     ld_r8_r8,   //0x6D
-    ld_r8_phl,  //0x6E
+    ld_lr_phl,  //0x6E
     ld_r8_r8,   //0x6F
 
-    ld_phl_r8,  //0x70
-    ld_phl_r8,  //0x71
-    ld_phl_r8,  //0x72
-    ld_phl_r8,  //0x73
-    ld_phl_r8,  //0x74
-    ld_phl_r8,  //0x75
+    ld_phl_br,  //0x70
+    ld_phl_cr,  //0x71
+    ld_phl_dr,  //0x72
+    ld_phl_er,  //0x73
+    ld_phl_hr,  //0x74
+    ld_phl_lr,  //0x75
     halt,       //0x76
-    ld_phl_r8,  //0x77
+    ld_phl_ar,  //0x77
     ld_r8_r8,   //0x78
     ld_r8_r8,   //0x79
     ld_r8_r8,   //0x7A
     ld_r8_r8,   //0x7B
     ld_r8_r8,   //0x7C
     ld_r8_r8,   //0x7D
-    ld_r8_phl,  //0x7E
+    ld_ar_phl,  //0x7E
     ld_r8_r8,   //0x7F
 
     add_ar_r8,  //0x80
@@ -216,16 +216,16 @@ void (* const op_ptr_array[])(void) = {
     or_r8,      //0xB5
     or_ar_phl,  //0xB6
     or_r8,      //0xB7
-    cp_r8,      //0xB8
-    cp_r8,      //0xB9
-    cp_r8,      //0xBA
-    cp_r8,      //0xBB
-    cp_r8,      //0xBC
-    cp_r8,      //0xBD
-    cp_r8,      //0xBE
-    cp_r8,      //0xBF
+    cp_br,      //0xB8
+    cp_cr,      //0xB9
+    cp_dr,      //0xBA
+    cp_er,      //0xBB
+    cp_hr,      //0xBC
+    cp_lr,      //0xBD
+    cp_phl,      //0xBE
+    cp_ar,      //0xBF
 
-    ret_cc,     //0xC0
+    ret_nz,     //0xC0
     pop_r16,    //0xC1
     jp_cc_d16,  //0xC2
     jp_d16,     //0xC3
@@ -233,7 +233,7 @@ void (* const op_ptr_array[])(void) = {
     push_r16,   //0xC5
     add_ar_d8,  //0xC6
     rst_vec,    //0xC7
-    ret_cc,     //0xC8
+    ret_z,      //0xC8
     ret,        //0xC9
     jp_cc_d16,  //0xCA
     nop,        //0xCB
@@ -242,7 +242,7 @@ void (* const op_ptr_array[])(void) = {
     adc_ar_d8,  //0xCE
     rst_vec,    //0xCF
 
-    ret_cc,     //0xD0
+    ret_nc,     //0xD0
     pop_r16,    //0xD1
     jp_cc_d16,  //0xD2
     nop,        //0xD3
@@ -250,7 +250,7 @@ void (* const op_ptr_array[])(void) = {
     push_r16,   //0xD5
     sub_ar_d8,  //0xD6
     rst_vec,    //0xD7
-    ret_cc,     //0xD8
+    ret_c,      //0xD8
     reti,       //0xD9
     jp_cc_d16,  //0xDA
     nop,        //0xDB
