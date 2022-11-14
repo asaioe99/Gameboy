@@ -409,18 +409,17 @@ void dec_r8() {
   t = *r;
   *r = *r - 1;
   if (*r == 0) {
-    FR |= 0b11000000;
+    FR |= 0xC0;
   } else {
     FR &= 0x7F;
-    FR |= 0b01000000;
+    FR |= 0x40;
   }
-  if (t & 0x0F == 0x00) {
+  if ((t & 0x0F) == 0x00) {
     FR |= 0x20;
   } else {
-    FR &= 0b11010000;
+    FR &= 0xD0;
   }
   tmp_clock += 4;
-
   pc++;
 }
 
