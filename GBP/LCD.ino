@@ -57,7 +57,7 @@ void SPI_transfer(uint8_t* data, int dataLen) {
 }
 
 // TFTにコマンドを送信
-void SendCommand(uint8_t command) {
+static inline void SendCommand(uint8_t command) {
   gpio_put(CS, LOW); //
   gpio_put(DC, LOW); // Command mode
   SPI_transfer(command);
@@ -65,7 +65,7 @@ void SendCommand(uint8_t command) {
 }
 
 // TFTにコマンド+1バイトデータを送信
-void SendCommand1(uint8_t command, uint8_t data1) {
+static inline void SendCommand1(uint8_t command, uint8_t data1) {
   gpio_put(CS, LOW); //
   gpio_put(DC, LOW); // Command mode
   SPI_transfer(command);
@@ -75,7 +75,7 @@ void SendCommand1(uint8_t command, uint8_t data1) {
 }
 
 // TFTにコマンド+2バイトデータを送信
-void SendCommand2(uint8_t command, uint8_t data1, uint8_t data2) {
+static inline void SendCommand2(uint8_t command, uint8_t data1, uint8_t data2) {
   gpio_put(CS, LOW); //
   gpio_put(DC, LOW); // Command mode
   SPI_transfer(command);
@@ -86,7 +86,7 @@ void SendCommand2(uint8_t command, uint8_t data1, uint8_t data2) {
 }
 
 // TFTにコマンド+4バイトデータを送信
-void SendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4) {
+static inline void SendCommand4(uint8_t command, uint8_t data1, uint8_t data2, uint8_t data3, uint8_t data4) {
   gpio_put(CS, LOW); //
   gpio_put(DC, LOW); // Command mode
   SPI_transfer(command);
@@ -118,7 +118,7 @@ void cls() {
   gpio_put(CS, HIGH);
 }
 // BITマップ表示
-void LCD_drowBitMap() {
+static inline void LCD_drowBitMap() {
 
   SendCommand4(0x2A, 0, 40, 0, 199) ; // Colmun Address
   SendCommand4(0x2B, 0, 40, 0, 183) ; // Row Address

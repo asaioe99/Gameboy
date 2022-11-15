@@ -22,7 +22,7 @@ const uint8_t bootstrap[] = {
 
 void (* const op_ptr_array[])(void) = {
     nop,        //0x00
-    ld_r16_d16, //0x01
+    ld_bc_d16,  //0x01
     ld_pr16_ar, //0x02
     inc_bc,     //0x03
     inc_br,     //0x04
@@ -30,16 +30,16 @@ void (* const op_ptr_array[])(void) = {
     ld_br_d8,   //0x06
     rlca,       //0x07
     ld_pd16_sp, //0x08
-    add_hl_r16, //0x09
+    add_hl_bc,  //0x09
     ld_ar_pr16, //0x0A
-    dec_r16,    //0x0B
+    dec_bc,     //0x0B
     inc_cr,     //0x0C
     dec_cr,     //0x0D
     ld_cr_d8,   //0x0E
     rrca,       //0x0F
 
     stop_0,     //0x10
-    ld_r16_d16, //0x11
+    ld_de_d16,  //0x11
     ld_pr16_ar, //0x12
     inc_de,     //0x13
     inc_dr,     //0x14
@@ -47,16 +47,16 @@ void (* const op_ptr_array[])(void) = {
     ld_dr_d8,   //0x16
     rla,        //0x17
     jr_d8,      //0x18
-    add_hl_r16, //0x19
+    add_hl_de,  //0x19
     ld_ar_pr16, //0x1A
-    dec_r16,    //0x1B
+    dec_de,     //0x1B
     inc_er,     //0x1C
     dec_er,     //0x1D
     ld_er_d8,   //0x1E
     rra,        //0x1F
 
     jr_nz_d8,   //0x20
-    ld_r16_d16, //0x21
+    ld_hl_d16,  //0x21
     ld_phli_ar, //0x22
     inc_hl,     //0x23
     inc_hr,     //0x24
@@ -64,16 +64,16 @@ void (* const op_ptr_array[])(void) = {
     ld_hr_d8,   //0x26
     daa,        //0x27
     jr_z_d8,    //0x28
-    add_hl_r16, //0x29
+    add_hl_hl,  //0x29
     ld_ar_phli, //0x2A
-    dec_r16,    //0x2B
+    dec_hl,     //0x2B
     inc_lr,     //0x2C
     dec_lr,     //0x2D
     ld_lr_d8,   //0x2E
     cpl,        //0x2F
 
     jr_nc_d8,   //0x30
-    ld_r16_d16, //0x31
+    ld_sp_d16,  //0x31
     ld_phld_ar, //0x32
     inc_sp,     //0x33
     inc_phl,    //0x34
@@ -81,64 +81,64 @@ void (* const op_ptr_array[])(void) = {
     ld_phl_d8,  //0x36
     scf,        //0x37
     jr_c_d8,    //0x38
-    add_hl_r16, //0x39
+    add_hl_sp,  //0x39
     ld_ar_phld, //0x3A
-    dec_r16,    //0x3B
+    dec_sp,     //0x3B
     inc_ar,     //0x3C
     dec_ar,     //0x3D
     ld_ar_d8,   //0x3E
     ccf,        //0x3F
 
-    ld_r8_r8,   //0x40
-    ld_r8_r8,   //0x41
-    ld_r8_r8,   //0x42
-    ld_r8_r8,   //0x43
-    ld_r8_r8,   //0x44
-    ld_r8_r8,   //0x45
+    ld_br_br,   //0x40
+    ld_br_cr,   //0x41
+    ld_br_dr,   //0x42
+    ld_br_er,   //0x43
+    ld_br_hr,   //0x44
+    ld_br_lr,   //0x45
     ld_br_phl,  //0x46
-    ld_r8_r8,   //0x47
-    ld_r8_r8,   //0x48
-    ld_r8_r8,   //0x49
-    ld_r8_r8,   //0x4A
-    ld_r8_r8,   //0x4B
-    ld_r8_r8,   //0x4C
-    ld_r8_r8,   //0x4D
+    ld_br_ar,   //0x47
+    ld_cr_br,   //0x48
+    ld_cr_cr,   //0x49
+    ld_cr_dr,   //0x4A
+    ld_cr_er,   //0x4B
+    ld_cr_hr,   //0x4C
+    ld_cr_lr,   //0x4D
     ld_cr_phl,  //0x4E
-    ld_r8_r8,   //0x4F
+    ld_cr_ar,   //0x4F
 
-    ld_r8_r8,   //0x50
-    ld_r8_r8,   //0x51
-    ld_r8_r8,   //0x52
-    ld_r8_r8,   //0x53
-    ld_r8_r8,   //0x54
-    ld_r8_r8,   //0x55
+    ld_dr_br,   //0x50
+    ld_dr_cr,   //0x51
+    ld_dr_dr,   //0x52
+    ld_dr_er,   //0x53
+    ld_dr_hr,   //0x54
+    ld_dr_lr,   //0x55
     ld_dr_phl,  //0x56
-    ld_r8_r8,   //0x57
-    ld_r8_r8,   //0x58
-    ld_r8_r8,   //0x59
-    ld_r8_r8,   //0x5A
-    ld_r8_r8,   //0x5B
-    ld_r8_r8,   //0x5C
-    ld_r8_r8,   //0x5D
+    ld_dr_ar,   //0x57
+    ld_er_br,   //0x58
+    ld_er_cr,   //0x59
+    ld_er_dr,   //0x5A
+    ld_er_er,   //0x5B
+    ld_er_hr,   //0x5C
+    ld_er_lr,   //0x5D
     ld_er_phl,  //0x5E
-    ld_r8_r8,   //0x5F
+    ld_er_ar,   //0x5F
 
-    ld_r8_r8,   //0x60
-    ld_r8_r8,   //0x61
-    ld_r8_r8,   //0x62
-    ld_r8_r8,   //0x63
-    ld_r8_r8,   //0x64
-    ld_r8_r8,   //0x65
+    ld_hr_br,   //0x60
+    ld_hr_cr,   //0x61
+    ld_hr_dr,   //0x62
+    ld_hr_er,   //0x63
+    ld_hr_hr,   //0x64
+    ld_hr_lr,   //0x65
     ld_hr_phl,  //0x66
-    ld_r8_r8,   //0x67
-    ld_r8_r8,   //0x68
-    ld_r8_r8,   //0x69
-    ld_r8_r8,   //0x6A
-    ld_r8_r8,   //0x6B
-    ld_r8_r8,   //0x6C
-    ld_r8_r8,   //0x6D
+    ld_hr_ar,   //0x67
+    ld_lr_br,   //0x68
+    ld_lr_cr,   //0x69
+    ld_lr_dr,   //0x6A
+    ld_lr_er,   //0x6B
+    ld_lr_hr,   //0x6C
+    ld_lr_lr,   //0x6D
     ld_lr_phl,  //0x6E
-    ld_r8_r8,   //0x6F
+    ld_lr_ar,   //0x6F
 
     ld_phl_br,  //0x70
     ld_phl_cr,  //0x71
@@ -148,14 +148,14 @@ void (* const op_ptr_array[])(void) = {
     ld_phl_lr,  //0x75
     halt,       //0x76
     ld_phl_ar,  //0x77
-    ld_r8_r8,   //0x78
-    ld_r8_r8,   //0x79
-    ld_r8_r8,   //0x7A
-    ld_r8_r8,   //0x7B
-    ld_r8_r8,   //0x7C
-    ld_r8_r8,   //0x7D
+    ld_ar_br,   //0x78
+    ld_ar_cr,   //0x79
+    ld_ar_dr,   //0x7A
+    ld_ar_er,   //0x7B
+    ld_ar_hr,   //0x7C
+    ld_ar_lr,   //0x7D
     ld_ar_phl,  //0x7E
-    ld_r8_r8,   //0x7F
+    ld_ar_ar,   //0x7F
 
     add_ar_r8,  //0x80
     add_ar_r8,  //0x81
@@ -199,38 +199,38 @@ void (* const op_ptr_array[])(void) = {
     and_r8,     //0xA5
     and_ar_phl, //0xA6
     and_r8,     //0xA7
-    xor_ar_r8,  //0xA8
-    xor_ar_r8,  //0xA9
-    xor_ar_r8,  //0xAA
-    xor_ar_r8,  //0xAB
-    xor_ar_r8,  //0xAC
-    xor_ar_r8,  //0xAD
-    xor_ar_r8,  //0xAE
-    xor_ar_r8,  //0xAF
+    xor_ar_br,  //0xA8
+    xor_ar_cr,  //0xA9
+    xor_ar_dr,  //0xAA
+    xor_ar_er,  //0xAB
+    xor_ar_hr,  //0xAC
+    xor_ar_lr,  //0xAD
+    xor_ar_phl, //0xAE
+    xor_ar_ar,  //0xAF
 
-    or_r8,      //0xB0
-    or_r8,      //0xB1
-    or_r8,      //0xB2
-    or_r8,      //0xB3
-    or_r8,      //0xB4
-    or_r8,      //0xB5
+    or_br,      //0xB0
+    or_cr,      //0xB1
+    or_dr,      //0xB2
+    or_er,      //0xB3
+    or_hr,      //0xB4
+    or_lr,      //0xB5
     or_ar_phl,  //0xB6
-    or_r8,      //0xB7
+    or_ar,      //0xB7
     cp_br,      //0xB8
     cp_cr,      //0xB9
     cp_dr,      //0xBA
     cp_er,      //0xBB
     cp_hr,      //0xBC
     cp_lr,      //0xBD
-    cp_phl,      //0xBE
+    cp_phl,     //0xBE
     cp_ar,      //0xBF
 
     ret_nz,     //0xC0
-    pop_r16,    //0xC1
+    pop_bc,     //0xC1
     jp_cc_d16,  //0xC2
     jp_d16,     //0xC3
     call_cc_d16,//0xC4
-    push_r16,   //0xC5
+    push_bc,    //0xC5
     add_ar_d8,  //0xC6
     rst_vec,    //0xC7
     ret_z,      //0xC8
@@ -243,11 +243,11 @@ void (* const op_ptr_array[])(void) = {
     rst_vec,    //0xCF
 
     ret_nc,     //0xD0
-    pop_r16,    //0xD1
+    pop_de,     //0xD1
     jp_cc_d16,  //0xD2
     nop,        //0xD3
     call_cc_d16,//0xD4
-    push_r16,   //0xD5
+    push_de,    //0xD5
     sub_ar_d8,  //0xD6
     rst_vec,    //0xD7
     ret_c,      //0xD8
@@ -260,11 +260,11 @@ void (* const op_ptr_array[])(void) = {
     rst_vec,    //0xDF
 
     ldh_pd8_ar, //0xE0
-    pop_r16,    //0xE1
+    pop_hl,     //0xE1
     ld_pcr_ar,  //0xE2
     nop,        //0xE3
     nop,        //0xE4
-    push_r16,   //0xE5
+    push_hl,    //0xE5
     and_d8,     //0xE6
     rst_vec,    //0xE7
     add_sp_d8,  //0xE8
@@ -277,11 +277,11 @@ void (* const op_ptr_array[])(void) = {
     rst_vec,    //0xEF
 
     ldh_ar_pd8, //0xF0
-    pop_r16,    //0xF1
+    pop_af,     //0xF1
     ld_ar_pcr,  //0xF2
     di,         //0xF3
     nop,        //0xF4
-    push_r16,   //0xF5
+    push_af,    //0xF5
     or_d8,      //0xF6
     rst_vec,    //0xF7
     ld_hl_sp_d8,//0xF8
@@ -320,14 +320,14 @@ void (* const pf_op_ptr_array[])(void) = {
     rl_r8,      //0x15
     rl_phl,     //0x16
     rl_r8,      //0x17
-    rr_r8,      //0x18
-    rr_r8,      //0x19
-    rr_r8,      //0x1A
-    rr_r8,      //0x1B
-    rr_r8,      //0x1C
-    rr_r8,      //0x1D
+    rr_br,      //0x18
+    rr_cr,      //0x19
+    rr_dr,      //0x1A
+    rr_er,      //0x1B
+    rr_hr,      //0x1C
+    rr_lr,      //0x1D
     rr_phl,     //0x1E
-    rr_r8,      //0x1F
+    rr_ar,      //0x1F
 
     sla_r8,     //0x20
     sla_r8,     //0x21
@@ -354,14 +354,14 @@ void (* const pf_op_ptr_array[])(void) = {
     swap,       //0x35
     swap_phl,   //0x36
     swap,       //0x37
-    srl_r8,     //0x38
-    srl_r8,     //0x39
-    srl_r8,     //0x3A
-    srl_r8,     //0x3B
-    srl_r8,     //0x3C
-    srl_r8,     //0x3D
+    srl_br,     //0x38
+    srl_cr,     //0x39
+    srl_dr,     //0x3A
+    srl_er,     //0x3B
+    srl_hr,     //0x3C
+    srl_lr,     //0x3D
     srl_phl,    //0x3E
-    srl_r8,     //0x3F
+    srl_ar,     //0x3F
 
     bit_,       //0x40
     bit_,       //0x41

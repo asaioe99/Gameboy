@@ -16,6 +16,7 @@ void ppu_update(uint8_t _clock) {
     case 0:
       if (scaline_counter >= 204) { // mode0 -> mode1 or mode2
         scaline_counter -= 204;
+        display_scanline(); // こうすると波打たない
         *LY += 1;
         if (*LY >= 144) {
           *STAT = (*STAT & 0xF8) | 0x01;
@@ -46,7 +47,7 @@ void ppu_update(uint8_t _clock) {
       if (scaline_counter >= 80) { // mode2 -> mode3
         scaline_counter -= 80;
         *STAT = (*STAT & 0xF8) | 0x03;
-        display_scanline();
+        //display_scanline();
       }
       break;
     case 1:
@@ -231,7 +232,7 @@ void display_scanline() {
   }
 }
 
-uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
+static inline uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
   if (*(IO + 0x40) & 0x08) { // bg offset address select
     return mmu_read(0x9c00 + (offset_y << 5) + offset_x);
   } else {
@@ -239,7 +240,7 @@ uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
   }
 }
 
-uint8_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
+static inline uint8_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
   uint8_t h8_tile_l;
   uint8_t h8_tile_h;
   if (*(IO + 0x40) & 0x10) { // get pixel color number
@@ -252,7 +253,7 @@ uint8_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x
   return ((h8_tile_l & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07)) + ((h8_tile_h & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07));
 }
 // return a color number of a pixel in given sprie tile
-uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
+static inline uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
   uint8_t h8_tile_l;
   uint8_t h8_tile_h;
   h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + (offset_y << 1));
@@ -260,7 +261,7 @@ uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x
   return ((h8_tile_l & (1 << (7 - offset_x))) >> (7 - offset_x)) + ((h8_tile_h & (1 << (7 - offset_x))) >> (7 - offset_x));
 }
 
-uint16_t bw_color_number2bit(uint8_t color_number) {
+static inline uint16_t bw_color_number2bit(uint8_t color_number) {
   uint8_t color;
   switch (color_number) {
     case 0: // color number 0
@@ -324,7 +325,8 @@ uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
   }
   switch (color) {
     case 0: // White
-      return ~0b1111011110011110;
+      //return ~0b1111011110011110;
+      return 0b0000100001100001;
     case 1: // Light gray
       return ~0b1010010100010100;
     case 2: // Dark gray
