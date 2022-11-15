@@ -23,7 +23,7 @@ const uint8_t bootstrap[] = {
 void (* const op_ptr_array[])(void) = {
     nop,        //0x00
     ld_bc_d16,  //0x01
-    ld_pr16_ar, //0x02
+    ld_pbc_ar,  //0x02
     inc_bc,     //0x03
     inc_br,     //0x04
     dec_br,     //0x05
@@ -40,7 +40,7 @@ void (* const op_ptr_array[])(void) = {
 
     stop_0,     //0x10
     ld_de_d16,  //0x11
-    ld_pr16_ar, //0x12
+    ld_pde_ar,  //0x12
     inc_de,     //0x13
     inc_dr,     //0x14
     dec_dr,     //0x15
@@ -157,22 +157,22 @@ void (* const op_ptr_array[])(void) = {
     ld_ar_phl,  //0x7E
     ld_ar_ar,   //0x7F
 
-    add_ar_r8,  //0x80
-    add_ar_r8,  //0x81
-    add_ar_r8,  //0x82
-    add_ar_r8,  //0x83
-    add_ar_r8,  //0x84
-    add_ar_r8,  //0x85
-    add_ar_r8,  //0x86
-    add_ar_r8,  //0x87
-    adc_ar_r8,  //0x88
-    adc_ar_r8,  //0x89
-    adc_ar_r8,  //0x8A
-    adc_ar_r8,  //0x8B
-    adc_ar_r8,  //0x8C
-    adc_ar_r8,  //0x8D
-    adc_ar_r8,  //0x8E
-    adc_ar_r8,  //0x8F
+    add_ar_br,  //0x80
+    add_ar_cr,  //0x81
+    add_ar_dr,  //0x82
+    add_ar_er,  //0x83
+    add_ar_hr,  //0x84
+    add_ar_lr,  //0x85
+    add_ar_phl, //0x86
+    add_ar_ar,  //0x87
+    adc_ar_br,  //0x88
+    adc_ar_cr,  //0x89
+    adc_ar_dr,  //0x8A
+    adc_ar_er,  //0x8B
+    adc_ar_hr,  //0x8C
+    adc_ar_lr,  //0x8D
+    adc_ar_phl, //0x8E
+    adc_ar_ar,  //0x8F
 
     sub_ar_r8,  //0x90
     sub_ar_r8,  //0x91
