@@ -174,31 +174,31 @@ void (* const op_ptr_array[])(void) = {
     adc_ar_phl, //0x8E
     adc_ar_ar,  //0x8F
 
-    sub_ar_r8,  //0x90
-    sub_ar_r8,  //0x91
-    sub_ar_r8,  //0x92
-    sub_ar_r8,  //0x93
-    sub_ar_r8,  //0x94
-    sub_ar_r8,  //0x95
-    sub_ar_r8,  //0x96
-    sub_ar_r8,  //0x97
-    sbc_ar_r8,  //0x98
-    sbc_ar_r8,  //0x99
-    sbc_ar_r8,  //0x9A
-    sbc_ar_r8,  //0x9B
-    sbc_ar_r8,  //0x9C
-    sbc_ar_r8,  //0x9D
-    sbc_ar_r8,  //0x9E
-    sbc_ar_r8,  //0x9F
+    sub_ar_br,  //0x90
+    sub_ar_cr,  //0x91
+    sub_ar_dr,  //0x92
+    sub_ar_er,  //0x93
+    sub_ar_hr,  //0x94
+    sub_ar_lr,  //0x95
+    sub_ar_phl, //0x96
+    sub_ar_ar,  //0x97
+    sbc_ar_br,  //0x98
+    sbc_ar_cr,  //0x99
+    sbc_ar_dr,  //0x9A
+    sbc_ar_er,  //0x9B
+    sbc_ar_hr,  //0x9C
+    sbc_ar_lr,  //0x9D
+    sbc_ar_phl, //0x9E
+    sbc_ar_ar,  //0x9F
 
-    and_r8,     //0xA0
-    and_r8,     //0xA1
-    and_r8,     //0xA2
-    and_r8,     //0xA3
-    and_r8,     //0xA4
-    and_r8,     //0xA5
+    and_br,     //0xA0
+    and_cr,     //0xA1
+    and_dr,     //0xA2
+    and_er,     //0xA3
+    and_hr,     //0xA4
+    and_lr,     //0xA5
     and_ar_phl, //0xA6
-    and_r8,     //0xA7
+    and_ar,     //0xA7
     xor_ar_br,  //0xA8
     xor_ar_cr,  //0xA9
     xor_ar_dr,  //0xAA
