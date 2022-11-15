@@ -1,7 +1,7 @@
 void mmu_update(uint8_t _clock) {
   //self.catridge.update(_clock);
   ppu_update(_clock);
-  //timer_update(_clock);
+  timer_update(_clock);
   //self.joypad.update(_clock);
 
   if (int_vblank) {

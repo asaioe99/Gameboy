@@ -1,9 +1,9 @@
 #define HBYTE(u) ((u >> 8) & 0xFF)
 #define LBYTE(u) (u & 0xFF)
-#define AF(A, F) ((uint16_t)A << 8) + F
-#define BC(B, C) ((uint16_t)B << 8) + C
-#define DE(D, E) ((uint16_t)D << 8) + E
-#define HL(H, L) ((uint16_t)H << 8) + L
+#define AF(A, F) ((uint16_t)A << 8) | F
+#define BC(B, C) ((uint16_t)B << 8) | C
+#define DE(D, E) ((uint16_t)D << 8) | E
+#define HL(H, L) ((uint16_t)H << 8) | L
 
 #define MOSI  11    // MOSI　本来ならGP3 ArduinoIDE上でpinassignが変更可能になったらHWSPIに切り替え
 #define CLK   10    // CLK　本来ならGP2

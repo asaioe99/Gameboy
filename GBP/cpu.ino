@@ -2005,7 +2005,7 @@ void adc_ar_d8() {
   if ((uint16_t)AR + (uint16_t)val_t + (uint16_t)c_val_t > 0xFF) {
     FR |= 0x10;
   }
-  AR = AR + val_t;
+  AR += (val_t + c_val_t);
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
   pc++;
@@ -2038,7 +2038,7 @@ void sbc_ar_d8() {
   if ((uint16_t)AR < (uint16_t)val_t + (uint16_t)c_val_t) {
     FR |= 0x10;
   }
-  AR = AR - val_t;
+  AR -= (val_t + c_val_t);
   if (AR == 0) FR |= 0x80;
   tmp_clock += 8;
   pc++;
@@ -2472,14 +2472,14 @@ void ld_pd16_sp() {
 }
 
 void add_sp_d8() {
-  uint16_t val_t = (uint16_t)mmu_read(++pc);
-  if ((sp & 0x0F) + (val_t & 0x0F) > 0x0F) {
+  int8_t val_t = (int8_t)mmu_read(++pc);
+  if ((sp & 0x0F) + ((uint16_t)val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
   }
-  if ((sp & 0xFF) + (val_t & 0xFF) > 0xFF) FR |= 0x10;
-  sp += val_t;
+  if ((sp & 0xFF) + ((uint16_t)val_t & 0xFF) > 0xFF) FR |= 0x10;
+  sp = (uint16_t)((int32_t)sp + val_t);
   tmp_clock += 16;
   pc++;
 }
@@ -2507,16 +2507,15 @@ void rrca() {
 }
 
 void ld_hl_sp_d8() {
-  uint16_t val_t = (uint16_t)mmu_read(++pc);
-  if ((sp & 0x0F) + (val_t & 0x0F) > 0x0F) {
+  int8_t val_t = (int8_t)mmu_read(++pc);
+  if ((sp & 0x0F) + ((uint16_t)val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
   }
-  if ((sp & 0xFF) + (uint16_t)(val_t & 0xFF) > 0xFF) FR |= 0x10;
-  val_t += sp;
-  HR = (uint8_t)(val_t >> 8);
-  LR = (uint8_t)(val_t & 0x00FF);
+  if ((sp & 0xFF) + ((uint16_t)val_t & 0xFF) > 0xFF) FR |= 0x10;
+  HR = (uint8_t)((uint16_t)((int32_t)sp + val_t) >> 8);
+  LR = (uint8_t)((uint16_t)((int32_t)sp + val_t) & 0x00FF);
   tmp_clock += 12;
   pc++;
 }

@@ -1,6 +1,7 @@
 #include "gbp_define.h"
 #include "bootstrap.h"
 #include "cpu_instrs.h"
+//#include "instr_timing.h"
 //#include "btn_test.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
