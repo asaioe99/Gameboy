@@ -171,6 +171,10 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
 - 信頼できるエミュレータとの比較（おすすめはhttps://bgb.bircd.org/）
 - 複数の他のtest romでのデバッグ（https://github.com/c-sp/gameboy-test-roms）
 
+
+https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/09-op%20r%2Cr.s
+
+
 ## 16. 最適化
 楽しくて果てのない作業です。
 
