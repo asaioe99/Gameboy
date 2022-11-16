@@ -94,6 +94,7 @@ void display_scanline() {
 
   bool BG_WIN_enable = (*LCDC & 0x01) > 0;
   bool WIN_enable    = (*LCDC & 0x20) > 0;
+  bool sprite_enable = (*LCDC & 0x02) > 0;
 
   // LY is given from 0xFF44
   for (uint16_t LX = 0; LX < 160; LX++) {
@@ -122,13 +123,13 @@ void display_scanline() {
     uint8_t num_stripe = 0;
     bool sp_enable = false;
 
-    if (*LCDC & 0x02) { //sprite enable
-      for (uint16_t i = 0; i < 40; i++) { // scaning OAM
+    if (sprite_enable) { //sprite enable
+      for (uint16_t i = 0; i < 160; i += 4) { // scaning OAM
         //obj = OAM + (i << 2); // get object base address
-        y_pos = (uint16_t) * (OAM + (i << 2) + 0);
-        x_pos = (uint16_t) * (OAM + (i << 2) + 1);
-        sp_tile_num       = *(OAM + (i << 2) + 2);
-        sp_atr            = *(OAM + (i << 2) + 3);
+        y_pos = (uint16_t) * (OAM + i + 0);
+        x_pos = (uint16_t) * (OAM + i + 1);
+        sp_tile_num       = *(OAM + i + 2);
+        sp_atr            = *(OAM + i + 3);
 
         if (y_pos == 0 || y_pos >= 160) continue;
         if (x_pos == 0 || x_pos >= 168) continue;
@@ -210,8 +211,8 @@ void display_scanline() {
       }
     */
 
-    if (*LCDC & 0x01) { // both BG and window enable
-      if (*LCDC & 0x02 && sp_enable) { //sprite enable
+    if (BG_WIN_enable) { // both BG and window enable
+      if (sp_enable) { //sprite enable
         if (!sp_pix_C_number) { // sprite pix color is 0
           *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num); //ok
         } else if (sp_atr & 0x80) { // BG-to-OBJ-Priority is true
@@ -225,11 +226,10 @@ void display_scanline() {
         *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
       }
     } else { // both BG and window disable
-      if (*LCDC & 0x02 && sp_enable) { //sprite enable
+      if (sp_enable) { //sprite enable
         *pix_mixer = sp_color_number2bit(sp_pix_C_number, sp_atr);
       }
     }
-
     pix_mixer++;
   }
 }
@@ -295,7 +295,7 @@ static inline uint16_t bw_color_number2bit(uint8_t color_number) {
 
 uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
   uint8_t color;
-  if (sp_atr & 0b00010000) { // OBP1
+  if (sp_atr & 0x10) { // OBP1
     switch (color_number) {
       case 0: // color number 0
         color = (*(IO + 0x49) & 0x03) >> 0;
