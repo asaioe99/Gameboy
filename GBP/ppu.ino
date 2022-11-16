@@ -134,7 +134,7 @@ void display_scanline() {
         if (x_pos == 0 || x_pos >= 168) continue;
 
         if (*LCDC & 0x04) { // sprite size 8x16
-          if (y_pos <= (LY + 16) && y_pos > (LY + 8)) { // upper tile selected
+          if (y_pos <= (LY + 16) && y_pos > LY + 8) { // upper tile selected
             // X-position
             if (x_pos <= (LX + 8) && x_pos > LX) {
               sp_enable = true;
