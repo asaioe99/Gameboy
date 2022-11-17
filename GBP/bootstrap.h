@@ -227,34 +227,34 @@ void (* const op_ptr_array[])(void) = {
 
     ret_nz,     //0xC0
     pop_bc,     //0xC1
-    jp_cc_d16,  //0xC2
+    jp_nz_d16,  //0xC2
     jp_d16,     //0xC3
-    call_cc_d16,//0xC4
+    call_nz_d16,//0xC4
     push_bc,    //0xC5
     add_ar_d8,  //0xC6
     rst_vec,    //0xC7
     ret_z,      //0xC8
     ret,        //0xC9
-    jp_cc_d16,  //0xCA
+    jp_z_d16,   //0xCA
     nop,        //0xCB
-    call_cc_d16,//0xCC
+    call_z_d16,//0xCC
     call_d16,   //0xCD
     adc_ar_d8,  //0xCE
     rst_vec,    //0xCF
 
     ret_nc,     //0xD0
     pop_de,     //0xD1
-    jp_cc_d16,  //0xD2
+    jp_nc_d16,  //0xD2
     nop,        //0xD3
-    call_cc_d16,//0xD4
+    call_nc_d16,//0xD4
     push_de,    //0xD5
     sub_ar_d8,  //0xD6
     rst_vec,    //0xD7
     ret_c,      //0xD8
     reti,       //0xD9
-    jp_cc_d16,  //0xDA
+    jp_c_d16,   //0xDA
     nop,        //0xDB
-    call_cc_d16,//0xDC
+    call_c_d16,//0xDC
     nop,        //0xDD
     sbc_ar_d8,  //0xDE
     rst_vec,    //0xDF
@@ -273,7 +273,7 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0xEB
     nop,        //0xEC
     nop,        //0xED
-    xor_ar_d8,  //0xEE
+    xor_d8,     //0xEE
     rst_vec,    //0xEF
 
     ldh_ar_pd8, //0xF0
@@ -295,31 +295,31 @@ void (* const op_ptr_array[])(void) = {
 };
 
 void (* const pf_op_ptr_array[])(void) = {
-    rlc_r8,     //0x00
-    rlc_r8,     //0x01
-    rlc_r8,     //0x02
-    rlc_r8,     //0x03
-    rlc_r8,     //0x04
-    rlc_r8,     //0x05
+    rlc_br,     //0x00
+    rlc_cr,     //0x01
+    rlc_dr,     //0x02
+    rlc_er,     //0x03
+    rlc_hr,     //0x04
+    rlc_lr,     //0x05
     rlc_phl,    //0x06
-    rlc_r8,     //0x07
-    rrc_r8,     //0x08
-    rrc_r8,     //0x09
-    rrc_r8,     //0x0A
-    rrc_r8,     //0x0B
-    rrc_r8,     //0x0C
-    rrc_r8,     //0x0D
+    rlc_ar,     //0x07
+    rrc_br,     //0x08
+    rrc_cr,     //0x09
+    rrc_dr,     //0x0A
+    rrc_er,     //0x0B
+    rrc_hr,     //0x0C
+    rrc_lr,     //0x0D
     rrc_phl,    //0x0E
-    rrc_r8,     //0x0F
+    rrc_ar,     //0x0F
 
-    rl_r8,      //0x10
-    rl_r8,      //0x11
-    rl_r8,      //0x12
-    rl_r8,      //0x13
-    rl_r8,      //0x14
-    rl_r8,      //0x15
+    rl_br,      //0x10
+    rl_cr,      //0x11
+    rl_dr,      //0x12
+    rl_er,      //0x13
+    rl_hr,      //0x14
+    rl_lr,      //0x15
     rl_phl,     //0x16
-    rl_r8,      //0x17
+    rl_ar,      //0x17
     rr_br,      //0x18
     rr_cr,      //0x19
     rr_dr,      //0x1A
@@ -329,31 +329,31 @@ void (* const pf_op_ptr_array[])(void) = {
     rr_phl,     //0x1E
     rr_ar,      //0x1F
 
-    sla_r8,     //0x20
-    sla_r8,     //0x21
-    sla_r8,     //0x22
-    sla_r8,     //0x23
-    sla_r8,     //0x24
-    sla_r8,     //0x25
+    sla_br,     //0x20
+    sla_cr,     //0x21
+    sla_dr,     //0x22
+    sla_er,     //0x23
+    sla_hr,     //0x24
+    sla_lr,     //0x25
     sla_phl,    //0x26
-    sla_r8,     //0x27
-    sra_r8,     //0x28
-    sra_r8,     //0x29
-    sra_r8,     //0x2A
-    sra_r8,     //0x2B
-    sra_r8,     //0x2C
-    sra_r8,     //0x2D
+    sla_ar,     //0x27
+    sra_br,     //0x28
+    sra_cr,     //0x29
+    sra_dr,     //0x2A
+    sra_er,     //0x2B
+    sra_hr,     //0x2C
+    sra_lr,     //0x2D
     sra_phl,    //0x2E
-    sra_r8,     //0x2F
+    sra_ar,     //0x2F
 
-    swap,       //0x30
-    swap,       //0x31
-    swap,       //0x32
-    swap,       //0x33
-    swap,       //0x34
-    swap,       //0x35
+    swap_br,    //0x30
+    swap_cr,    //0x31
+    swap_dr,    //0x32
+    swap_er,    //0x33
+    swap_hr,    //0x34
+    swap_lr,    //0x35
     swap_phl,   //0x36
-    swap,       //0x37
+    swap_ar,    //0x37
     srl_br,     //0x38
     srl_cr,     //0x39
     srl_dr,     //0x3A
@@ -431,139 +431,139 @@ void (* const pf_op_ptr_array[])(void) = {
     bit_phl,    //0x7E
     bit_,       //0x7F
 
-    res,        //0x80
-    res,        //0x81
-    res,        //0x82
-    res,        //0x83
-    res,        //0x84
-    res,        //0x85
+    res_0_br,   //0x80
+    res_0_cr,   //0x81
+    res_0_dr,   //0x82
+    res_0_er,   //0x83
+    res_0_hr,   //0x84
+    res_0_lr,   //0x85
     res_phl,    //0x86
-    res,        //0x87
-    res,        //0x88
-    res,        //0x89
-    res,        //0x8A
-    res,        //0x8B
-    res,        //0x8C
-    res,        //0x8D
+    res_0_ar,   //0x87
+    res_1_br,   //0x88
+    res_1_cr,   //0x89
+    res_1_dr,   //0x8A
+    res_1_er,   //0x8B
+    res_1_hr,   //0x8C
+    res_1_lr,   //0x8D
     res_phl,    //0x8E
-    res,        //0x8F
+    res_1_ar,   //0x8F
 
-    res,        //0x90
-    res,        //0x91
-    res,        //0x92
-    res,        //0x93
-    res,        //0x94
-    res,        //0x95
+    res_2_br,   //0x90
+    res_2_cr,   //0x91
+    res_2_dr,   //0x92
+    res_2_er,   //0x93
+    res_2_hr,   //0x94
+    res_2_lr,   //0x95
     res_phl,    //0x96
-    res,        //0x97
-    res,        //0x98
-    res,        //0x99
-    res,        //0x9A
-    res,        //0x9B
-    res,        //0x9C
-    res,        //0x9D
+    res_2_ar,   //0x97
+    res_3_br,   //0x98
+    res_3_cr,   //0x99
+    res_3_dr,   //0x9A
+    res_3_er,   //0x9B
+    res_3_hr,   //0x9C
+    res_3_lr,   //0x9D
     res_phl,    //0x9E
-    res,        //0x9F
+    res_3_ar,   //0x9F
 
-    res,        //0xA0
-    res,        //0xA1
-    res,        //0xA2
-    res,        //0xA3
-    res,        //0xA4
-    res,        //0xA5
+    res_4_br,   //0xA0
+    res_4_cr,   //0xA1
+    res_4_dr,   //0xA2
+    res_4_er,   //0xA3
+    res_4_hr,   //0xA4
+    res_4_lr,   //0xA5
     res_phl,    //0xA6
-    res,        //0xA7
-    res,        //0xA8
-    res,        //0xA9
-    res,        //0xAA
-    res,        //0xAB
-    res,        //0xAC
-    res,        //0xAD
+    res_4_ar,   //0xA7
+    res_5_br,   //0xA8
+    res_5_cr,   //0xA9
+    res_5_dr,   //0xAA
+    res_5_er,   //0xAB
+    res_5_hr,   //0xAC
+    res_5_lr,   //0xAD
     res_phl,    //0xAE
-    res,        //0xAF
+    res_5_ar,   //0xAF
 
-    res,        //0xB0
-    res,        //0xB1
-    res,        //0xB2
-    res,        //0xB3
-    res,        //0xB4
-    res,        //0xB5
+    res_6_br,   //0xB0
+    res_6_cr,   //0xB1
+    res_6_dr,   //0xB2
+    res_6_er,   //0xB3
+    res_6_hr,   //0xB4
+    res_6_lr,   //0xB5
     res_phl,    //0xB6
-    res,        //0xB7
-    res,        //0xB8
-    res,        //0xB9
-    res,        //0xBA
-    res,        //0xBB
-    res,        //0xBC
-    res,        //0xBD
+    res_6_ar,   //0xB7
+    res_7_br,   //0xB8
+    res_7_cr,   //0xB9
+    res_7_dr,   //0xBA
+    res_7_er,   //0xBB
+    res_7_hr,   //0xBC
+    res_7_lr,   //0xBD
     res_phl,    //0xBE
-    res,        //0xBF
+    res_7_ar,   //0xBF
 
-    set,        //0xC0
-    set,        //0xC1
-    set,        //0xC2
-    set,        //0xC3
-    set,        //0xC4
-    set,        //0xC5
-    set_phl,    //0xC6
-    set,        //0xC7
-    set,        //0xC8
-    set,        //0xC9
-    set,        //0xCA
-    set,        //0xCB
-    set,        //0xCC
-    set,        //0xCD
-    set_phl,    //0xCE
-    set,        //0xCF
+    set_0_br,   //0xC0
+    set_0_cr,   //0xC1
+    set_0_dr,   //0xC2
+    set_0_er,   //0xC3
+    set_0_hr,   //0xC4
+    set_0_lr,   //0xC5
+    set_0_phl,  //0xC6
+    set_0_ar,   //0xC7
+    set_1_br,   //0xC8
+    set_1_cr,   //0xC9
+    set_1_dr,   //0xCA
+    set_1_er,   //0xCB
+    set_1_hr,   //0xCC
+    set_1_lr,   //0xCD
+    set_1_phl,  //0xCE
+    set_1_ar,   //0xCF
 
-    set,        //0xD0
-    set,        //0xD1
-    set,        //0xD2
-    set,        //0xD3
-    set,        //0xD4
-    set,        //0xD5
-    set_phl,    //0xD6
-    set,        //0xD7
-    set,        //0xD8
-    set,        //0xD9
-    set,        //0xDA
-    set,        //0xDB
-    set,        //0xDC
-    set,        //0xDD
-    set_phl,    //0xDE
-    set,        //0xDF
+    set_2_br,   //0xD0
+    set_2_cr,   //0xD1
+    set_2_dr,   //0xD2
+    set_2_er,   //0xD3
+    set_2_hr,   //0xD4
+    set_2_lr,   //0xD5
+    set_2_phl,  //0xD6
+    set_2_ar,   //0xD7
+    set_3_br,   //0xD8
+    set_3_cr,   //0xD9
+    set_3_dr,   //0xDA
+    set_3_er,   //0xDB
+    set_3_hr,   //0xDC
+    set_3_lr,   //0xDD
+    set_3_phl,  //0xDE
+    set_3_ar,   //0xDF
 
-    set,        //0xE0
-    set,        //0xE1
-    set,        //0xE2
-    set,        //0xE3
-    set,        //0xE4
-    set,        //0xE5
-    set_phl,    //0xE6
-    set,        //0xE7
-    set,        //0xE8
-    set,        //0xE9
-    set,        //0xEA
-    set,        //0xEB
-    set,        //0xEC
-    set,        //0xED
-    set_phl,    //0xEE
-    set,        //0xEF
+    set_4_br,   //0xE0
+    set_4_cr,   //0xE1
+    set_4_dr,   //0xE2
+    set_4_er,   //0xE3
+    set_4_hr,   //0xE4
+    set_4_lr,   //0xE5
+    set_4_phl,  //0xE6
+    set_4_ar,   //0xE7
+    set_5_br,   //0xE8
+    set_5_cr,   //0xE9
+    set_5_dr,   //0xEA
+    set_5_er,   //0xEB
+    set_5_hr,   //0xEC
+    set_5_lr,   //0xED
+    set_5_phl,  //0xEE
+    set_5_ar,   //0xEF
 
-    set,        //0xF0
-    set,        //0xF1
-    set,        //0xF2
-    set,        //0xF3
-    set,        //0xF4
-    set,        //0xF5
-    set_phl,    //0xF6
-    set,        //0xF7
-    set,        //0xF8
-    set,        //0xF9
-    set,        //0xFA
-    set,        //0xFB
-    set,        //0xFC
-    set,        //0xFD
-    set_phl,    //0xFE
-    set,        //0xFF
+    set_6_br,   //0xF0
+    set_6_cr,   //0xF1
+    set_6_dr,   //0xF2
+    set_6_er,   //0xF3
+    set_6_hr,   //0xF4
+    set_6_lr,   //0xF5
+    set_6_phl,  //0xF6
+    set_6_ar,   //0xF7
+    set_7_br,   //0xF8
+    set_7_cr,   //0xF9
+    set_7_dr,   //0xFA
+    set_7_er,   //0xFB
+    set_7_hr,   //0xFC
+    set_7_lr,   //0xFD
+    set_7_phl,  //0xFE
+    set_7_ar,   //0xFF
 };
