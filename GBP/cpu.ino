@@ -1065,7 +1065,7 @@ void add_ar_br() {
     FR |= 0x10;
   }
   AR += BR;
-  if (!AR) FR |= 0x80;
+  if (AR == 0) FR |= 0x80;
   tmp_clock += 4;
   pc++;
 }
@@ -2694,7 +2694,7 @@ void add_hl_hl() {
   }
   if (HL & 0x8000) {  // C
     FR |= 0x10;
-  } {
+  } else {
     FR &= 0xE0;
   }
   FR &= 0xB0; // N

@@ -3,8 +3,10 @@
 //#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-//#include "t.h"
-#include "test7.h"
+#include "test9.h"
+//#include "test2.h"
+//#include "test7.h"
+//#include "test11.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
