@@ -63,7 +63,7 @@ static inline void execute() {
     boot = false;
   }
 
-  //if (pc >= 0x213 && pc <= 0x23E && !boot) {
+  //if (pc >= 0xC000 && !boot) {
   //  sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
   //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
   //  Serial.println(buf_b1);
@@ -2626,60 +2626,62 @@ void reti() {
 
 void add_hl_sp() { //動作怪しい
   uint16_t HL = HL(HR, LR);
-  uint32_t t;
-
   if ((HL & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF) { //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
   }
-  t = (uint32_t)HL + (uint32_t)sp;
-  if (t > 0xFFFF) {  // C
+  if ((uint32_t)HL + (uint32_t)sp > 0xFFFF) {  // C
     FR |= 0x10;
+  } else {
+    FR &= 0xE0;
   }
+  HL += sp;
   FR &= 0xB0; // N
-  HR = (uint8_t)((t & 0x0000FF00) >> 8);
-  LR = (uint8_t)(t & 0x000000FF);
+  HR = (uint8_t)((HL & 0xFF00) >> 8);
+  LR = (uint8_t)(HL & 0x00FF);
   pc++;
 }
 
 void add_hl_bc() { //動作怪しい
   uint16_t HL = HL(HR, LR);
   uint16_t BC = BC(BR, CR);
-  uint32_t t;
 
   if ((HL & 0x0FFF) + (BC & 0x0FFF) > 0x0FFF) { //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
   }
-  t = (uint32_t)HL + (uint32_t)BC;
-  if (t > 0xFFFF) {  // C
+  if ((uint32_t)HL + (uint32_t)BC > 0xFFFF) {  // C
     FR |= 0x10;
+  } else {
+    FR &= 0xE0;
   }
+  HL += BC;
   FR &= 0xB0; // N
-  HR = (uint8_t)((t & 0x0000FF00) >> 8);
-  LR = (uint8_t)(t & 0x000000FF);
+  HR = (uint8_t)((HL & 0xFF00) >> 8);
+  LR = (uint8_t)(HL & 0x00FF);
   pc++;
 }
 
 void add_hl_de() { //動作怪しい
   uint16_t HL = HL(HR, LR);
   uint16_t DE = DE(DR, ER);
-  uint32_t t;
 
   if ((HL & 0x0FFF) + (DE & 0x0FFF) > 0x0FFF) { //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
   }
-  t = (uint32_t)HL + (uint32_t)DE;
-  if (t > 0xFFFF) {  // C
+  if ((uint32_t)HL + (uint32_t)DE > 0xFFFF) {  // C
     FR |= 0x10;
+  } else {
+    FR &= 0xE0;
   }
+  HL += DE;
   FR &= 0xB0; // N
-  HR = (uint8_t)((t & 0x0000FF00) >> 8);
-  LR = (uint8_t)(t & 0x000000FF);
+  HR = (uint8_t)((HL & 0xFF00) >> 8);
+  LR = (uint8_t)(HL & 0x00FF);
   pc++;
 }
 
@@ -2692,6 +2694,8 @@ void add_hl_hl() {
   }
   if (HL & 0x8000) {  // C
     FR |= 0x10;
+  } {
+    FR &= 0xE0;
   }
   FR &= 0xB0; // N
   HL <<= 1;
@@ -3592,9 +3596,9 @@ void or_ar_phl() {
 void and_ar_phl() {
   AR &= mmu_read(HL(HR, LR));
   if (AR) {
-    FR = 0x00;
+    FR = 0x20;
   } else {
-    FR = 0x80;
+    FR = 0xA0;
   }
   tmp_clock += 8;
   pc++;
@@ -3854,7 +3858,7 @@ void rrc_ar() {
 }
 
 void set_0_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x01;
   mmu_write(addr, r);
@@ -3863,7 +3867,7 @@ void set_0_phl() {
 }
 
 void set_1_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x02;
   mmu_write(addr, r);
@@ -3872,16 +3876,16 @@ void set_1_phl() {
 }
 
 void set_2_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
-  r |= 0x01;
-  mmu_write(addr, 4);
+  r |= 0x04;
+  mmu_write(addr, r);
   tmp_clock += 16;
   pc++;
 }
 
 void set_3_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x08;
   mmu_write(addr, r);
@@ -3890,7 +3894,7 @@ void set_3_phl() {
 }
 
 void set_4_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x10;
   mmu_write(addr, r);
@@ -3899,7 +3903,7 @@ void set_4_phl() {
 }
 
 void set_5_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x20;
   mmu_write(addr, r);
@@ -3908,7 +3912,7 @@ void set_5_phl() {
 }
 
 void set_6_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x40;
   mmu_write(addr, r);
@@ -3917,7 +3921,7 @@ void set_6_phl() {
 }
 
 void set_7_phl() {
-  uint8_t addr = HL(HR, LR);
+  uint16_t addr = HL(HR, LR);
   uint8_t r = mmu_read(addr);
   r |= 0x80;
   mmu_write(addr, r);
@@ -3954,7 +3958,7 @@ void bit_phl() {
 
 void rlc_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-  if (val_t & 0x80 > 0) {
+  if (val_t & 0x80) {
     FR = 0x10;
   } else {
     FR = 0x00;
@@ -3985,13 +3989,13 @@ void rl_phl() {
 void rrc_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
 
-  if (val_t & 0x01 > 0) {
+  if (val_t & 0x01) {
     FR = 0x10;
   } else {
     FR = 0x00;
   }
-  AR = (val_t >> 1) | ((val_t & 0x01) << 7);
-  if (!AR) FR |= 0x80;
+  val_t = (val_t >> 1) | ((val_t & 0x01) << 7);
+  if (!val_t) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
   pc++;
@@ -4018,8 +4022,7 @@ void rr_phl() {
 
 void sra_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-
-  if (val_t & 0x01 > 0) { // 矛盾あり　無条件で0とするという記述もある
+  if (val_t & 0x01) { // 矛盾あり　無条件で0とするという記述もある
     FR = 0x10;
   } else {
     FR = 0x00;
@@ -4033,7 +4036,7 @@ void sra_phl() {
 
 void srl_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-  if (val_t & 0x01 > 0) {
+  if (val_t & 0x01) {
     FR = 0x10;
   } else {
     FR = 0x00;
