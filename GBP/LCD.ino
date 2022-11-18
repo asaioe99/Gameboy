@@ -128,8 +128,9 @@ static inline void LCD_drowBitMap() {
   SPI_transfer(0x2C);
   gpio_put(DC, HIGH); // Data mode
   for (uint16_t d = 0; d < 160 * 144; d += 16) {
-    uint8_t th = (uint8_t)(*(FIFO_bg_wnd + d) & 0x00FF);
-    uint8_t tl = (uint8_t)(*(FIFO_bg_wnd + d) >> 8);
+    uint16_t *t = FIFO_bg_wnd + d;
+    uint8_t th = (uint8_t)(*(t) & 0x00FF);
+    uint8_t tl = (uint8_t)(*(t) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -179,8 +180,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 1) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 1) >> 8);
+    th = (uint8_t)(*(t + 1) & 0x00FF);
+    tl = (uint8_t)(*(t + 1) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -230,8 +231,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 2) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 2) >> 8);
+    th = (uint8_t)(*(t + 2) & 0x00FF);
+    tl = (uint8_t)(*(t + 2) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -281,8 +282,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 3) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 3) >> 8);
+    th = (uint8_t)(*(t + 3) & 0x00FF);
+    tl = (uint8_t)(*(t + 3) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -332,8 +333,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 4) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 4) >> 8);
+    th = (uint8_t)(*(t + 4) & 0x00FF);
+    tl = (uint8_t)(*(t + 4) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -383,8 +384,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 5) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 5) >> 8);
+    th = (uint8_t)(*(t + 5) & 0x00FF);
+    tl = (uint8_t)(*(t + 5) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -434,8 +435,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 6) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 6) >> 8);
+    th = (uint8_t)(*(t + 6) & 0x00FF);
+    tl = (uint8_t)(*(t + 6) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -485,8 +486,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 7) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 7) >> 8);
+    th = (uint8_t)(*(t + 7) & 0x00FF);
+    tl = (uint8_t)(*(t + 7) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -536,8 +537,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 8) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 8) >> 8);
+    th = (uint8_t)(*(t + 8) & 0x00FF);
+    tl = (uint8_t)(*(t + 8) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -587,8 +588,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 9) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 9) >> 8);
+    th = (uint8_t)(*(t + 9) & 0x00FF);
+    tl = (uint8_t)(*(t + 9) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -638,8 +639,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 10) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 10) >> 8);
+    th = (uint8_t)(*(t + 10) & 0x00FF);
+    tl = (uint8_t)(*(t + 10) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -689,8 +690,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 11) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 11) >> 8);
+    th = (uint8_t)(*(t + 11) & 0x00FF);
+    tl = (uint8_t)(*(t + 11) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -740,8 +741,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 12) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 12) >> 8);
+    th = (uint8_t)(*(t + 12) & 0x00FF);
+    tl = (uint8_t)(*(t + 12) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -791,8 +792,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 13) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 13) >> 8);
+    th = (uint8_t)(*(t + 13) & 0x00FF);
+    tl = (uint8_t)(*(t + 13) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -842,8 +843,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 14) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 14) >> 8);
+    th = (uint8_t)(*(t + 14) & 0x00FF);
+    tl = (uint8_t)(*(t + 14) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
@@ -893,8 +894,8 @@ static inline void LCD_drowBitMap() {
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);
 
-    th = (uint8_t)(*(FIFO_bg_wnd + d + 15) & 0x00FF);
-    tl = (uint8_t)(*(FIFO_bg_wnd + d + 15) >> 8);
+    th = (uint8_t)(*(t + 15) & 0x00FF);
+    tl = (uint8_t)(*(t + 15) >> 8);
     gpio_put(MOSI, th & 0x80);
     gpio_put(CLK, HIGH);
     gpio_put(CLK, LOW);

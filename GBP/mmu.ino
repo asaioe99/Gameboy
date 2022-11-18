@@ -83,12 +83,12 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
   switch (rom_bank_num) {
     case 0x01:
       return *(rom_bank01 + addr - 0x4000);
-    /*
+
       case 0x02:
       return *(rom_bank02 + addr - 0x4000);
       case 0x03:
       return *(rom_bank03 + addr - 0x4000);
-
+    /*
       case 0x04:
       return *(rom_bank04 + addr - 0x4000);
       case 0x05:

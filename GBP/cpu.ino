@@ -1065,7 +1065,7 @@ void add_ar_br() {
     FR |= 0x10;
   }
   AR += BR;
-  if (AR == 0) FR |= 0x80;
+  if (!AR) FR |= 0x80;
   tmp_clock += 4;
   pc++;
 }
@@ -1526,7 +1526,7 @@ void rl_dr() {
 }
 
 void rl_er() {
-  if (BR >> 7) {
+  if (ER >> 7) {
     ER = (ER << 1) | ((FR & 0x10) >> 4);
     FR = 0x10;
   } else {
@@ -1565,7 +1565,7 @@ void rl_lr() {
 }
 
 void rl_ar() {
-  if (BR >> 7) {
+  if (AR >> 7) {
     AR = (AR << 1) | ((FR & 0x10) >> 4);
     FR = 0x10;
   } else {
@@ -3047,13 +3047,17 @@ void sbc_ar_phl() {
 }
 
 void sbc_ar_ar() {
-  if (FR & 0x10) {
-    FR = 0x70;
-    AR = 0xFF;
+  uint8_t c = (FR & 0x10) >> 4;
+  if ((AR & 0x0F) < (AR & 0x0F) + c) {
+    FR = 0x60;
   } else {
-    FR = 0xD0;
-    AR = 0x00;
+    FR = 0x40;
   }
+  if (c) {
+    FR |= 0x10;
+  }
+  AR -= (AR + c);
+  if (!AR) FR |= 0x80;
   tmp_clock += 4;
   pc++;
 }

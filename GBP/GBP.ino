@@ -1,9 +1,9 @@
 #include "gbp_define.h"
 #include "bootstrap.h"
-//#include "cpu_instrs.h"
+#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-#include "test9.h"
+//#include "test9.h"
 //#include "test2.h"
 //#include "test7.h"
 //#include "test11.h"
@@ -99,7 +99,7 @@ void loop() {
 
   uint32_t clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154 * 10) { // 6Hz
+  while (clock_cycle < 456 * 154) { // 60Hz
     clock_cycle += (uint32_t)cpu_step();
   }
 
