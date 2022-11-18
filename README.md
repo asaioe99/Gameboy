@@ -245,16 +245,48 @@ https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/
 ```switch case```でデコーダを作成すると、コンパイラにも依りますが冗長で速度に悪影響が出ます。そこで、命令の呼び出しは関数ポインタの配列により定義し、直接アドレスを参照して関数を呼び出すと多少高速になります。
 
 ```c
+void nop() {
+  // 何かの処理
+}
+
+void ld_bc_d16() {
+  // 何かの処理
+}
+
 switch (code) {
   case 0x00:
     nop();
     break;
   case 0x01:
-    stop_0():
+    ld_bc_d16():
     break;
   //以下同様
 }
 ```
+
+上記のような実装では、条件分岐に時間を要する。そこで、以下の様にする。
+
+```c
+void nop() {
+  // 何かの処理
+}
+
+void ld_bc_d16() {
+  // 何かの処理
+}
+// 配列の定義
+void (* const op_ptr_array[])(void) = {
+    nop,        //0x00
+    ld_bc_d16,  //0x01
+    //以下同様
+    };
+
+// 実行
+op_ptr_array[code]();
+    
+```
+
+これにより、```code```に対応した命令を模擬できる。
 
 ### MMUの最適化
 
