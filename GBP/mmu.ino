@@ -42,8 +42,15 @@ static inline uint8_t mmu_read(uint16_t addr) {
     //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
 
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
-    if (addr == 0xFF00) return *(IO + addr - 0xFF00) | 0xCF;
-    return *(IO + addr - 0xFF00);
+    if (addr == 0xFF00) {
+      return *(IO + addr - 0xFF00) | 0xCF;
+    } else  if (addr == 0xFF0F) {
+      return IF; // Interrupu flag
+    } else if (addr == 0xFF04) {
+      return (uint8_t)(timer_div >> 8);
+    } else {
+      return *(IO + addr - 0xFF00);
+    }
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(HRAM + addr - 0xFF80);
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
@@ -68,10 +75,17 @@ static inline void mmu_write(uint16_t addr, uint8_t data) {
     *(OAM + addr - 0xFE00)  = data;
     //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
-    *(IO + addr - 0xFF00) = data;
-    if (addr == 0xFF46) dma(data);
-    if (addr == 0xFF04) *(IO + 0x04) = 0x00; // Divider regster reset
-    if (addr == 0xFF07) *(IO + 0x07) = data & 0x07; // Divider regster reset
+    if (addr == 0xFF46) {
+      dma(data);
+    } else if (addr == 0xFF04) {
+      *(IO + 0x04) = 0x00; // Divider regster reset
+    } else if (addr == 0xFF07) {
+      *(IO + 0x07) = data & 0x07; // Divider regster reset
+    } else if (addr == 0xFF0F) {
+      IF = data; // Interrupu flag
+    } else {
+      *(IO + addr - 0xFF00) = data;
+    }
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
     *(HRAM + addr - 0xFF80) = data;
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
@@ -83,12 +97,12 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
   switch (rom_bank_num) {
     case 0x01:
       return *(rom_bank01 + addr - 0x4000);
-
+    /*
       case 0x02:
       return *(rom_bank02 + addr - 0x4000);
       case 0x03:
       return *(rom_bank03 + addr - 0x4000);
-    /*
+
       case 0x04:
       return *(rom_bank04 + addr - 0x4000);
       case 0x05:

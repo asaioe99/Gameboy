@@ -127,7 +127,7 @@ static inline void LCD_drowBitMap() {
   gpio_put(DC, LOW); // Command mode
   SPI_transfer(0x2C);
   gpio_put(DC, HIGH); // Data mode
-  for (uint16_t d = 0; d < 160 * 144; d += 16) {
+  for (int d = 0; d < 160 * 144; d += 16) {
     uint16_t *t = FIFO_bg_wnd + d;
     uint8_t th = (uint8_t)(*(t) & 0x00FF);
     uint8_t tl = (uint8_t)(*(t) >> 8);

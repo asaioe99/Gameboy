@@ -1,12 +1,12 @@
 #include "gbp_define.h"
 #include "bootstrap.h"
-#include "cpu_instrs.h"
+//#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-//#include "test9.h"
-//#include "test2.h"
-//#include "test7.h"
-//#include "test11.h"
+#include "test2.h" //EI
+//#include "test7.h" //D9
+//#include "test11.h" //
+//#include "tr.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
@@ -33,6 +33,8 @@ uint8_t  LR;
 char buf_b1[64];
 
 uint32_t clock_cycle;
+uint16_t timer_div = 0;
+uint16_t time_before;
 uint8_t tmp_clock = 0;
 bool flag_halt = false;
 bool ime = true;
@@ -97,10 +99,10 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  uint32_t clock_cycle = 0;
+  int clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154) { // 60Hz
-    clock_cycle += (uint32_t)cpu_step();
+  while (clock_cycle < 456 * 154 *2) { // 30Hz
+    clock_cycle += (int)cpu_step();
   }
 
   // LCD

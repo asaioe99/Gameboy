@@ -27,7 +27,7 @@ uint8_t cpu_step() {
 }
 
 void int_check() {
-  for (uint8_t i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     if ((IF & (1 << i)) && (IE & (1 << i))) {
       IF &= ~(1 << i); // reset
       ime = 0; //割り込み無効化
@@ -43,7 +43,7 @@ void int_check() {
           call_irpt(0x0050); // timer 実装したつもり -> できてないかも
           break;
         case 3:
-          call_irpt(0x0058); // serial Rustの実装では0x0080 未実装
+          call_irpt(0x0058); // serial Rustの実装では0x0080 未実装58
           break;
         case 4:
           call_irpt(0x0060); // joypad Rustの実装では0x0070
@@ -1056,7 +1056,7 @@ void sub_ar_ar() {
 }
 
 void add_ar_br() {
-  if (AR & 0x0F + BR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (BR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1071,7 +1071,7 @@ void add_ar_br() {
 }
 
 void add_ar_cr() {
-  if (AR & 0x0F + CR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (CR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1086,7 +1086,7 @@ void add_ar_cr() {
 }
 
 void add_ar_dr() {
-  if (AR & 0x0F + DR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (DR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1101,7 +1101,7 @@ void add_ar_dr() {
 }
 
 void add_ar_er() {
-  if (AR & 0x0F + ER & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (ER & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1116,7 +1116,7 @@ void add_ar_er() {
 }
 
 void add_ar_hr() {
-  if (AR & 0x0F + HR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (HR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1131,7 +1131,7 @@ void add_ar_hr() {
 }
 
 void add_ar_lr() {
-  if (AR & 0x0F + LR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (LR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1147,7 +1147,7 @@ void add_ar_lr() {
 
 void add_ar_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-  if (AR & 0x0F + val_t & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1162,7 +1162,7 @@ void add_ar_phl() {
 }
 
 void add_ar_ar() {
-  if (AR & 0x0F + AR & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (AR & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -1419,13 +1419,13 @@ void ld_ar_pcr() {
 }
 
 void di() {
-  ime = 0;
+  ime = false;
   tmp_clock += 4;
   pc++;
 }
 
 void ei() {
-  ime = 1;
+  ime = true;
   tmp_clock += 4;
   pc++;
 }
@@ -2618,7 +2618,7 @@ void ret_z() {
 }
 
 void reti() {
-  ime = 1;
+  ime = true;
   pc = ((uint16_t)mmu_read(sp + 1) << 8) | (uint16_t)mmu_read(sp);
   sp += 2;
   tmp_clock += 16;
@@ -2640,6 +2640,7 @@ void add_hl_sp() { //動作怪しい
   FR &= 0xB0; // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
+  tmp_clock += 8;
   pc++;
 }
 
@@ -2661,6 +2662,7 @@ void add_hl_bc() { //動作怪しい
   FR &= 0xB0; // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
+  tmp_clock += 8;
   pc++;
 }
 
@@ -2682,6 +2684,7 @@ void add_hl_de() { //動作怪しい
   FR &= 0xB0; // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
+  tmp_clock += 8;
   pc++;
 }
 
@@ -2701,10 +2704,12 @@ void add_hl_hl() {
   HL <<= 1;
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
+  tmp_clock += 8;
   pc++;
 }
 
 void stop_0() {
+  *(IO + 0x04) = 0x00;
   tmp_clock += 4;
   pc += 2;
 }
@@ -2799,7 +2804,7 @@ void call_c_d16() {
 
 void adc_ar_br() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + BR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (BR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2815,7 +2820,7 @@ void adc_ar_br() {
 
 void adc_ar_cr() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + CR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (CR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2831,7 +2836,7 @@ void adc_ar_cr() {
 
 void adc_ar_dr() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + DR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (DR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2847,7 +2852,7 @@ void adc_ar_dr() {
 
 void adc_ar_er() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + ER & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (ER & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2863,7 +2868,7 @@ void adc_ar_er() {
 
 void adc_ar_hr() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + HR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (HR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2879,7 +2884,7 @@ void adc_ar_hr() {
 
 void adc_ar_lr() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + LR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (LR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2896,7 +2901,7 @@ void adc_ar_lr() {
 void adc_ar_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + val_t & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (val_t & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -2912,7 +2917,7 @@ void adc_ar_phl() {
 
 void adc_ar_ar() {
   uint8_t c = (FR & 0x10) >> 4;
-  if (AR & 0x0F + AR & 0x0F + c > 0x0F) {
+  if ((AR & 0x0F) + (AR & 0x0F) + c > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -3064,7 +3069,7 @@ void sbc_ar_ar() {
 
 void add_ar_d8() {
   uint8_t val_t = mmu_read(++pc);
-  if (AR & 0x0F + val_t & 0x0F > 0x0F) {
+  if ((AR & 0x0F) + (val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
     FR = 0x00;
@@ -4026,14 +4031,14 @@ void rr_phl() {
 
 void sra_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
+  uint8_t t = (val_t >> 1) | (val_t & 0x80);
   if (val_t & 0x01) { // 矛盾あり　無条件で0とするという記述もある
     FR = 0x10;
   } else {
     FR = 0x00;
   }
-  val_t = (val_t >> 1) | (val_t & 0x80);
-  if (!AR) FR |= 0x80;
-  mmu_write(HL(HR, LR), val_t);
+  mmu_write(HL(HR, LR), t);
+  if (!t) FR = 0x80;
   tmp_clock += 16;
   pc++;
 }
