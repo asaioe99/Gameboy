@@ -214,34 +214,51 @@ cpu_instrs.gbとinstr_timing.gbの両方が通れば、市販のROMが動き始�
 - 信頼できるエミュレータとの比較（おすすめはhttps://bgb.bircd.org/）
 - 複数の他のtest romでのデバッグ（https://github.com/c-sp/gameboy-test-roms）
 
+### cpu_instrs.gbの項目別試験
+以下はcpu_instrs.gbのテスト項目を分割し、個別に不具合のある命令を表示する便利なtest romです。とても便利なので使用することを推奨しますが、結果が常に正しい訳ではないので注意しましょう。
 
-01-special.gb
+- 01-special.gb
+- 02-interrupts.gb
+- 03-op sp,hl.gb
+- 04-op r,imm.gb
+- 05-op rp.gb
+- 06-ld r,r.gb
+- 07-jr,jp,call,ret,rst.gb
+- 08-misc instrs.gb
+- 09-op r,r.gb
+- 10-bit ops.gb
+- 11-op a,(hl).gb 
 
-02-interrupts.gb
-
-03-op sp,hl.gb
-
-04-op r,imm.gb
-
-05-op rp.gb
-
-06-ld r,r.gb
-
-07-jr,jp,call,ret,rst.gb
-
-08-misc instrs.gb
-
-09-op r,r.gb
-
-10-bit ops.gb
-
-11-op a,(hl).gb 
-
-https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/09-op%20r%2Cr.s
+https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/
 
 
 ## 16. 最適化
-楽しくて果てのない作業です。
+楽しくて果てのない作業です。ArduinoIDEのArduino公式ボードライブラリでは、様々な制約があるため最適化は困難です。
+
+### LCDの最適化
+
+### SPIの最適化
+
+### PPUの最適化
+
+### CPUの最適化
+```switch case```でデコーダを作成すると、コンパイラにも依りますが冗長で速度に悪影響が出ます。そこで、命令の呼び出しは関数ポインタの配列により定義し、直接アドレスを参照して関数を呼び出すと多少高速になります。
+
+```c
+switch (code) {
+  case 0x00:
+    nop();
+    break;
+  case 0x01:
+    stop_0():
+    break;
+  //以下同様
+}
+```
+
+### MMUの最適化
+
+### その他の最適化
  
 - http://geo.d51498.com/nakamiya_town/ProC.html
 
