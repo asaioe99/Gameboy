@@ -294,6 +294,9 @@ op_ptr_array[code]();
  
 - http://geo.d51498.com/nakamiya_town/ProC.html
 
+## 参考文献
+- https://github.com/Gekkio/gb-ctr
+
 
 ### ドキュメント作成について
 - https://monoworks.co.jp/post/2020-05-26-output-pdf-docx-html-from-markdown-with-vscode/
