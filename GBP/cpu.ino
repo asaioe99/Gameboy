@@ -1661,35 +1661,668 @@ void swap_ar() {
   pc++;
 }
 
-void bit_() {
-  uint8_t b = (code & 0x38) >> 3;
-  uint8_t r;
-  uint8_t mask = 0x01 << b;
-  switch (code & 0x07) {
-    case 0b000:
-      r = BR;
-      break;
-    case 0b001:
-      r = CR;
-      break;
-    case 0b010:
-      r = DR;
-      break;
-    case 0b011:
-      r = ER;
-      break;
-    case 0b100:
-      r = HR;
-      break;
-    case 0b101:
-      r = LR;
-      break;
-    case 0b111:
-      r = AR;
-      break;
+void bit_0_br() {
+  if (BR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
   }
-  r &= mask;
-  if (r) {
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_br() {
+  if (BR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_br() {
+  if (BR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_br() {
+  if (BR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_br() {
+  if (BR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_br() {
+  if (BR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_br() {
+  if (BR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_br() {
+  if (BR & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_cr() {
+  if (CR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_cr() {
+  if (CR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_cr() {
+  if (CR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_cr() {
+  if (CR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_cr() {
+  if (CR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_cr() {
+  if (CR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_cr() {
+  if (CR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_cr() {
+  if (CR & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_dr() {
+  if (DR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_dr() {
+  if (DR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_dr() {
+  if (DR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_dr() {
+  if (DR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_dr() {
+  if (DR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_dr() {
+  if (DR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_dr() {
+  if (DR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_dr() {
+  if (DR & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_er() {
+  if (ER & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_er() {
+  if (ER & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_er() {
+  if (ER & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_er() {
+  if (ER & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_er() {
+  if (ER & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_er() {
+  if (ER & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_er() {
+  if (ER & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_er() {
+  if (ER & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_hr() {
+  if (HR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_hr() {
+  if (HR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_hr() {
+  if (HR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_hr() {
+  if (HR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_hr() {
+  if (HR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_hr() {
+  if (HR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_hr() {
+  if (HR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_hr() {
+  if (HR & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_lr() {
+  if (LR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_lr() {
+  if (LR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_lr() {
+  if (LR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_lr() {
+  if (LR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_lr() {
+  if (LR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_lr() {
+  if (LR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_lr() {
+  if (LR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_lr() {
+  if (LR & 0x80) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_0_ar() {
+  if (AR & 0x01) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_1_ar() {
+  if (AR & 0x02) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_2_ar() {
+  if (AR & 0x04) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_3_ar() {
+  if (AR & 0x08) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_4_ar() {
+  if (AR & 0x10) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_5_ar() {
+  if (AR & 0x20) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_6_ar() {
+  if (AR & 0x40) {
+    FR &= 0x7F;
+  } else {
+    FR |= 0x80;
+  }
+  FR |= 0x20;
+  FR &= 0xB0;
+  tmp_clock += 8;
+  pc++;
+}
+
+void bit_7_ar() {
+  if (AR & 0x80) {
     FR &= 0x7F;
   } else {
     FR |= 0x80;

@@ -3,8 +3,8 @@
 //#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-//#include "test2.h" //EI
-#include "tr.h"
+#include "test2.h" //EI
+//#include "tr.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
@@ -42,7 +42,7 @@ bool int_timer  = false;
 bool int_joypad = false;
 bool boot = true;
 
-int16_t scaline_counter;
+int16_t scanline_counter;
 
 uint8_t IE; // 0xFFFF
 uint8_t IF; // 0xFF0F

@@ -363,73 +363,73 @@ void (* const pf_op_ptr_array[])(void) = {
     srl_phl,    //0x3E
     srl_ar,     //0x3F
 
-    bit_,       //0x40
-    bit_,       //0x41
-    bit_,       //0x42
-    bit_,       //0x43
-    bit_,       //0x44
-    bit_,       //0x45
+    bit_0_br,   //0x40
+    bit_0_cr,   //0x41
+    bit_0_dr,   //0x42
+    bit_0_er,   //0x43
+    bit_0_hr,   //0x44
+    bit_0_lr,   //0x45
     bit_phl,    //0x46
-    bit_,       //0x47
-    bit_,       //0x48
-    bit_,       //0x49
-    bit_,       //0x4A
-    bit_,       //0x4B
-    bit_,       //0x4C
-    bit_,       //0x4D
+    bit_0_ar,   //0x47
+    bit_1_br,   //0x48
+    bit_1_cr,   //0x49
+    bit_1_dr,   //0x4A
+    bit_1_er,   //0x4B
+    bit_1_hr,   //0x4C
+    bit_1_lr,   //0x4D
     bit_phl,    //0x4E
-    bit_,       //0x4F
+    bit_1_ar,   //0x4F
 
-    bit_,       //0x50
-    bit_,       //0x51
-    bit_,       //0x52
-    bit_,       //0x53
-    bit_,       //0x54
-    bit_,       //0x55
+    bit_2_br,   //0x50
+    bit_2_cr,   //0x51
+    bit_2_dr,   //0x52
+    bit_2_er,   //0x53
+    bit_2_hr,   //0x54
+    bit_2_lr,   //0x55
     bit_phl,    //0x56
-    bit_,       //0x57
-    bit_,       //0x58
-    bit_,       //0x59
-    bit_,       //0x5A
-    bit_,       //0x5B
-    bit_,       //0x5C
-    bit_,       //0x5D
+    bit_2_ar,   //0x57
+    bit_3_br,   //0x58
+    bit_3_cr,   //0x59
+    bit_3_dr,   //0x5A
+    bit_3_er,   //0x5B
+    bit_3_hr,   //0x5C
+    bit_3_lr,   //0x5D
     bit_phl,    //0x5E
-    bit_,       //0x5F
+    bit_3_ar,   //0x5F
 
-    bit_,       //0x60
-    bit_,       //0x61
-    bit_,       //0x62
-    bit_,       //0x63
-    bit_,       //0x64
-    bit_,       //0x65
+    bit_4_br,   //0x60
+    bit_4_cr,   //0x61
+    bit_4_dr,   //0x62
+    bit_4_er,   //0x63
+    bit_4_hr,   //0x64
+    bit_4_lr,   //0x65
     bit_phl,    //0x66
-    bit_,       //0x67
-    bit_,       //0x68
-    bit_,       //0x69
-    bit_,       //0x6A
-    bit_,       //0x6B
-    bit_,       //0x6C
-    bit_,       //0x6D
+    bit_4_ar,   //0x67
+    bit_5_br,   //0x68
+    bit_5_cr,   //0x69
+    bit_5_dr,   //0x6A
+    bit_5_er,   //0x6B
+    bit_5_hr,   //0x6C
+    bit_5_lr,   //0x6D
     bit_phl,    //0x6E
-    bit_,       //0x6F
+    bit_5_ar,   //0x6F
 
-    bit_,       //0x70
-    bit_,       //0x71
-    bit_,       //0x72
-    bit_,       //0x73
-    bit_,       //0x74
-    bit_,       //0x75
+    bit_6_br,   //0x70
+    bit_6_cr,   //0x71
+    bit_6_dr,   //0x72
+    bit_6_er,   //0x73
+    bit_6_hr,   //0x74
+    bit_6_lr,   //0x75
     bit_phl,    //0x76
-    bit_,       //0x77
-    bit_,       //0x78
-    bit_,       //0x79
-    bit_,       //0x7A
-    bit_,       //0x7B
-    bit_,       //0x7C
-    bit_,       //0x7D
+    bit_6_ar,   //0x77
+    bit_7_br,   //0x78
+    bit_7_cr,   //0x79
+    bit_7_dr,   //0x7A
+    bit_7_er,   //0x7B
+    bit_7_hr,   //0x7C
+    bit_7_lr,   //0x7D
     bit_phl,    //0x7E
-    bit_,       //0x7F
+    bit_7_ar,   //0x7F
 
     res_0_br,   //0x80
     res_0_cr,   //0x81

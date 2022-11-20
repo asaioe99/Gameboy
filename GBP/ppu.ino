@@ -9,13 +9,13 @@ void ppu_update(uint8_t _clock) {
     return;
   }
 
-  scaline_counter += _clock;
+  scanline_counter += _clock;
 
   // mode2 -> 3 -> 0 -> 2......0 -> 1
   switch (*STAT & 0x03) {
     case 0:
-      if (scaline_counter >= 204) { // mode0 -> mode1 or mode2
-        scaline_counter -= 204;
+      if (scanline_counter >= 204) { // mode0 -> mode1 or mode2
+        scanline_counter -= 204;
         display_scanline(); // こうすると波打たない
         *LY += 1;
         if (*LY >= 144) {
@@ -37,22 +37,22 @@ void ppu_update(uint8_t _clock) {
       }
       break;
     case 3:
-      if (scaline_counter >= 172) { // mode3 -> mode0
-        scaline_counter -= 172;
+      if (scanline_counter >= 172) { // mode3 -> mode0
+        scanline_counter -= 172;
         *STAT &= 0xF8;
         if (*STAT & 0x08) int_lcdc = true; // mode0: H-Blank interrupt happens
       }
       break;
     case 2:
-      if (scaline_counter >= 80) { // mode2 -> mode3
-        scaline_counter -= 80;
+      if (scanline_counter >= 80) { // mode2 -> mode3
+        scanline_counter -= 80;
         *STAT = (*STAT & 0xF8) | 0x03;
         //display_scanline();
       }
       break;
     case 1:
-      if (scaline_counter >= 456) { // mode1 -> mode1 or mode2
-        scaline_counter -= 456;
+      if (scanline_counter >= 456) { // mode1 -> mode1 or mode2
+        scanline_counter -= 456;
         *LY += 1;
         if (*LY >= 154) {
           *STAT = (*STAT & 0xF8) | 0x02;
