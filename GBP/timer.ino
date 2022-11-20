@@ -1,4 +1,4 @@
-void timer_update(uint8_t _clock) {
+static inline void timer_update(uint8_t _clock) {
   // Timer
   uint8_t shift;
   time_before = timer_div;

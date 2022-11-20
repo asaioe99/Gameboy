@@ -16,10 +16,10 @@ void mmu_update(uint8_t _clock) {
     IF |= 0x04;
     int_timer  = false;
   }
-  if (int_joypad) {
-    IF |= 0x10;
-    int_joypad = false;
-  }
+  //if (int_joypad) {
+  //  IF |= 0x10;
+  //  int_joypad = false;
+  //}
 }
 
 static inline uint8_t mmu_read(uint16_t addr) {
@@ -54,7 +54,7 @@ static inline uint8_t mmu_read(uint16_t addr) {
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(HRAM + addr - 0xFF80);
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
-    return IE;
+    return 0xFF; // read 0xFF
   }
   return 0;
 }
@@ -78,7 +78,7 @@ static inline void mmu_write(uint16_t addr, uint8_t data) {
     if (addr == 0xFF46) {
       dma(data);
     } else if (addr == 0xFF04) {
-      *(IO + 0x04) = 0x00; // Divider regster reset
+      timer_div = 0; // Divider regster reset
     } else if (addr == 0xFF07) {
       *(IO + 0x07) = data & 0x07; // Divider regster reset
     } else if (addr == 0xFF0F) {
@@ -89,7 +89,7 @@ static inline void mmu_write(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
     *(HRAM + addr - 0xFF80) = data;
   } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
-    IE = 0xFF; // wrriten 0xFF any data
+    IE = data;
   }
 }
 

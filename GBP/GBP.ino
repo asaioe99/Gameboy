@@ -3,10 +3,8 @@
 //#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-#include "test2.h" //EI
-//#include "test7.h" //D9
-//#include "test11.h" //
-//#include "tr.h"
+//#include "test2.h" //EI
+#include "tr.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
@@ -37,7 +35,7 @@ uint16_t timer_div = 0;
 uint16_t time_before;
 uint8_t tmp_clock = 0;
 bool flag_halt = false;
-bool ime = true;
+bool ime = false;
 bool int_vblank = false;
 bool int_lcdc   = false;
 bool int_timer  = false;
@@ -68,6 +66,8 @@ void setup() {
   HR = 0x00;
   LR = 0x00;
 
+  IE = 0x00;
+
   IO[0x00] = 0x3F; //JOYP
   IO[0x01] = 0x91; //SB
   IO[0x02] = 0x91; //SC
@@ -75,7 +75,6 @@ void setup() {
   IO[0x05] = 0x00; //TIMA
   IO[0x06] = 0x00; //TMA
   IO[0x07] = 0xF8; //TAC
-  IO[0x0F] = 0x00; //IF
   IO[0x40] = 0x91; //LCDC
   IO[0x41] = 0x80; //STAT
   IO[0x42] = 0x00; //SCY
@@ -99,10 +98,10 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  int clock_cycle = 0;
+  clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154 *2) { // 30Hz
-    clock_cycle += (int)cpu_step();
+  while (clock_cycle < 456 * 154 * 2) { // 30Hz
+    clock_cycle += (uint32_t)cpu_step();
   }
 
   // LCD

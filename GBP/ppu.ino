@@ -293,7 +293,7 @@ static inline uint16_t bw_color_number2bit(uint8_t color_number) {
   return 0;
 }
 
-uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
+static inline uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
   uint8_t color;
   if (sp_atr & 0x10) { // OBP1
     switch (color_number) {

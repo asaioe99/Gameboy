@@ -1,14 +1,13 @@
-uint8_t cpu_step() {
+static inline uint8_t cpu_step() {
 
   uint8_t total_clock = 0;
   tmp_clock = 0;
 
   if (flag_halt) {
-    tmp_clock += 16;
+    tmp_clock += 4;
   } else {
     execute();
   }
-
   total_clock += tmp_clock;
 
   // mmu.update??
@@ -22,31 +21,31 @@ uint8_t cpu_step() {
 
     total_clock += tmp_clock;
   }
-
   return total_clock;
 }
 
-void int_check() {
+static inline void int_check() {
   for (int i = 0; i < 5; i++) {
-    if ((IF & (1 << i)) && (IE & (1 << i))) {
-      IF &= ~(1 << i); // reset
-      ime = 0; //割り込み無効化
-      flag_halt = 0; //不明
+    uint8_t s = 1 << i;
+    if ((IF & s) && (IE & s)) {
+      IF &= ~s; // reset
+      ime = false; //割り込み無効化
+      flag_halt = false; //不明
       switch (i) { //割り込みの優先順位はこの通り
         case 0:
-          call_irpt(0x0040); // v-blank 実装済み
+          call_irpt_40(); // v-blank 実装済み
           break;
         case 1:
-          call_irpt(0x0048); // LCD 実装済み？ -> できていないかも
+          call_irpt_48(); // LCD 実装済み
           break;
         case 2:
-          call_irpt(0x0050); // timer 実装したつもり -> できてないかも
+          call_irpt_50(); // timer 実装したつもり
           break;
         case 3:
-          call_irpt(0x0058); // serial Rustの実装では0x0080 未実装58
+          call_irpt_58(); // serial Rustの実装では0x0080 未実装58
           break;
         case 4:
-          call_irpt(0x0060); // joypad Rustの実装では0x0070
+          call_irpt_60(); // joypad Rustの実装では0x0070
           break;
       }
       break;
@@ -62,13 +61,21 @@ static inline void execute() {
     //chk_init_regs();
     boot = false;
   }
-
-  //if (pc >= 0xC000 && !boot) {
-  //  sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
+  /*
+  if (pc <= 0xC2C1 && pc >= 0xC2A6 && !boot) {
+    sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
   //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
-  //  Serial.println(buf_b1);
-  //}
+    Serial.println(buf_b1);
+    sprintf(buf_b1, "IE:%02X IF:%02X IME:%d", IE, IF, ime);
+    Serial.println(buf_b1);
+  }
 
+  if (pc == 0xC448) {
+    while(true){
+      
+    }
+  }
+*/
   if (code == 0xCB) {
     code = mmu_read(++pc);
     pf_op_ptr_array[code]();
@@ -2710,7 +2717,7 @@ void add_hl_hl() {
 
 void stop_0() {
   *(IO + 0x04) = 0x00;
-  tmp_clock += 4;
+  //tmp_clock += 4; // test rom の解析結果
   pc += 2;
 }
 
@@ -3652,11 +3659,8 @@ void halt() { //Timer未実装のため、halt後のtimer割り込みがなく�
   if (ime) {
     //省電力モード？
     flag_halt = 1;
-  } else {
-
   }
-  //halted = 1;
-  tmp_clock += 4;
+  //tmp_clock += 4; // instr timing
   pc++;
 }
 
@@ -3961,7 +3965,7 @@ void bit_phl() {
   }
   FR |= 0x20;
   FR &= 0xB0;
-  tmp_clock += 16;
+  tmp_clock += 12; //16?
   pc++;
 }
 
@@ -4031,14 +4035,14 @@ void rr_phl() {
 
 void sra_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-  uint8_t t = (val_t >> 1) | (val_t & 0x80);
   if (val_t & 0x01) { // 矛盾あり　無条件で0とするという記述もある
     FR = 0x10;
   } else {
     FR = 0x00;
   }
-  mmu_write(HL(HR, LR), t);
-  if (!t) FR = 0x80;
+  val_t = (val_t >> 1) | (val_t & 0x80);
+  if (!val_t) FR |= 0x80;
+  mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
   pc++;
 }
@@ -4057,9 +4061,37 @@ void srl_phl() {
   pc++;
 }
 
-void call_irpt(uint16_t addr) { ///// not correct push a return address
+static inline void call_irpt_40() { ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 32; //正しいのか分からないけど、多分これくらい
-  pc = addr;
+  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  pc = 0x0040;
+}
+
+static inline void call_irpt_48() { ///// not correct push a return address
+  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  pc = 0x0048;
+}
+
+static inline void call_irpt_50() { ///// not correct push a return address
+  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  pc = 0x0050;
+}
+
+static inline void call_irpt_58() { ///// not correct push a return address
+  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  pc = 0x0058;
+}
+
+static inline void call_irpt_60() { ///// not correct push a return address
+  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  pc = 0x0060;
 }

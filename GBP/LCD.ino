@@ -42,7 +42,7 @@ void LCD_init() {
   delay(500);
 }
 
-void SPI_transfer(uint8_t data) {
+static inline void SPI_transfer(uint8_t data) {
   for (uint8_t bit = 0x80; bit; bit >>= 1) {
     gpio_put(MOSI, data & bit);
     gpio_put(CLK, HIGH);
@@ -50,7 +50,7 @@ void SPI_transfer(uint8_t data) {
   }
 }
 
-void SPI_transfer(uint8_t* data, int dataLen) {
+static inline void SPI_transfer(uint8_t* data, int dataLen) {
   for (int d = 0; d < dataLen; d++) {
     SPI_transfer(*(data + d));
   }
