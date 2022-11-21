@@ -16,7 +16,7 @@ void ppu_update(uint8_t _clock) {
     case 0:
       if (scanline_counter >= 204) { // mode0 -> mode1 or mode2
         scanline_counter -= 204;
-        display_scanline(); // こうすると波打たない
+        //display_scanline(); // こうすると波打たない
         *LY += 1;
         if (*LY >= 144) {
           *STAT = (*STAT & 0xF8) | 0x01;
@@ -47,7 +47,7 @@ void ppu_update(uint8_t _clock) {
       if (scanline_counter >= 80) { // mode2 -> mode3
         scanline_counter -= 80;
         *STAT = (*STAT & 0xF8) | 0x03;
-        //display_scanline();
+        display_scanline();
       }
       break;
     case 1:
@@ -86,18 +86,18 @@ void display_scanline() {
   uint16_t tile_num_y_2 = LY_plus_SCY - WY;
 
   uint16_t *pix_mixer = FIFO_bg_wnd + LY * 160;
-  uint8_t bg_pix_mixed_c_num;
+  uint32_t bg_pix_mixed_c_num;
   uint8_t tile_number;
-  uint8_t win_pix_C_number;
-  uint8_t bg_pix_C_number;
-  uint8_t sp_pix_C_number;
+  uint32_t win_pix_C_number;
+  uint32_t bg_pix_C_number;
+  uint32_t sp_pix_C_number;
 
   bool BG_WIN_enable = (*LCDC & 0x01) > 0;
   bool WIN_enable    = (*LCDC & 0x20) > 0;
   bool sprite_enable = (*LCDC & 0x02) > 0;
 
   // LY is given from 0xFF44
-  for (uint16_t LX = 0; LX < 160; LX++) {
+  for (uint32_t LX = 0; LX < 160; LX++) {
     if (BG_WIN_enable) { // both BG and window enable
       // get back ground pixel color number of given LY and LX, SCY, SCX
       tile_number = get_tile_number(tile_num_y_1, ((LX + SCX) >> 3) & 0x1F);
@@ -124,7 +124,7 @@ void display_scanline() {
     bool sp_enable = false;
 
     if (sprite_enable) { //sprite enable
-      for (uint16_t i = 0; i < 160; i += 4) { // scaning OAM
+      for (uint32_t i = 0; i < 160; i += 4) { // scaning OAM
         //obj = OAM + (i << 2); // get object base address
         y_pos = (uint16_t) * (OAM + i + 0);
         x_pos = (uint16_t) * (OAM + i + 1);
@@ -236,35 +236,46 @@ void display_scanline() {
 
 static inline uint8_t get_tile_number(uint16_t offset_y, uint16_t offset_x) {
   if (*(IO + 0x40) & 0x08) { // bg offset address select
-    return mmu_read(0x9c00 + (offset_y << 5) + offset_x);
+    //return mmu_read(0x9c00 + (offset_y << 5) + offset_x);
+    return *(VRAM + 0x1c00 + (offset_y << 5) + offset_x);
   } else {
-    return mmu_read(0x9800 + (offset_y << 5) + offset_x);
+    //return mmu_read(0x9800 + (offset_y << 5) + offset_x);
+    return *(VRAM + 0x1800 + (offset_y << 5) + offset_x);
   }
 }
 
-static inline uint8_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
-  uint8_t h8_tile_l;
-  uint8_t h8_tile_h;
+static inline uint32_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
+  uint32_t h8_tile_l;
+  uint32_t h8_tile_h;
+  uint32_t t = 7 - offset_x & 0x07;
   if (*(IO + 0x40) & 0x10) { // get pixel color number
     h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
     h8_tile_h = mmu_read(0x8001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_l = *(VRAM + 0x0000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_h = *(VRAM + 0x0001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
   } else {
-    h8_tile_l = mmu_read(0x9000 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
-    h8_tile_h = mmu_read(0x9001 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+    //h8_tile_l = mmu_read(0x9000 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+    //h8_tile_h = mmu_read(0x9001 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_l = *(VRAM + 0x1000 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
+    h8_tile_h = *(VRAM + 0x1001 + ((int16_t)tile_number << 4) + ((offset_y & 0x07) << 1));
   } // base addr is 8800?
-  return ((h8_tile_l & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07)) + ((h8_tile_h & (1 << (7 - offset_x & 0x07))) >> (7 - offset_x & 0x07));
+  return ((h8_tile_l & (1 << t)) + (h8_tile_h & (1 << t))) >> t;
 }
 
 // return a color number of a pixel in given sprie tile
-static inline uint8_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
-  uint8_t h8_tile_l;
-  uint8_t h8_tile_h;
-  h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + (offset_y << 1));
-  h8_tile_h = mmu_read(0x8001 + (tile_number << 4) + (offset_y << 1));
-  return ((h8_tile_l & (1 << (7 - offset_x))) >> (7 - offset_x)) + ((h8_tile_h & (1 << (7 - offset_x))) >> (7 - offset_x));
+static inline uint32_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, uint8_t offset_x) {
+  uint32_t h8_tile_l;
+  uint32_t h8_tile_h;
+  uint32_t t = 7 - offset_x;
+  //h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + (offset_y << 1));
+  //h8_tile_h = mmu_read(0x8001 + (tile_number << 4) + (offset_y << 1));
+  h8_tile_l = *(VRAM + 0x0000 + (tile_number << 4) + (offset_y << 1));
+  h8_tile_h = *(VRAM + 0x0001 + (tile_number << 4) + (offset_y << 1));
+  //return ((h8_tile_l & (1 << t)) >> t) + ((h8_tile_h & (1 << t)) >> t);
+  return ((h8_tile_l & (1 << t)) + (h8_tile_h & (1 << t))) >> t;
 }
 
-static inline uint16_t bw_color_number2bit(uint8_t color_number) {
+static inline uint16_t bw_color_number2bit(uint32_t color_number) {
   uint8_t color;
   switch (color_number) {
     case 0: // color number 0
@@ -293,7 +304,7 @@ static inline uint16_t bw_color_number2bit(uint8_t color_number) {
   return 0;
 }
 
-static inline uint16_t sp_color_number2bit(uint8_t color_number, uint8_t sp_atr) {
+static inline uint16_t sp_color_number2bit(uint32_t color_number, uint8_t sp_atr) {
   uint8_t color;
   if (sp_atr & 0x10) { // OBP1
     switch (color_number) {

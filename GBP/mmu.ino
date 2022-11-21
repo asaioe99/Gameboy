@@ -168,8 +168,11 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
 }
 
 void dma(uint8_t addr_h) {
-  for (uint16_t i = 0x00; i < 0xa0; i++) {
-    mmu_write(0xFE00 + i, mmu_read(((uint16_t)addr_h << 8) + i));
+  uint16_t addr = (uint16_t)addr_h << 8;
+  uint32_t i = 0x00;
+  while (i < 0xa0) {
+    *(OAM + i) = mmu_read(addr + i);
+    i++;
   }
 }
 

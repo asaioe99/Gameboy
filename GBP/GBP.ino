@@ -3,8 +3,8 @@
 //#include "cpu_instrs.h"
 //#include "instr_timing.h"
 //#include "btn_test.h"
-#include "test2.h" //EI
-//#include "tr.h"
+//#include "test2.h" //EI
+#include "tr.h"
 
 uint8_t SPIBuf[360]; // SPI転送用バッファ
 uint16_t FIFO_bg_wnd[160 * 144];
@@ -41,6 +41,7 @@ bool int_lcdc   = false;
 bool int_timer  = false;
 bool int_joypad = false;
 bool boot = true;
+bool LCD_f = false;
 
 int16_t scanline_counter;
 
@@ -53,7 +54,7 @@ uint8_t rom_bank_num;
 
 void setup() {
   // initialization
-  LCD_init();
+
 
   pc = 0x0000;
   sp = 0x0000;
@@ -100,12 +101,12 @@ void loop() {
 
   clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154 * 2) { // 30Hz
+  while (clock_cycle < 456 * 154) { // 30Hz
     clock_cycle += (uint32_t)cpu_step();
   }
 
   // LCD
-  LCD_drowBitMap();
+  LCD_f = true;
   //dump_tilemap();
 
   // joypad
@@ -114,4 +115,15 @@ void loop() {
   // loop until synchoronize
     //Serial.println("1");
 
+}
+
+void setup1() {
+  LCD_init();
+}
+
+void loop1() {
+  if (LCD_f) {
+    LCD_drowBitMap();
+    LCD_f = false;
+  }
 }
