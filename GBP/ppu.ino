@@ -85,7 +85,7 @@ void display_scanline() {
   uint16_t tile_num_y_1 = (LY_plus_SCY >> 3) & 0x1F;
   uint16_t tile_num_y_2 = LY_plus_SCY - WY;
 
-  uint16_t *pix_mixer = FIFO_bg_wnd + LY * 160;
+  uint32_t *pix_mixer = FIFO_bg_wnd + LY * 160;
   uint32_t bg_pix_mixed_c_num;
   uint8_t tile_number;
   uint32_t win_pix_C_number;
@@ -249,8 +249,8 @@ static inline uint32_t get_pix_C_number(uint8_t tile_number, uint8_t offset_y, u
   uint32_t h8_tile_h;
   uint32_t t = 7 - offset_x & 0x07;
   if (*(IO + 0x40) & 0x10) { // get pixel color number
-    h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
-    h8_tile_h = mmu_read(0x8001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+    //h8_tile_l = mmu_read(0x8000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
+    //h8_tile_h = mmu_read(0x8001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
     h8_tile_l = *(VRAM + 0x0000 + (tile_number << 4) + ((offset_y & 0x07) << 1));
     h8_tile_h = *(VRAM + 0x0001 + (tile_number << 4) + ((offset_y & 0x07) << 1));
   } else {
@@ -275,78 +275,43 @@ static inline uint32_t get_pix_C_num_sp(uint8_t tile_number, uint8_t offset_y, u
   return ((h8_tile_l & (1 << t)) + (h8_tile_h & (1 << t))) >> t;
 }
 
-static inline uint16_t bw_color_number2bit(uint32_t color_number) {
-  uint8_t color;
+static inline uint32_t bw_color_number2bit(uint32_t color_number) {
   switch (color_number) {
-    case 0: // color number 0
-      color = (*(IO + 0x47) & 0x03) >> 0;
-      break;
-    case 1: // color number 1
-      color = (*(IO + 0x47) & 0x0C) >> 2;
-      break;
-    case 2: // color number 2
-      color = (*(IO + 0x47) & 0x30) >> 4;
-      break;
-    case 3: // color number 3
-      color = (*(IO + 0x47) & 0xC0) >> 6;
-      break;
-  }
-  switch (color) {
-    case 0: // White
-      return ~0b1111011110011110;
-    case 1: // Light gray
-      return ~0b1010010100010100;
-    case 2: // Dark gray
-      return ~0b0101001010001010;
-    case 3: // Black
-      return ~0b0000000000000000;
+    case 0:  // color number 0
+      return (uint32_t)(*(IO + 0x47) & 0x03);
+    case 1:  // color number 1
+      return (uint32_t)(*(IO + 0x47) & 0x0C);
+    case 2:  // color number 2
+      return (uint32_t)(*(IO + 0x47) & 0x30);
+    case 3:  // color number 3
+      return (uint32_t)(*(IO + 0x47) & 0xC0);
   }
   return 0;
 }
 
-static inline uint16_t sp_color_number2bit(uint32_t color_number, uint8_t sp_atr) {
-  uint8_t color;
-  if (sp_atr & 0x10) { // OBP1
+static inline uint32_t sp_color_number2bit(uint32_t color_number, uint8_t sp_atr) {
+  if (sp_atr & 0x10) {  // OBP1
     switch (color_number) {
-      case 0: // color number 0
-        color = (*(IO + 0x49) & 0x03) >> 0;
-        break;
-      case 1: // color number 1
-        color = (*(IO + 0x49) & 0x0C) >> 2;
-        break;
-      case 2: // color number 2
-        color = (*(IO + 0x49) & 0x30) >> 4;
-        break;
-      case 3: // color number 3
-        color = (*(IO + 0x49) & 0xC0) >> 6;
-        break;
+      case 0:  // color number 0
+        return (uint32_t)(*(IO + 0x49) & 0x03);
+      case 1:  // color number 1
+        return (uint32_t)(*(IO + 0x49) & 0x0C);
+      case 2:  // color number 2
+        return (uint32_t)(*(IO + 0x49) & 0x30);
+      case 3:  // color number 3
+        return (uint32_t)(*(IO + 0x49) & 0xC0);
     }
   } else {
-    switch (color_number) { // OBP0
-      case 0: // color number 0
-        color = (*(IO + 0x48) & 0x03) >> 0;
-        break;
-      case 1: // color number 1
-        color = (*(IO + 0x48) & 0x0C) >> 2;
-        break;
-      case 2: // color number 2
-        color = (*(IO + 0x48) & 0x30) >> 4;
-        break;
-      case 3: // color number 3
-        color = (*(IO + 0x48) & 0xC0) >> 6;
-        break;
+    switch (color_number) {  // OBP0
+      case 0:                // color number 0
+        return (uint32_t)(*(IO + 0x48) & 0x03);
+      case 1:  // color number 1
+        return (uint32_t)(*(IO + 0x48) & 0x0C);
+      case 2:  // color number 2
+        return (uint32_t)(*(IO + 0x48) & 0x30);
+      case 3:  // color number 3
+        return (uint32_t)(*(IO + 0x48) & 0xC0);
     }
-  }
-  switch (color) {
-    case 0: // White
-      //return ~0b1111011110011110;
-      return 0b0000100001100001;
-    case 1: // Light gray
-      return ~0b1010010100010100;
-    case 2: // Dark gray
-      return ~0b0101001010001010;
-    case 3: // Black
-      return ~0b0000000000000000;
   }
   return 0;
 }

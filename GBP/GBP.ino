@@ -6,8 +6,7 @@
 //#include "test2.h" //EI
 #include "tr.h"
 
-uint8_t SPIBuf[360]; // SPI転送用バッファ
-uint16_t FIFO_bg_wnd[160 * 144];
+uint32_t FIFO_bg_wnd[160 * 144];
 
 uint8_t VRAM[0x2000]; //
 uint8_t OAM[0xa0];
