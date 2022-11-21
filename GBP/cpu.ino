@@ -1,6 +1,6 @@
-static inline uint8_t cpu_step() {
+static inline uint32_t cpu_step() {
 
-  uint8_t total_clock = 0;
+  uint32_t total_clock = 0;
   tmp_clock = 0;
 
   if (flag_halt) {
@@ -25,32 +25,41 @@ static inline uint8_t cpu_step() {
 }
 
 static inline void int_check() {
-  for (int i = 0; i < 5; i++) {
-    uint8_t s = 1 << i;
-    if ((IF & s) && (IE & s)) {
-      IF &= ~s; // reset
-      ime = false; //割り込み無効化
-      flag_halt = false; //不明
-      switch (i) { //割り込みの優先順位はこの通り
-        case 0:
-          call_irpt_40(); // v-blank 実装済み
-          break;
-        case 1:
-          call_irpt_48(); // LCD 実装済み
-          break;
-        case 2:
-          call_irpt_50(); // timer 実装したつもり
-          break;
-        case 3:
-          call_irpt_58(); // serial Rustの実装では0x0080 未実装58
-          break;
-        case 4:
-          call_irpt_60(); // joypad Rustの実装では0x0070
-          break;
-      }
-      break;
-    }
+  if ((IF & IE) & 0b00001) {
+    IF &= 0b11110;      // reset
+    ime = false;        //割り込み無効化
+    flag_halt = false;
+    call_irpt_40();     // v-blank 実装済み
+    return;
   }
+  if ((IF & IE) & 0b00010) {
+    IF &= 0b11101;      // reset
+    ime = false;        //割り込み無効化
+    flag_halt = false;
+    call_irpt_48();     // v-blank 実装済み
+    return;
+  }
+  if ((IF & IE) & 0b00100) {
+    IF &= 0b11011;      // reset
+    ime = false;        //割り込み無効化
+    flag_halt = false;
+    call_irpt_50();     // v-blank 実装済み
+    return;
+  }
+  if ((IF & IE) & 0b01000) {
+    IF &= 0b10111;      // reset
+    ime = false;        //割り込み無効化
+    flag_halt = false;
+    call_irpt_58();     // v-blank 実装済み
+    return;
+  }
+  if ((IF & IE) & 0b10000) {
+    IF &= 0b01111;      // reset
+    ime = false;        //割り込み無効化
+    flag_halt = false;
+    call_irpt_60();     // v-blank 実装済み
+    return;
+  }  
 }
 
 static inline void execute() {
@@ -71,9 +80,7 @@ static inline void execute() {
   }
 
   if (pc == 0xC448) {
-    while(true){
-      
-    }
+    while(true);
   }
 */
   if (code == 0xCB) {
@@ -746,7 +753,7 @@ void inc_ar() {
 }
 
 void dec_br() {
-  uint8_t t = BR ;
+  uint8_t t = BR;
   BR--;
   if (BR == 0) {
     FR |= 0xC0;
@@ -763,7 +770,7 @@ void dec_br() {
   pc++;
 }
 void dec_cr() {
-  uint8_t t = CR ;
+  uint8_t t = CR;
   CR--;
   if (CR == 0) {
     FR |= 0xC0;
@@ -780,7 +787,7 @@ void dec_cr() {
   pc++;
 }
 void dec_dr() {
-  uint8_t t = DR ;
+  uint8_t t = DR;
   DR--;
   if (DR == 0) {
     FR |= 0xC0;
@@ -797,7 +804,7 @@ void dec_dr() {
   pc++;
 }
 void dec_er() {
-  uint8_t t = ER ;
+  uint8_t t = ER;
   ER--;
   if (ER == 0) {
     FR |= 0xC0;
@@ -814,7 +821,7 @@ void dec_er() {
   pc++;
 }
 void dec_hr() {
-  uint8_t t = HR ;
+  uint8_t t = HR;
   HR--;
   if (HR == 0) {
     FR |= 0xC0;
@@ -831,7 +838,7 @@ void dec_hr() {
   pc++;
 }
 void dec_lr() {
-  uint8_t t = LR ;
+  uint8_t t = LR;
   LR--;
   if (LR == 0) {
     FR |= 0xC0;
@@ -848,7 +855,7 @@ void dec_lr() {
   pc++;
 }
 void dec_ar() {
-  uint8_t t = AR ;
+  uint8_t t = AR;
   AR--;
   if (AR == 0) {
     FR |= 0xC0;
@@ -866,7 +873,7 @@ void dec_ar() {
 }
 
 void xor_ar_br() {
-  AR ^= BR ;
+  AR ^= BR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -877,7 +884,7 @@ void xor_ar_br() {
 }
 
 void xor_ar_cr() {
-  AR ^= CR ;
+  AR ^= CR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -888,7 +895,7 @@ void xor_ar_cr() {
 }
 
 void xor_ar_dr() {
-  AR ^= DR ;
+  AR ^= DR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -899,7 +906,7 @@ void xor_ar_dr() {
 }
 
 void xor_ar_er() {
-  AR ^= ER ;
+  AR ^= ER;
   if (AR) {
     FR = 0x00;
   } else {
@@ -910,7 +917,7 @@ void xor_ar_er() {
 }
 
 void xor_ar_hr() {
-  AR ^= HR ;
+  AR ^= HR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -921,7 +928,7 @@ void xor_ar_hr() {
 }
 
 void xor_ar_lr() {
-  AR ^= LR ;
+  AR ^= LR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -1416,13 +1423,13 @@ void pop_af() {
 void ld_pcr_ar() {
   mmu_write(0xFF00 | CR, AR);
   tmp_clock += 8;
-  pc++; //表では2だった
+  pc++;  //表では2だった
 }
 
 void ld_ar_pcr() {
   AR = mmu_read(0xFF00 | CR);
   tmp_clock += 8;
-  pc++; //表では2だった
+  pc++;  //表では2だった
 }
 
 void di() {
@@ -1471,14 +1478,14 @@ void ret() {
   tmp_clock += 16;
 }
 
-void call_d16() { ///// not correct push a return address
+void call_d16() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
   tmp_clock += 24;
   pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
 }
 
-void cp_d8() { // miss
+void cp_d8() {  // miss
   uint8_t val_t = mmu_read(++pc);
   if ((AR & 0x0F) < (val_t & 0x0F)) {
     FR = 0x60;
@@ -3050,7 +3057,7 @@ void or_d8() {
 }
 
 void or_br() {
-  AR |= BR ;
+  AR |= BR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3061,7 +3068,7 @@ void or_br() {
 }
 
 void or_cr() {
-  AR |= CR ;
+  AR |= CR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3072,7 +3079,7 @@ void or_cr() {
 }
 
 void or_dr() {
-  AR |= DR ;
+  AR |= DR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3083,7 +3090,7 @@ void or_dr() {
 }
 
 void or_er() {
-  AR |= ER ;
+  AR |= ER;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3094,7 +3101,7 @@ void or_er() {
 }
 
 void or_hr() {
-  AR |= HR ;
+  AR |= HR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3105,7 +3112,7 @@ void or_hr() {
 }
 
 void or_lr() {
-  AR |= LR ;
+  AR |= LR;
   if (AR) {
     FR = 0x00;
   } else {
@@ -3126,7 +3133,7 @@ void or_ar() {
 }
 
 void and_br() {
-  AR &= BR ;
+  AR &= BR;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3137,7 +3144,7 @@ void and_br() {
 }
 
 void and_cr() {
-  AR &= CR ;
+  AR &= CR;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3148,7 +3155,7 @@ void and_cr() {
 }
 
 void and_dr() {
-  AR &= DR ;
+  AR &= DR;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3159,7 +3166,7 @@ void and_dr() {
 }
 
 void and_er() {
-  AR &= ER ;
+  AR &= ER;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3170,7 +3177,7 @@ void and_er() {
 }
 
 void and_hr() {
-  AR &= HR ;
+  AR &= HR;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3181,7 +3188,7 @@ void and_hr() {
 }
 
 void and_lr() {
-  AR &= LR ;
+  AR &= LR;
   if (AR) {
     FR = 0x20;
   } else {
@@ -3264,9 +3271,9 @@ void reti() {
   tmp_clock += 16;
 }
 
-void add_hl_sp() { //動作怪しい
+void add_hl_sp() {  //動作怪しい
   uint16_t HL = HL(HR, LR);
-  if ((HL & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF) { //H
+  if ((HL & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF) {  //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
@@ -3277,18 +3284,18 @@ void add_hl_sp() { //動作怪しい
     FR &= 0xE0;
   }
   HL += sp;
-  FR &= 0xB0; // N
+  FR &= 0xB0;  // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
   tmp_clock += 8;
   pc++;
 }
 
-void add_hl_bc() { //動作怪しい
+void add_hl_bc() {  //動作怪しい
   uint16_t HL = HL(HR, LR);
   uint16_t BC = BC(BR, CR);
 
-  if ((HL & 0x0FFF) + (BC & 0x0FFF) > 0x0FFF) { //H
+  if ((HL & 0x0FFF) + (BC & 0x0FFF) > 0x0FFF) {  //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
@@ -3299,18 +3306,18 @@ void add_hl_bc() { //動作怪しい
     FR &= 0xE0;
   }
   HL += BC;
-  FR &= 0xB0; // N
+  FR &= 0xB0;  // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
   tmp_clock += 8;
   pc++;
 }
 
-void add_hl_de() { //動作怪しい
+void add_hl_de() {  //動作怪しい
   uint16_t HL = HL(HR, LR);
   uint16_t DE = DE(DR, ER);
 
-  if ((HL & 0x0FFF) + (DE & 0x0FFF) > 0x0FFF) { //H
+  if ((HL & 0x0FFF) + (DE & 0x0FFF) > 0x0FFF) {  //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
@@ -3321,7 +3328,7 @@ void add_hl_de() { //動作怪しい
     FR &= 0xE0;
   }
   HL += DE;
-  FR &= 0xB0; // N
+  FR &= 0xB0;  // N
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
   tmp_clock += 8;
@@ -3330,7 +3337,7 @@ void add_hl_de() { //動作怪しい
 
 void add_hl_hl() {
   uint16_t HL = HL(HR, LR);
-  if (HL & 0x0800) { //H
+  if (HL & 0x0800) {  //H
     FR |= 0x20;
   } else {
     FR &= 0xD0;
@@ -3340,7 +3347,7 @@ void add_hl_hl() {
   } else {
     FR &= 0xE0;
   }
-  FR &= 0xB0; // N
+  FR &= 0xB0;  // N
   HL <<= 1;
   HR = (uint8_t)((HL & 0xFF00) >> 8);
   LR = (uint8_t)(HL & 0x00FF);
@@ -4112,7 +4119,7 @@ void sra_ar() {
 void rr_br() {
   uint8_t bit_0 = BR & 0x01;
   BR >>= 1;
-  if (FR & 0x10)  BR |= 0x80;
+  if (FR & 0x10) BR |= 0x80;
   if (bit_0) {
     FR = 0x10;
   } else {
@@ -4288,7 +4295,7 @@ void inc_phl() {
   tmp_clock += 12;
   pc++;
 }
-void halt() { //Timer未実装のため、halt後のtimer割り込みがなくループになるので、手抜き中
+void halt() {  //Timer未実装のため、halt後のtimer割り込みがなくループになるので、手抜き中
   if (ime) {
     //省電力モード？
     flag_halt = 1;
@@ -4598,7 +4605,7 @@ void bit_phl() {
   }
   FR |= 0x20;
   FR &= 0xB0;
-  tmp_clock += 12; //16?
+  tmp_clock += 12;  //16?
   pc++;
 }
 
@@ -4609,7 +4616,7 @@ void rlc_phl() {
   } else {
     FR = 0x00;
   }
-  val_t  = (val_t << 1) | ((val_t & 0x80) >> 7);
+  val_t = (val_t << 1) | ((val_t & 0x80) >> 7);
   if (!val_t) FR |= 0x80;
   mmu_write(HL(HR, LR), val_t);
   tmp_clock += 16;
@@ -4668,7 +4675,7 @@ void rr_phl() {
 
 void sra_phl() {
   uint8_t val_t = mmu_read(HL(HR, LR));
-  if (val_t & 0x01) { // 矛盾あり　無条件で0とするという記述もある
+  if (val_t & 0x01) {  // 矛盾あり　無条件で0とするという記述もある
     FR = 0x10;
   } else {
     FR = 0x00;
@@ -4694,37 +4701,37 @@ void srl_phl() {
   pc++;
 }
 
-static inline void call_irpt_40() { ///// not correct push a return address
+static inline void call_irpt_40() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0040;
 }
 
-static inline void call_irpt_48() { ///// not correct push a return address
+static inline void call_irpt_48() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0048;
 }
 
-static inline void call_irpt_50() { ///// not correct push a return address
+static inline void call_irpt_50() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0050;
 }
 
-static inline void call_irpt_58() { ///// not correct push a return address
+static inline void call_irpt_58() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0058;
 }
 
-static inline void call_irpt_60() { ///// not correct push a return address
+static inline void call_irpt_60() {  ///// not correct push a return address
   mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20; //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0060;
 }

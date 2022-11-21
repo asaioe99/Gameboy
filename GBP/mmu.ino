@@ -1,4 +1,4 @@
-void mmu_update(uint8_t _clock) {
+static inline void mmu_update(uint32_t _clock) {
   //self.catridge.update(_clock);
   ppu_update(_clock);
   timer_update(_clock);

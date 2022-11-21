@@ -42,7 +42,7 @@ bool int_joypad = false;
 bool boot = true;
 bool LCD_f = false;
 
-int16_t scanline_counter;
+uint32_t scanline_counter;
 
 uint8_t IE; // 0xFFFF
 uint8_t IF; // 0xFF0F
@@ -101,7 +101,7 @@ void loop() {
   clock_cycle = 0;
 
   while (clock_cycle < 456 * 154) { // 30Hz
-    clock_cycle += (uint32_t)cpu_step();
+    clock_cycle += cpu_step();
   }
 
   // LCD

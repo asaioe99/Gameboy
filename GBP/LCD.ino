@@ -129,22 +129,19 @@ static inline void LCD_drowBitMap() {
   gpio_put(DC, HIGH);  // Data mode
   uint32_t d = 0;
   while (d < 160 * 144) {
-    //0 1 2 3 0 4 8 12 0 256 512 768 0 4096 8192 12288
-    //switch (*(FIFO_bg_wnd + d)) {
     uint32_t t = *(FIFO_bg_wnd + d);
-    switch (((t & 0x03) >> 0) | ((t & 0x0c) >> 2) | ((t & 0x30) >> 4) | ((t & 0xc0) >> 6)) {
-      case 0:
-        put_pixel_0();
-        break;
-      case 1:
-        put_pixel_1();
-        break;
-      case 2:
-        put_pixel_2();
-        break;
-      case 3:
+    if (t & 0b10101010) {
+      if (t & 0b01010101) {
         put_pixel_3();
-        break;
+      } else {
+        put_pixel_2();
+      }
+    } else {
+      if (t & 0b01010101) {
+        put_pixel_1();
+      } else {
+        put_pixel_0();
+      }
     }
     d++;
   }
