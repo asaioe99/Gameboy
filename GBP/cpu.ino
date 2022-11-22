@@ -10,7 +10,7 @@ static inline uint32_t cpu_step() {
   }
   total_clock += tmp_clock;
 
-  // mmu.update??
+  // mmu.update
   mmu_update(tmp_clock);
 
   if (ime) {

@@ -6,6 +6,19 @@
 //#include "test2.h" //EI
 #include "tr.h"
 
+#include <stdio.h>
+
+#include "pico/stdlib.h"
+#include "hardware/pio.h"
+#include "hardware/gpio.h"
+#include "hardware/interp.h"
+
+#include "st7789_lcd.pio.h"
+
+PIO pio = pio0;
+uint sm = 0;
+  uint8_t c = 0x00;
+
 uint32_t FIFO_bg_wnd[160 * 144];
 
 uint8_t VRAM[0x2000]; //
@@ -31,8 +44,8 @@ char buf_b1[64];
 
 uint32_t clock_cycle;
 uint16_t timer_div = 0;
-uint16_t time_before;
-uint8_t tmp_clock = 0;
+uint32_t time_before;
+uint32_t tmp_clock = 0;
 bool flag_halt = false;
 bool ime = false;
 bool int_vblank = false;
@@ -100,7 +113,7 @@ void loop() {
 
   clock_cycle = 0;
 
-  while (clock_cycle < 456 * 154) { // 30Hz
+  while (clock_cycle < 456 * 154) { // 60Hz
     clock_cycle += cpu_step();
   }
 
@@ -112,7 +125,7 @@ void loop() {
 
   // time synchronization
   // loop until synchoronize
-    //Serial.println("1");
+  //Serial.println("1");
 
 }
 

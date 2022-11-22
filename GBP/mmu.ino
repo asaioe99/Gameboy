@@ -22,6 +22,23 @@ static inline void mmu_update(uint32_t _clock) {
   //}
 }
 
+static inline uint8_t mmu_read_pc(uint16_t addr) {
+  if (boot) {
+    return *(bootstrap + addr);
+  } else if (addr < 0x4000) {
+    return *(rom_bank00 + addr);
+  } else if (addr >= 0x4000 && addr < 0x8000) {
+    return mbc_read_rom(addr);
+  } else if (addr >= 0xA000 && addr < 0xC000) {
+    return *(CRAM + addr - 0xA000);
+  } else if (addr >= 0xC000 && addr < 0xE000) {
+    return *(WRAM + addr - 0xC000);
+  } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
+    return *(WRAM + addr - 0xE000); // ?
+  }
+  return 0;
+}
+
 static inline uint8_t mmu_read(uint16_t addr) {
   if (addr < 0x0100 && boot) {
     return *(bootstrap + addr);
@@ -169,9 +186,9 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
 
 void dma(uint8_t addr_h) {
   uint16_t addr = (uint16_t)addr_h << 8;
-  uint32_t i = 0x00;
-  while (i < 0xa0) {
-    *(OAM + i) = mmu_read(addr + i);
+  uint16_t i = 0x00;
+  while (i < 0xA0) {
+    *(OAM + i) = mmu_read(addr | i);
     i++;
   }
 }
