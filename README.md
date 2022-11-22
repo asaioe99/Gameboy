@@ -239,6 +239,13 @@ https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/
 ### LCDの最適化
 SPIの最適化とほぼ同義です。描画はH-line単位で行うのではなく、フレーム全体で行う方が当然処理速度は向上します。また、FPSを60Hzから30Hzに変更してもそれほど速度が向上しないことから、そこそこの最適化（SWSPIの範囲内であっても）でも、既にST7789の限界に近いのかも知れません。
 
+最高のパフォーマンスが必要であれば、以下が参考になります。
+- http://vabenecosi.blog.fc2.com/blog-entry-110.html
+- https://github.com/raspberrypi/pico-examples/tree/master/pio/st7789_lcd
+- https://interface.cqpub.co.jp/magazine/202108/
+
+Picoの本質はPIOです。これを使用しない手はないでしょう。
+
 ### SPIの最適化
 なぜかHWSPIが利用できないため、SWSPIでの実装となりましたが、ここにも幾分の最適化の余地があります。コツとしては、MOSIを```gpio_put```で制御し、その後にCLKも同様にH/Lさせます。ここをなるべく速くしたいので、直接H/Lを指定すべきです。つまり、以下の通りになります。
 
