@@ -237,10 +237,49 @@ https://github.com/retrio/gb-test-roms/blob/master/cpu_instrs/source/
 楽しくて果てのない作業です。ArduinoIDEのArduino公式ボードライブラリでは、様々な制約があるため最適化は困難です。
 
 ### LCDの最適化
+SPIの最適化とほぼ同義です。描画はH-line単位で行うのではなく、フレーム全体で行う方が当然処理速度は向上します。また、FPSを60Hzから30Hzに変更してもそれほど速度が向上しないことから、そこそこの最適化（SWSPIの範囲内であっても）でも、既にST7789の限界に近いのかも知れません。
 
 ### SPIの最適化
+なぜかHWSPIが利用できないため、SWSPIでの実装となりましたが、ここにも幾分の最適化の余地があります。コツとしては、MOSIを```gpio_put```で制御し、その後にCLKも同様にH/Lさせます。ここをなるべく速くしたいので、直接H/Lを指定すべきです。つまり、以下の通りになります。
+
+```c
+gpio(MOSI, data & 0b10000000);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, data & 0b01000000);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, data & 0b00100000);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, data & 0b00010000);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+...
+```
+
+これは速度低下の原因にになるため、以下の様な処理となるように工夫をすべきである。
+
+```c
+gpio(MOSI, 1);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, 0;
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, 0);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+gpio(MOSI, 1);
+gpio(CLK, HIGH);
+gpio(CLK, LOW);
+...
+```
+
+コツとしては、GBの仕様上、単一のpixelに対して描画されるパターンは４個しかないため、関数としてまとめておけばよいと思います。
 
 ### PPUの最適化
+spriteがまだ無駄がありそうです。
 
 ### CPUの最適化
 ```switch case```でデコーダを作成すると、コンパイラにも依りますが冗長で速度に悪影響が出ます。そこで、命令の呼び出しは関数ポインタの配列により定義し、直接アドレスを参照して関数を呼び出すと多少高速になります。
@@ -290,6 +329,7 @@ op_ptr_array[code]();
 これにより、```code```に対応した命令を模擬できる。
 
 ### MMUの最適化
+ここはPPUに次いで律速になっていそうな気がしますけど、より良い実装方法はまだ思いついていません。なるべくポインタで直接アクセスすべきですが、それを超えたパフォーマンスが必要になります。
 
 ### その他の最適化
  
