@@ -39,6 +39,8 @@ uint8_t  FR;
 uint8_t  HR;
 uint8_t  LR;
 
+uint32_t oam_table[41];
+
 //for debug
 char buf_b1[64];
 
