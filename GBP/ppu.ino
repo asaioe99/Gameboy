@@ -44,7 +44,7 @@ static inline void ppu_update(uint32_t _clock) {
       if (scanline_counter >= 80) {  // mode2 -> mode3
         scanline_counter -= 80;
         *STAT = (*STAT & 0x07) | 0x03;
-        if (*LY >> 3) scan_oam(*LY);
+        scan_oam(*LY);
         display_scanline();
       }
       break;
@@ -225,7 +225,7 @@ static inline uint32_t scan_oam_16x8(uint16_t LY, uint16_t LX) {
     sp_tile_num = *(OAM + index + 2);
     sp_atr = *(OAM + index + 3);
 
-    if (y_pos < LY) continue;
+    //if (y_pos < LY) continue;
     //if (y_pos > LY + 16) continue;
     if (x_pos < LX) continue;
     if (x_pos > LX + 8) continue;
@@ -345,6 +345,7 @@ static inline void scan_oam(uint8_t LY) {
   for (uint32_t i = 0; i < 40; i++) {
     uint8_t y = *(OAM + i * 4);
     uint8_t x = *(OAM + i * 4 + 1);
+    if (y < LY) continue;
     if (y > LY + 16) continue;
     if (y > 0 && y < 160 && x > 0 && x < 168) {
       *(oam_table + n) = i << 2;

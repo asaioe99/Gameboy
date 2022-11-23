@@ -232,15 +232,15 @@ void (* const op_ptr_array[])(void) = {
     call_nz_d16,//0xC4
     push_bc,    //0xC5
     add_ar_d8,  //0xC6
-    rst_vec,    //0xC7
+    rst_vec_00, //0xC7
     ret_z,      //0xC8
     ret,        //0xC9
     jp_z_d16,   //0xCA
     nop,        //0xCB
-    call_z_d16,//0xCC
+    call_z_d16, //0xCC
     call_d16,   //0xCD
     adc_ar_d8,  //0xCE
-    rst_vec,    //0xCF
+    rst_vec_08,  //0xCF
 
     ret_nc,     //0xD0
     pop_de,     //0xD1
@@ -249,7 +249,7 @@ void (* const op_ptr_array[])(void) = {
     call_nc_d16,//0xD4
     push_de,    //0xD5
     sub_ar_d8,  //0xD6
-    rst_vec,    //0xD7
+    rst_vec_10, //0xD7
     ret_c,      //0xD8
     reti,       //0xD9
     jp_c_d16,   //0xDA
@@ -257,7 +257,7 @@ void (* const op_ptr_array[])(void) = {
     call_c_d16,//0xDC
     nop,        //0xDD
     sbc_ar_d8,  //0xDE
-    rst_vec,    //0xDF
+    rst_vec_18, //0xDF
 
     ldh_pd8_ar, //0xE0
     pop_hl,     //0xE1
@@ -266,7 +266,7 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0xE4
     push_hl,    //0xE5
     and_d8,     //0xE6
-    rst_vec,    //0xE7
+    rst_vec_20, //0xE7
     add_sp_d8,  //0xE8
     jp_hl,      //0xE9
     ld_pa16_ar, //0xEA
@@ -274,7 +274,7 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0xEC
     nop,        //0xED
     xor_d8,     //0xEE
-    rst_vec,    //0xEF
+    rst_vec_28, //0xEF
 
     ldh_ar_pd8, //0xF0
     pop_af,     //0xF1
@@ -283,7 +283,7 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0xF4
     push_af,    //0xF5
     or_d8,      //0xF6
-    rst_vec,    //0xF7
+    rst_vec_30, //0xF7
     ld_hl_sp_d8,//0xF8
     ld_sp_hl,   //0xF9
     ld_ar_pa16, //0xFA
@@ -291,7 +291,7 @@ void (* const op_ptr_array[])(void) = {
     nop,        //0xFC
     nop,        //0xFD
     cp_d8,      //0xFE
-    rst_vec,    //0xFF
+    rst_vec_38, //0xFF
 };
 
 void (* const pf_op_ptr_array[])(void) = {

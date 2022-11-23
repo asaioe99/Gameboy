@@ -64,7 +64,7 @@ static inline void int_check() {
 
 static inline void execute() {
 
-  code = mmu_read(pc);
+  code = mmu_read_pc(pc);
 
   if (pc == 0x100) {
     //chk_init_regs();
@@ -84,7 +84,7 @@ static inline void execute() {
   }
 */
   if (code == 0xCB) {
-    code = mmu_read(++pc);
+    code = mmu_read_pc(++pc);
     pf_op_ptr_array[code]();
   } else {
     op_ptr_array[code]();
@@ -92,43 +92,43 @@ static inline void execute() {
 }
 
 void ld_br_d8() {
-  BR = mmu_read(++pc);
+  BR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_cr_d8() {
-  CR = mmu_read(++pc);
+  CR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_dr_d8() {
-  DR = mmu_read(++pc);
+  DR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_er_d8() {
-  ER = mmu_read(++pc);
+  ER = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_hr_d8() {
-  HR = mmu_read(++pc);
+  HR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_lr_d8() {
-  LR = mmu_read(++pc);
+  LR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
 
 void ld_ar_d8() {
-  AR = mmu_read(++pc);
+  AR = mmu_read_pc(++pc);
   tmp_clock += 8;
   pc++;
 }
@@ -505,7 +505,7 @@ void ld_phl_ar() {
 }
 
 void ld_phl_d8() {
-  mmu_write(HL(HR, LR), mmu_read(++pc));
+  mmu_write(HL(HR, LR), mmu_read_pc(++pc));
   tmp_clock += 12;
   pc++;
 }
@@ -1296,13 +1296,13 @@ void cp_ar() {
 }
 
 void jr_d8() {
-  pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+  pc = pc + 2 + (int8_t)mmu_read_pc(pc + 1);
   tmp_clock += 12;
 }
 
 void jr_nz_d8() {
   if (!(FR & 0x80)) {
-    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    pc = pc + 2 + (int8_t)mmu_read_pc(pc + 1);
     tmp_clock += 12;
     return;
   }
@@ -1312,7 +1312,7 @@ void jr_nz_d8() {
 
 void jr_z_d8() {
   if (FR & 0x80) {
-    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    pc = pc + 2 + (int8_t)mmu_read_pc(pc + 1);
     tmp_clock += 12;
     return;
   }
@@ -1322,7 +1322,7 @@ void jr_z_d8() {
 
 void jr_nc_d8() {
   if (!(FR & 0x10)) {
-    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    pc = pc + 2 + (int8_t)mmu_read_pc(pc + 1);
     tmp_clock += 12;
     return;
   }
@@ -1332,7 +1332,7 @@ void jr_nc_d8() {
 
 void jr_c_d8() {
   if (FR & 0x10) {
-    pc = pc + 2 + (int8_t)mmu_read(pc + 1);
+    pc = pc + 2 + (int8_t)mmu_read_pc(pc + 1);
     tmp_clock += 12;
     return;
   }
@@ -1341,29 +1341,29 @@ void jr_c_d8() {
 }
 
 void ld_bc_d16() {
-  CR = mmu_read(++pc);
-  BR = mmu_read(++pc);
+  CR = mmu_read_pc(++pc);
+  BR = mmu_read_pc(++pc);
   tmp_clock += 12;
   pc++;
 }
 
 void ld_de_d16() {
-  ER = mmu_read(++pc);
-  DR = mmu_read(++pc);
+  ER = mmu_read_pc(++pc);
+  DR = mmu_read_pc(++pc);
   tmp_clock += 12;
   pc++;
 }
 
 void ld_hl_d16() {
-  LR = mmu_read(++pc);
-  HR = mmu_read(++pc);
+  LR = mmu_read_pc(++pc);
+  HR = mmu_read_pc(++pc);
   tmp_clock += 12;
   pc++;
 }
 
 void ld_sp_d16() {
-  sp = (uint16_t)mmu_read(++pc);
-  sp += (uint16_t)mmu_read(++pc) << 8;
+  sp = (uint16_t)mmu_read_pc(++pc);
+  sp += (uint16_t)mmu_read_pc(++pc) << 8;
   tmp_clock += 12;
   pc++;
 }
@@ -1381,13 +1381,13 @@ void rla() {
 }
 
 void ldh_pd8_ar() {
-  mmu_write(0xFF00 + (uint16_t)mmu_read(++pc), AR);
+  mmu_write_io(0xFF00 + (uint16_t)mmu_read_pc(++pc), AR);
   tmp_clock += 12;
   pc++;
 }
 
 void ldh_ar_pd8() {
-  AR = mmu_read(0xFF00 + (uint16_t)mmu_read(++pc));
+  AR = mmu_read_io(0xFF00 + (uint16_t)mmu_read_pc(++pc));
   tmp_clock += 12;
   pc++;
 }
@@ -1421,13 +1421,13 @@ void pop_af() {
 }
 
 void ld_pcr_ar() {
-  mmu_write(0xFF00 | CR, AR);
+  mmu_write_io(0xFF00 | CR, AR);
   tmp_clock += 8;
   pc++;  //表では2だった
 }
 
 void ld_ar_pcr() {
-  AR = mmu_read(0xFF00 | CR);
+  AR = mmu_read_io(0xFF00 | CR);
   tmp_clock += 8;
   pc++;  //表では2だった
 }
@@ -1445,29 +1445,29 @@ void ei() {
 }
 
 void push_bc() {
-  mmu_write(--sp, BR);
-  mmu_write(--sp, CR);
+  mmu_write_sp(--sp, BR);
+  mmu_write_sp(--sp, CR);
   tmp_clock += 16;
   pc++;
 }
 
 void push_de() {
-  mmu_write(--sp, DR);
-  mmu_write(--sp, ER);
+  mmu_write_sp(--sp, DR);
+  mmu_write_sp(--sp, ER);
   tmp_clock += 16;
   pc++;
 }
 
 void push_hl() {
-  mmu_write(--sp, HR);
-  mmu_write(--sp, LR);
+  mmu_write_sp(--sp, HR);
+  mmu_write_sp(--sp, LR);
   tmp_clock += 16;
   pc++;
 }
 
 void push_af() {
-  mmu_write(--sp, AR);
-  mmu_write(--sp, FR);
+  mmu_write_sp(--sp, AR);
+  mmu_write_sp(--sp, FR);
   tmp_clock += 16;
   pc++;
 }
@@ -1479,14 +1479,14 @@ void ret() {
 }
 
 void call_d16() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 3) & 0x00FF));
   tmp_clock += 24;
-  pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+  pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
 }
 
 void cp_d8() {  // miss
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   if ((AR & 0x0F) < (val_t & 0x0F)) {
     FR = 0x60;
   } else {
@@ -3013,7 +3013,7 @@ void set_7_ar() {
 }
 
 void jp_d16() {
-  pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+  pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
   tmp_clock += 16;
 }
 
@@ -3036,7 +3036,7 @@ void ccf() {
 }
 
 void and_d8() {
-  AR &= mmu_read(++pc);
+  AR &= mmu_read_pc(++pc);
   if (AR) {
     FR = 0x20;
   } else {
@@ -3046,7 +3046,7 @@ void and_d8() {
   pc++;
 }
 void or_d8() {
-  AR |= mmu_read(++pc);
+  AR |= mmu_read_pc(++pc);
   if (AR) {
     FR = 0x00;
   } else {
@@ -3209,13 +3209,13 @@ void and_ar() {
 }
 
 void ld_ar_pa16() {
-  AR = mmu_read((uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8));
+  AR = mmu_read((uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8));
   tmp_clock += 16;
   pc += 3;
 }
 
 void ld_pa16_ar() {
-  mmu_write((uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8), AR);
+  mmu_write((uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8), AR);
   tmp_clock += 16;
   pc += 3;
 }
@@ -3363,7 +3363,7 @@ void stop_0() {
 
 void jp_nz_d16() {
   if (!(FR & 0x80)) {
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     tmp_clock += 16;
     return;
   }
@@ -3373,7 +3373,7 @@ void jp_nz_d16() {
 
 void jp_nc_d16() {
   if (!(FR & 0x10)) {
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     tmp_clock += 16;
     return;
   }
@@ -3383,7 +3383,7 @@ void jp_nc_d16() {
 
 void jp_z_d16() {
   if ((FR & 0x80)) {
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     tmp_clock += 16;
     return;
   }
@@ -3393,7 +3393,7 @@ void jp_z_d16() {
 
 void jp_c_d16() {
   if ((FR & 0x10)) {
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     tmp_clock += 16;
     return;
   }
@@ -3403,10 +3403,10 @@ void jp_c_d16() {
 
 void call_nz_d16() {
   if (!(FR & 0x80)) {
-    mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
-    mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
+    mmu_write_sp(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+    mmu_write_sp(--sp, (uint8_t)((pc + 3) & 0x00FF));
     tmp_clock += 24;
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     return;
   }
   tmp_clock += 12;
@@ -3415,10 +3415,10 @@ void call_nz_d16() {
 
 void call_nc_d16() {
   if (!(FR & 0x10)) {
-    mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
-    mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
+    mmu_write_sp(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+    mmu_write_sp(--sp, (uint8_t)((pc + 3) & 0x00FF));
     tmp_clock += 24;
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     return;
   }
   tmp_clock += 12;
@@ -3427,10 +3427,10 @@ void call_nc_d16() {
 
 void call_z_d16() {
   if (FR & 0x80) {
-    mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
-    mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
+    mmu_write_sp(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+    mmu_write_sp(--sp, (uint8_t)((pc + 3) & 0x00FF));
     tmp_clock += 24;
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     return;
   }
   tmp_clock += 12;
@@ -3439,10 +3439,10 @@ void call_z_d16() {
 
 void call_c_d16() {
   if (FR & 0x10) {
-    mmu_write(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
-    mmu_write(--sp, (uint8_t)((pc + 3) & 0x00FF));
+    mmu_write_sp(--sp, (uint8_t)(((pc + 3) & 0xFF00) >> 8));
+    mmu_write_sp(--sp, (uint8_t)((pc + 3) & 0x00FF));
     tmp_clock += 24;
-    pc = (uint16_t)mmu_read(pc + 1) | ((uint16_t)mmu_read(pc + 2) << 8);
+    pc = (uint16_t)mmu_read_pc(pc + 1) | ((uint16_t)mmu_read_pc(pc + 2) << 8);
     return;
   }
   tmp_clock += 12;
@@ -3578,11 +3578,60 @@ void adc_ar_ar() {
   pc++;
 }
 
-void rst_vec() {
-  mmu_write(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)((pc + 1) & 0x00FF));
+void rst_vec_00() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
   tmp_clock += 16;
-  pc = (uint16_t)code - 0xC7;
+  pc = 0x0000;
+}
+
+void rst_vec_08() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0008;
+}
+
+void rst_vec_10() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0010;
+}
+
+void rst_vec_18() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0018;
+}
+
+void rst_vec_20() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0020;
+}
+
+void rst_vec_28() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0028;
+}
+
+void rst_vec_30() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0030;
+}
+
+void rst_vec_38() {
+  mmu_write_sp(--sp, (uint8_t)(((pc + 1) & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)((pc + 1) & 0x00FF));
+  tmp_clock += 16;
+  pc = 0x0038;
 }
 
 void sbc_ar_br() {
@@ -3715,7 +3764,7 @@ void sbc_ar_ar() {
 }
 
 void add_ar_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   if ((AR & 0x0F) + (val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
@@ -3731,7 +3780,7 @@ void add_ar_d8() {
 }
 
 void adc_ar_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   uint8_t c = (FR & 0x10) >> 4;
   if ((AR & 0x0F) + (val_t & 0x0F) + c > 0x0F) {
     FR = 0x20;
@@ -3748,7 +3797,7 @@ void adc_ar_d8() {
 }
 
 void sub_ar_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   if ((AR & 0x0F) < (val_t & 0x0F)) {
     FR = 0x60;
   } else {
@@ -3764,7 +3813,7 @@ void sub_ar_d8() {
 }
 
 void sbc_ar_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   uint8_t c = (FR & 0x10) >> 4;
   if ((AR & 0x0F) < (val_t & 0x0F) + c) {
     FR = 0x60;
@@ -4228,7 +4277,7 @@ void rra() {
 }
 
 void xor_d8() {
-  AR ^= mmu_read(++pc);
+  AR ^= mmu_read_pc(++pc);
   if (AR) {
     FR = 0x00;
   } else {
@@ -4344,14 +4393,14 @@ void scf() {
 }
 
 void ld_pd16_sp() {
-  mmu_write(((uint16_t)mmu_read(pc + 2) << 8) | mmu_read(pc + 1), (uint8_t)(sp & 0x00FF));
-  mmu_write(((uint16_t)mmu_read(pc + 2) << 8) | (mmu_read(pc + 1) + 1), (uint8_t)(sp >> 8));
+  mmu_write(((uint16_t)mmu_read_pc(pc + 2) << 8) | mmu_read_pc(pc + 1), (uint8_t)(sp & 0x00FF));
+  mmu_write(((uint16_t)mmu_read_pc(pc + 2) << 8) | (mmu_read_pc(pc + 1) + 1), (uint8_t)(sp >> 8));
   tmp_clock += 20;
   pc += 3;
 }
 
 void add_sp_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   if ((sp & 0x0F) + ((uint16_t)val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
@@ -4386,7 +4435,7 @@ void rrca() {
 }
 
 void ld_hl_sp_d8() {
-  uint8_t val_t = mmu_read(++pc);
+  uint8_t val_t = mmu_read_pc(++pc);
   if ((sp & 0x0F) + ((uint16_t)val_t & 0x0F) > 0x0F) {
     FR = 0x20;
   } else {
@@ -4702,36 +4751,36 @@ void srl_phl() {
 }
 
 static inline void call_irpt_40() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
   tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0040;
 }
 
 static inline void call_irpt_48() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
   tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0048;
 }
 
 static inline void call_irpt_50() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
   tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0050;
 }
 
 static inline void call_irpt_58() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
   tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0058;
 }
 
 static inline void call_irpt_60() {  ///// not correct push a return address
-  mmu_write(--sp, (uint8_t)((pc & 0xFF00) >> 8));
-  mmu_write(--sp, (uint8_t)(pc & 0x00FF));
+  mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
+  mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
   tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
   pc = 0x0060;
 }

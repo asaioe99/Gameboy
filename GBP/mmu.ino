@@ -10,11 +10,11 @@ static inline void mmu_update(uint32_t _clock) {
   }
   if (int_lcdc) {
     IF |= 0x02;
-    int_lcdc   = false;
+    int_lcdc = false;
   }
   if (int_timer) {
     IF |= 0x04;
-    int_timer  = false;
+    int_timer = false;
   }
   //if (int_joypad) {
   //  IF |= 0x10;
@@ -23,18 +23,23 @@ static inline void mmu_update(uint32_t _clock) {
 }
 
 static inline uint8_t mmu_read_pc(uint16_t addr) {
-  if (boot) {
+  if (addr < 0x0100 && boot) {
     return *(bootstrap + addr);
   } else if (addr < 0x4000) {
     return *(rom_bank00 + addr);
   } else if (addr >= 0x4000 && addr < 0x8000) {
     return mbc_read_rom(addr);
+
   } else if (addr >= 0xA000 && addr < 0xC000) {
     return *(CRAM + addr - 0xA000);
   } else if (addr >= 0xC000 && addr < 0xE000) {
     return *(WRAM + addr - 0xC000);
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-    return *(WRAM + addr - 0xE000); // ?
+    return *(WRAM + addr - 0xE000);              // ?
+  } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
+    return *(HRAM + addr - 0xFF80);
+  } else if (addr == 0xFFFF) {  // Interrupt Enable register(IE)
+    return 0xFF;                // read 0xFF
   }
   return 0;
 }
@@ -53,7 +58,7 @@ static inline uint8_t mmu_read(uint16_t addr) {
   } else if (addr >= 0xC000 && addr < 0xE000) {
     return *(WRAM + addr - 0xC000);
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-    return *(WRAM + addr - 0xE000); // ?
+    return *(WRAM + addr - 0xE000);              // ?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     return *(OAM + addr - 0xFE00);
     //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
@@ -61,8 +66,8 @@ static inline uint8_t mmu_read(uint16_t addr) {
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) {
       return *(IO + addr - 0xFF00) | 0xCF;
-    } else  if (addr == 0xFF0F) {
-      return IF; // Interrupu flag
+    } else if (addr == 0xFF0F) {
+      return IF;  // Interrupu flag
     } else if (addr == 0xFF04) {
       return (uint8_t)(timer_div >> 8);
     } else {
@@ -70,14 +75,14 @@ static inline uint8_t mmu_read(uint16_t addr) {
     }
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(HRAM + addr - 0xFF80);
-  } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
-    return 0xFF; // read 0xFF
+  } else if (addr == 0xFFFF) {  // Interrupt Enable register(IE)
+    return 0xFF;                // read 0xFF
   }
   return 0;
 }
 
 static inline void mmu_write(uint16_t addr, uint8_t data) {
-  if (addr >= 0x2000 && addr < 0x4000) { // this area is not for write but used for change rom bank
+  if (addr >= 0x2000 && addr < 0x4000) {  // this area is not for write but used for change rom bank
     switch_rom_bank(data & 0x1F);
     //} else if (addr >= 0x4000 && addr < 0x8000) {
   } else if (addr >= 0x8000 && addr < 0xA000) {
@@ -87,25 +92,95 @@ static inline void mmu_write(uint16_t addr, uint8_t data) {
   } else if (addr >= 0xC000 && addr < 0xE000) {
     *(WRAM + addr - 0xC000) = data;
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-    *(WRAM + (addr - 0xE000) ) = data; //?
+    *(WRAM + (addr - 0xE000)) = data;            //?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
-    *(OAM + addr - 0xFE00)  = data;
+    *(OAM + addr - 0xFE00) = data;
     //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF46) {
       dma(data);
     } else if (addr == 0xFF04) {
-      timer_div = 0; // Divider regster reset
+      timer_div = 0;  // Divider regster reset
     } else if (addr == 0xFF07) {
-      *(IO + 0x07) = data & 0x07; // Divider regster reset
+      *(IO + 0x07) = data & 0x07;  // Divider regster reset
     } else if (addr == 0xFF0F) {
-      IF = data; // Interrupu flag
+      IF = data;  // Interrupu flag
     } else {
       *(IO + addr - 0xFF00) = data;
     }
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
     *(HRAM + addr - 0xFF80) = data;
-  } else if (addr == 0xFFFF) { // Interrupt Enable register(IE)
+  } else if (addr == 0xFFFF) {  // Interrupt Enable register(IE)
+    IE = data;
+  }
+}
+
+static inline uint8_t mmu_read_sp(uint16_t addr) {
+  if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
+    return *(HRAM + addr - 0xFF80);
+  } else if (addr >= 0xC000 && addr < 0xE000) {
+    return *(WRAM + addr - 0xC000);
+  } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
+    return *(WRAM + addr - 0xE000);              // ?
+  } else if (addr == 0xFFFF) {                   // Interrupt Enable register(IE)
+    return 0xFF;                                 // read 0xFF
+  } else if (addr >= 0xA000 && addr < 0xC000) {
+    return *(CRAM + addr - 0xA000);
+  }
+  return 0;
+}
+
+static inline void mmu_write_sp(uint16_t addr, uint8_t data) {
+  if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
+    *(HRAM + addr - 0xFF80) = data;
+  } else if (addr >= 0xC000 && addr < 0xE000) {
+    *(WRAM + addr - 0xC000) = data;
+  } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
+    *(WRAM + (addr - 0xE000)) = data;            //?
+  } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
+    *(HRAM + addr - 0xFF80) = data;
+  } else if (addr == 0xFFFF) {  // Interrupt Enable register(IE)
+    IE = data;
+  } else if (addr >= 0xA000 && addr < 0xC000) {
+    *(CRAM + addr - 0xA000) = data;
+  }
+}
+
+static inline uint8_t mmu_read_io(uint16_t addr) {
+  if (addr < 0xFF80) {  // I/O Register
+    if (addr == 0xFF00) {
+      return *(IO + addr - 0xFF00) | 0xCF;
+    } else if (addr == 0xFF0F) {
+      return IF;  // Interrupu flag
+    } else if (addr == 0xFF04) {
+      return (uint8_t)(timer_div >> 8);
+    } else {
+      return *(IO + addr - 0xFF00);
+    }
+  } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
+    return *(HRAM + addr - 0xFF80);
+  } else {        // Interrupt Enable register(IE)
+    return 0xFF;  // read 0xFF
+  }
+  return 0;
+}
+
+static inline void mmu_write_io(uint16_t addr, uint8_t data) {
+  if (addr < 0xFF80) {  // I/O Register
+    if (addr == 0xFF46) {
+      dma(data);
+    } else if (addr == 0xFF04) {
+      timer_div = 0;  // Divider regster reset
+    } else if (addr == 0xFF07) {
+      *(IO + 0x07) = data & 0x07;  // Divider regster reset
+    } else if (addr == 0xFF0F) {
+      IF = data;  // Interrupu flag
+    } else {
+      *(IO + addr - 0xFF00) = data;
+    }
+  } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM
+    *(HRAM + addr - 0xFF80) = data;
+  } else {  // Interrupt Enable register(IE)
     IE = data;
   }
 }
@@ -180,7 +255,7 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
       return *(rom_bank21 + addr - 0x4000);
     */
     default:
-      return 0xFD; //未定義の命令
+      return 0xFD;  //未定義の命令
   }
 }
 
