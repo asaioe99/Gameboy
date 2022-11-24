@@ -65,7 +65,7 @@ static inline uint8_t mmu_read(uint16_t addr) {
 
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) {
-      return *(IO + addr - 0xFF00) | 0xCF;
+      return *IO | 0xCF;
     } else if (addr == 0xFF0F) {
       return IF;  // Interrupu flag
     } else if (addr == 0xFF04) {
@@ -149,7 +149,7 @@ static inline void mmu_write_sp(uint16_t addr, uint8_t data) {
 static inline uint8_t mmu_read_io(uint16_t addr) {
   if (addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) {
-      return *(IO + addr - 0xFF00) | 0xCF;
+      return *IO | 0xCF;
     } else if (addr == 0xFF0F) {
       return IF;  // Interrupu flag
     } else if (addr == 0xFF04) {
