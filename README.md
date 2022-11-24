@@ -342,6 +342,9 @@ op_ptr_array[code]();
  
 - http://geo.d51498.com/nakamiya_town/ProC.html
 
+## おまけ
+- https://sourceforge.net/projects/lcd-image-converter/
+
 ## 参考文献
 - https://github.com/Gekkio/gb-ctr
 
