@@ -95,6 +95,7 @@ void display_scanline() {
   bool sprite_enable = (*LCDC & 0x02) > 0;
   bool sprite_size_16 = (*LCDC & 0x04) > 0;
   bool WIN_enable = (*LCDC & 0x20) > 0;
+  bool WIN_enable_2 = WIN_enable && (LY_plus_SCY >= WY);
 
   // LY is given from 0xFF44
   for (uint32_t LX = 0; LX < 160; LX++) {
@@ -106,12 +107,10 @@ void display_scanline() {
 
       // get window pixel color number of given LY and LX, WY, WX
       win_pix_C_number = 0;  // 0 clear. this enable window overray above back ground
-      if (WIN_enable) {      // window enable
-        if (LY_plus_SCY >= WY) {
-          if (LX_plus_SCX >= WX) {
-            tile_number = get_tile_number(tile_num_y_2 & 0x1F, (LX_plus_SCX - WX) & 0x1F);
-            win_pix_C_number = get_pix_C_number(tile_number, tile_num_y_2, LX_plus_SCX - WX);
-          }
+      if (WIN_enable_2) {      // window enable
+        if (LX_plus_SCX >= WX) {
+          tile_number = get_tile_number(tile_num_y_2 & 0x1F, (LX_plus_SCX - WX) & 0x1F);
+          win_pix_C_number = get_pix_C_number(tile_number, tile_num_y_2, LX_plus_SCX - WX);
         }
       }
     }
@@ -128,35 +127,14 @@ void display_scanline() {
 
     // mix bg FIFO and sp FIFO
     // mix bg and win
-    if (win_pix_C_number) {  // window enable
-      bg_pix_mixed_c_num = win_pix_C_number;
-    } else {  // window disable
-      bg_pix_mixed_c_num = bg_pix_C_number;
-    }
+    bg_pix_mixed_c_num = win_pix_C_number > 0 ? win_pix_C_number : bg_pix_C_number;
 
-    // sprite enable
-    if (sprite_enable && (sp_pix_C_number)) {
-      if (BG_WIN_enable) {
-        if (bop) {
-          if (bg_pix_mixed_c_num) {  // sprite pix color is 0
-            *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
-          } else {
-            *pix_mixer = sp_color_number2bit(sp_pix_C_number & 0x03, obp1);
-          }
-        } else {
-          if (sp_pix_C_number & 0x03) {
-            *pix_mixer = sp_color_number2bit(sp_pix_C_number & 0x03, obp1);
-          } else {
-            *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
-          }
-        }
-      } else {
-        *pix_mixer = sp_color_number2bit(sp_pix_C_number & 0x03, obp1);
-      }
+    if ((sp_pix_C_number & 0x03) == 0) {
+      *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
+    } else if (bop && bg_pix_mixed_c_num) {
+      *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
     } else {
-      if (BG_WIN_enable) {
-        *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
-      }
+      *pix_mixer = sp_color_number2bit(sp_pix_C_number & 0x03, obp1);
     }
     pix_mixer++;
   }
