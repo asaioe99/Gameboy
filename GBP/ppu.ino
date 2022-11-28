@@ -129,9 +129,7 @@ void display_scanline() {
     // mix bg and win
     bg_pix_mixed_c_num = win_pix_C_number > 0 ? win_pix_C_number : bg_pix_C_number;
 
-    if ((sp_pix_C_number & 0x03) == 0) {
-      *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
-    } else if (bop && bg_pix_mixed_c_num) {
+    if (!(sp_pix_C_number & 0x03) || (bop && bg_pix_mixed_c_num)) {
       *pix_mixer = bw_color_number2bit(bg_pix_mixed_c_num);
     } else {
       *pix_mixer = sp_color_number2bit(sp_pix_C_number & 0x03, obp1);
