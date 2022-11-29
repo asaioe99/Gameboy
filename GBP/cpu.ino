@@ -59,7 +59,7 @@ static inline void int_check() {
     flag_halt = false;
     call_irpt_60();     // v-blank 実装済み
     return;
-  }  
+  }
 }
 
 static inline void execute() {
@@ -71,23 +71,29 @@ static inline void execute() {
     boot = false;
   }
   /*
-  if (pc <= 0xC2C1 && pc >= 0xC2A6 && !boot) {
+    if (pc <= 0xC2C1 && pc >= 0xC2A6 && !boot) {
     sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
-  //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
+    //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
     Serial.println(buf_b1);
     sprintf(buf_b1, "IE:%02X IF:%02X IME:%d", IE, IF, ime);
     Serial.println(buf_b1);
-  }
+    }
 
-  if (pc == 0xC448) {
+    if (pc == 0xC448) {
     while(true);
-  }
-*/
+    }
+  */
+  void (*op)();
+
   if (code == 0xCB) {
     code = mmu_read_pc(++pc);
-    pf_op_ptr_array[code]();
+    op = *(pf_op_ptr_array + code);
+    op();
+    //pf_op_ptr_array[code]();
   } else {
-    op_ptr_array[code]();
+    op = *(op_ptr_array + code);
+    op();
+    //op_ptr_array[code]();
   }
 }
 

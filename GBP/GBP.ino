@@ -12,12 +12,12 @@
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "hardware/interp.h"
-
+#include "hardware/dma.h"
 #include "st7789_lcd.pio.h"
 
 PIO pio = pio0;
 uint sm = 0;
-  uint8_t c = 0x00;
+uint8_t c = 0x00;
 
 uint32_t FIFO_bg_wnd[160 * 144];
 
@@ -65,10 +65,10 @@ uint8_t IF; // 0xFF0F
 uint8_t code;
 
 uint8_t rom_bank_num;
+dma_channel_config conf0; // DMA channel 0 default configuration
 
 void setup() {
   // initialization
-
 
   pc = 0x0000;
   sp = 0x0000;
@@ -107,7 +107,7 @@ void setup() {
 
   Serial.begin(115200);
   pinMode(25, OUTPUT);
-
+  
 }
 
 void loop() {
@@ -121,7 +121,6 @@ void loop() {
 
   // LCD
   LCD_f = true;
-  //dump_tilemap();
 
   // joypad
 
@@ -133,11 +132,14 @@ void loop() {
 
 void setup1() {
   LCD_init();
+
 }
 
 void loop1() {
+
   if (LCD_f) {
     LCD_drowBitMap();
     LCD_f = false;
   }
+
 }

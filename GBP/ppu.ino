@@ -1,8 +1,8 @@
 static inline void ppu_update(uint32_t _clock) {
   uint8_t *LCDC = IO + 0x40;
   uint8_t *STAT = IO + 0x41;
-  uint8_t *LY = IO + 0x44;   //LY
-  uint8_t *LYC = IO + 0x45;  //LYC
+  uint8_t *LY   = IO + 0x44;   //LY
+  uint8_t *LYC  = IO + 0x45;  //LYC
 
   // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
   if (!(*LCDC & 0x80)) return;
@@ -44,8 +44,7 @@ static inline void ppu_update(uint32_t _clock) {
       if (scanline_counter >= 80) {  // mode2 -> mode3
         scanline_counter -= 80;
         *STAT = (*STAT & 0x07) | 0x03;
-        scan_oam(*LY);
-        display_scanline();
+        display_scanline(scan_oam(*LY));
       }
       break;
     case 1:
@@ -71,14 +70,14 @@ static inline void ppu_update(uint32_t _clock) {
 }
 
 // bg&wnd フェッチ
-void display_scanline() {
+void display_scanline(uint32_t num_sp) {
 
   uint8_t *LCDC = IO + 0x40;
-  uint16_t SCY = (uint16_t) * (IO + 0x42);  // SCY BGの描画位置
-  uint16_t SCX = (uint16_t) * (IO + 0x43);  // SCX
-  uint16_t LY = (uint16_t) * (IO + 0x44);
-  uint16_t WY = (uint16_t) * (IO + 0x4A);      // WY windowの描画位置
-  uint16_t WX = (uint16_t) * (IO + 0x4B) - 7;  // WX
+  uint16_t SCY  = (uint16_t) * (IO + 0x42);     // SCY BGの描画位置
+  uint16_t SCX  = (uint16_t) * (IO + 0x43);     // SCX
+  uint16_t LY   = (uint16_t) * (IO + 0x44);
+  uint16_t WY   = (uint16_t) * (IO + 0x4A);     // WY windowの描画位置
+  uint16_t WX   = (uint16_t) * (IO + 0x4B) - 7; // WX
 
   uint16_t LY_plus_SCY = LY + SCY;
   uint16_t tile_num_y_1 = (LY_plus_SCY >> 3) & 0x1F;
@@ -119,8 +118,8 @@ void display_scanline() {
     bool obp1 = false;
     bool bop = false;
 
-    if (sprite_enable && (*oam_table != 0xFF)) {  //sprite enable
-      sp_pix_C_number = sprite_size_16 ? scan_oam_16x8(LY, LX) : scan_oam_8x8(LY, LX);
+    if (sprite_enable && num_sp) {  //sprite enable
+      sp_pix_C_number = sprite_size_16 ? scan_oam_16x8(LY, LX, num_sp) : scan_oam_8x8(LY, LX, num_sp);
       obp1 = (sp_pix_C_number & 0x10) > 0;
       bop = (sp_pix_C_number & 0x80) > 0;
     }
@@ -138,31 +137,28 @@ void display_scanline() {
   }
 }
 
-static inline uint32_t scan_oam_8x8(uint16_t LY, uint16_t LX) {
+static inline uint32_t scan_oam_8x8(uint16_t LY, uint16_t LX, uint32_t num_sp) {
   uint16_t y_pos;
   uint16_t x_pos;
   uint8_t sp_tile_num;
   uint8_t sp_atr = 0;
   uint32_t sp_pix_C_number = 4;
   int index = 0;
-  uint32_t i = 0;
 
-  //  while ((index = oam_table[i++]) != 0xFF) {  // scaning OAM
-  for (int i = 0; i < 40; i++) {
+  // scaning OAM
+  for (uint32_t i = 0; i < num_sp; i++) {
     int index = *(oam_table + i);
-    if (index == 0xFF) break;
 
     // get object base address
     y_pos = (uint16_t) * (OAM + index + 0);
     x_pos = (uint16_t) * (OAM + index + 1);
     sp_tile_num = *(OAM + index + 2);
-    sp_atr = *(OAM + index + 3);
-
+    sp_atr = *(OAM + index + 3); 
+    
     if (y_pos < LY + 8) continue;
-    //if (y_pos > LY + 16) continue;
     if (x_pos < LX) continue;
     if (x_pos > LX + 8) continue;
-
+    
     switch (sp_atr & 0x60) {
       case 0x00:
         sp_pix_C_number = get_pix_C_num_sp(sp_tile_num, LY - y_pos + 16, LX - x_pos + 8);  // normal
@@ -181,28 +177,24 @@ static inline uint32_t scan_oam_8x8(uint16_t LY, uint16_t LX) {
   return sp_pix_C_number | (sp_atr & 0x90);
 }
 
-static inline uint32_t scan_oam_16x8(uint16_t LY, uint16_t LX) {
+static inline uint32_t scan_oam_16x8(uint16_t LY, uint16_t LX, uint32_t num_sp) {
   uint16_t y_pos;
   uint16_t x_pos;
   uint8_t sp_tile_num;
   uint8_t sp_atr = 0;
   uint32_t sp_pix_C_number = 4;
   int index = 0;
-  uint32_t i = 0;
 
-  //while ((index = oam_table[i++]) != 0xFF) {  // scaning OAM
-  for (int i = 0; i < 40; i++) {
+  // scaning OAM
+  for (uint32_t i = 0; i < num_sp; i++) {
     int index = *(oam_table + i);
-    if (index == 0xFF) break;
 
     // get object base address
     y_pos = (uint16_t) * (OAM + index + 0);
     x_pos = (uint16_t) * (OAM + index + 1);
     sp_tile_num = *(OAM + index + 2);
     sp_atr = *(OAM + index + 3);
-
-    //if (y_pos < LY) continue;
-    //if (y_pos > LY + 16) continue;
+    
     if (x_pos < LX) continue;
     if (x_pos > LX + 8) continue;
 
@@ -316,7 +308,7 @@ static inline uint32_t sp_color_number2bit(uint32_t color_number, bool obp1) {
   return 0;
 }
 
-static inline void scan_oam(uint8_t LY) {
+static inline uint32_t scan_oam(uint8_t LY) {
   uint32_t n = 0;
   for (uint32_t i = 0; i < 40; i++) {
     uint8_t y = *(OAM + i * 4);
@@ -328,5 +320,6 @@ static inline void scan_oam(uint8_t LY) {
       n++;
     }
   }
-  *(oam_table + n) = 0xFF;
+  return n;
+  //*(oam_table + n) = 0xFF;
 }
