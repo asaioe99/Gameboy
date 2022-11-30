@@ -5,15 +5,6 @@
 #define DE(D, E) ((uint16_t)D << 8) | E
 #define HL(H, L) ((uint16_t)H << 8) | L
 
-/*
-#define MOSI  11    // MOSI　本来ならGP3 ArduinoIDE上でpinassignが変更可能になったらHWSPIに切り替え
-#define CLK   10    // CLK　本来ならGP2
-#define CS    9     // Data/Command
-#define DC    8     // Data/Command
-#define RST   12    // RESET
-#define BL    13    // BACK LIGHT
-*/
-
 #define PIN_DIN 11
 #define PIN_CLK 10
 #define PIN_CS 9
