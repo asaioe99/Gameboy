@@ -21,7 +21,7 @@
 #define PIN_RESET 12
 #define PIN_BL 13
 
-#define SERIAL_CLK_DIV 1.f
+#define SERIAL_CLK_DIV 2.f
 
 #define MBC_NOT_SUPPORTED  -1
 #define MBC_NONE            0
