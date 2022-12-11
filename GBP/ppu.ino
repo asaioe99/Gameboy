@@ -3,6 +3,7 @@ static inline void ppu_update(uint32_t _clock) {
   uint8_t *STAT = IO + 0x41;
   uint8_t *LY   = IO + 0x44;   //LY
   uint8_t *LYC  = IO + 0x45;  //LYC
+  uint32_t num_sp = 0;
 
   // LCD コントロールレジスタのMSBによりLCD有効でない場合は動作をスルー
   if (!(*LCDC & 0x80)) return;
@@ -17,16 +18,16 @@ static inline void ppu_update(uint32_t _clock) {
         *LY += 1;
         if (*LY < 144) {
           *STAT = (*STAT & 0xF8) | 0x02;
-          if (*STAT & 0x20) int_lcdc = true;  // mode2: OAM interrupt happens
+          if (*STAT & 0x20) IF |= 0x02;  // mode2: OAM interrupt happens
         } else {
           *STAT = (*STAT & 0xF8) | 0x01;
-          if (*STAT & 0x10) int_lcdc = true;  // mode1: V-Blank interrupt happens
-          int_vblank = true;
+          if (*STAT & 0x10) IF |= 0x02;  // mode1: V-Blank interrupt happens
+          IF |= 0x01;
         }
         if (*LY == *LYC) {
           *STAT |= 0x04;
           if (*STAT & 0x40) {
-            int_lcdc = true;
+            IF |= 0x02;
           }
         } else {
           *STAT &= ~0x04;
@@ -37,14 +38,17 @@ static inline void ppu_update(uint32_t _clock) {
       if (scanline_counter >= 172) {  // mode3 -> mode0
         scanline_counter -= 172;
         *STAT &= 0xF8;
-        if (*STAT & 0x08) int_lcdc = true;  // mode0: H-Blank interrupt happens
+        if (*STAT & 0x08) IF |= 0x02;  // mode0: H-Blank interrupt happens
       }
       break;
     case 2:
       if (scanline_counter >= 80) {  // mode2 -> mode3
         scanline_counter -= 80;
         *STAT = (*STAT & 0x07) | 0x03;
-        display_scanline(scan_oam(*LY));
+        if (*LCDC & 0x02) {
+          num_sp = scan_oam(*LY);          
+        }
+        display_scanline(num_sp);
       }
       break;
     case 1:
@@ -53,13 +57,13 @@ static inline void ppu_update(uint32_t _clock) {
         *LY += 1;
         if (*LY >= 154) {
           *STAT = (*STAT & 0xF8) | 0x02;
-          if (*STAT & 0x20) int_lcdc = true;  // mode2: OAM interrupt happens
+          if (*STAT & 0x20) IF |= 0x02;  // mode2: OAM interrupt happens
           *LY = 0;
         }
         if (*LY == *LYC) {
           *STAT |= 0x04;
           if (*STAT & 0x40) {
-            int_lcdc = true;
+            IF |= 0x02;
           }
         } else {
           *STAT &= ~0x04;
@@ -312,14 +316,16 @@ static inline uint32_t scan_oam(uint8_t LY) {
   uint32_t n = 0;
   for (uint32_t i = 0; i < 40; i++) {
     uint8_t y = *(OAM + i * 4);
+    if (!y) continue;
     uint8_t x = *(OAM + i * 4 + 1);
+    if (!x) continue;
+    if (y >= 160) continue;
     if (y < LY) continue;
     if (y > LY + 16) continue;
-    if (y > 0 && y < 160 && x > 0 && x < 168) {
+    if (x < 168) {
       *(oam_table + n) = i << 2;
       n++;
     }
   }
   return n;
-  //*(oam_table + n) = 0xFF;
 }

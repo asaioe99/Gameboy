@@ -1,27 +1,3 @@
-static inline void mmu_update(uint32_t _clock) {
-  //self.catridge.update(_clock);
-  ppu_update(_clock);
-  timer_update(_clock);
-  //self.joypad.update(_clock);
-
-  if (int_vblank) {
-    IF |= 0x01;
-    int_vblank = false;
-  }
-  if (int_lcdc) {
-    IF |= 0x02;
-    int_lcdc = false;
-  }
-  if (int_timer) {
-    IF |= 0x04;
-    int_timer = false;
-  }
-  //if (int_joypad) {
-  //  IF |= 0x10;
-  //  int_joypad = false;
-  //}
-}
-
 static inline uint8_t mmu_read_pc(uint16_t addr) {
   if (boot) {
     return *(bootstrap + addr);
@@ -31,8 +7,6 @@ static inline uint8_t mmu_read_pc(uint16_t addr) {
     return mbc_read_rom(addr);
   } else if (addr >= 0xC000 && addr < 0xE000) {
     return *(WRAM + addr - 0xC000);
-  //} else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
-  //  return *(WRAM + addr - 0xE000);              // ?
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack 何と使用されている！
    return *(HRAM + addr - 0xFF80);
   }
@@ -56,11 +30,9 @@ static inline uint8_t mmu_read(uint16_t addr) {
     return *(WRAM + addr - 0xE000);              // ?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     return *(OAM + addr - 0xFE00);
-    //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
-
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) {
-      return *IO | 0xCF;
+      return joypad_read();
     } else if (addr == 0xFF0F) {
       return IF;  // Interrupu flag
     } else if (addr == 0xFF04) {
@@ -71,7 +43,7 @@ static inline uint8_t mmu_read(uint16_t addr) {
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(HRAM + addr - 0xFF80);
   } else if (addr == 0xFFFF) {  // Interrupt Enable register(IE)
-    return 0xFF;                // read 0xFF
+    return IE;
   }
   return 0;
 }
@@ -90,12 +62,13 @@ static inline void mmu_write(uint16_t addr, uint8_t data) {
     *(WRAM + (addr - 0xE000)) = data;            //?
   } else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
     *(OAM + addr - 0xFE00) = data;
-    //} else if (addr >= 0xFEA0 && addr < 0xFF00) {  // Not Usable
   } else if (addr >= 0xFF00 && addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF46) {
       dma(data);
     } else if (addr == 0xFF04) {
       timer_div = 0;  // Divider regster reset
+    } else if (addr == 0xFF00) {
+      *IO = (*IO & 0xCF) | (data & 0x30);  // joypad
     } else if (addr == 0xFF07) {
       *(IO + 0x07) = data & 0x07;  // Divider regster reset
     } else if (addr == 0xFF0F) {
@@ -118,7 +91,7 @@ static inline uint8_t mmu_read_sp(uint16_t addr) {
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
     return *(WRAM + addr - 0xE000);              // ?
   } else if (addr == 0xFFFF) {                   // Interrupt Enable register(IE)
-    return 0xFF;                                 // read 0xFF
+    return IE;
   } else if (addr >= 0xA000 && addr < 0xC000) {
     return *(CRAM + addr - 0xA000);
   }
@@ -144,7 +117,7 @@ static inline void mmu_write_sp(uint16_t addr, uint8_t data) {
 static inline uint8_t mmu_read_io(uint16_t addr) {
   if (addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF00) {
-      return *IO | 0xCF;
+      return joypad_read();
     } else if (addr == 0xFF0F) {
       return IF;  // Interrupu flag
     } else if (addr == 0xFF04) {
@@ -155,7 +128,7 @@ static inline uint8_t mmu_read_io(uint16_t addr) {
   } else if (addr >= 0xFF80 && addr < 0xFFFF) {  // High RAM stack
     return *(HRAM + addr - 0xFF80);
   } else {        // Interrupt Enable register(IE)
-    return 0xFF;  // read 0xFF
+    return IE;
   }
   return 0;
 }
@@ -164,6 +137,8 @@ static inline void mmu_write_io(uint16_t addr, uint8_t data) {
   if (addr < 0xFF80) {  // I/O Register
     if (addr == 0xFF46) {
       dma(data);
+    } else if (addr == 0xFF00) {
+      *IO = (*IO & 0xCF) | (data & 0x30);  // joypad
     } else if (addr == 0xFF04) {
       timer_div = 0;  // Divider regster reset
     } else if (addr == 0xFF07) {
@@ -191,9 +166,7 @@ static inline uint8_t* get_dma_source_p(uint16_t addr) {
     return WRAM + addr - 0xC000;
   } else if (addr >= 0xE000 && addr < 0xFE00) {  // Mirror of C000~DDFF
     return WRAM + addr - 0xE000;              // ?
-  } //else if (addr >= 0xFE00 && addr < 0xFEA0) {  // Sprite attribute table (OAM)
-   // return OAM + addr - 0xFE00;
- // }
+  }
   return 0;
 }
 
@@ -201,12 +174,11 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
   switch (rom_bank_num) {
     case 0x01:
       return *(rom_bank01 + addr - 0x4000);
-    /*
+                    /*
       case 0x02:
       return *(rom_bank02 + addr - 0x4000);
       case 0x03:
       return *(rom_bank03 + addr - 0x4000);
-
       case 0x04:
       return *(rom_bank04 + addr - 0x4000);
       case 0x05:
@@ -231,6 +203,7 @@ static inline uint8_t mbc_read_rom(uint16_t addr) {
       return *(rom_bank0E + addr - 0x4000);
       case 0x0F:
       return *(rom_bank0F + addr - 0x4000);
+
       case 0x10:
       return *(rom_bank10 + addr - 0x4000);
       case 0x11:
@@ -275,36 +248,36 @@ static inline uint8_t* mbc_source_p() {
   switch (rom_bank_num) {
     case 0x01:
       return (uint8_t *)rom_bank01;
-    /*
+                /*
       case 0x02:
-      return *(rom_bank02 + addr - 0x4000);
+      return (uint8_t *)rom_bank02;
       case 0x03:
-      return *(rom_bank03 + addr - 0x4000);
-
+      return (uint8_t *)rom_bank03;
       case 0x04:
-      return *(rom_bank04 + addr - 0x4000);
+      return (uint8_t *)rom_bank04;
       case 0x05:
-      return *(rom_bank05 + addr - 0x4000);
+      return (uint8_t *)rom_bank05;
       case 0x06:
-      return *(rom_bank06 + addr - 0x4000);
+      return (uint8_t *)rom_bank06;
       case 0x07:
-      return *(rom_bank07 + addr - 0x4000);
+      return (uint8_t *)rom_bank07;
       case 0x08:
-      return *(rom_bank08 + addr - 0x4000);
+      return (uint8_t *)rom_bank08;
       case 0x09:
-      return *(rom_bank09 + addr - 0x4000);
+      return (uint8_t *)rom_bank09;
       case 0x0A:
-      return *(rom_bank0A + addr - 0x4000);
+      return (uint8_t *)rom_bank0A;
       case 0x0B:
-      return *(rom_bank0B + addr - 0x4000);
+      return (uint8_t *)rom_bank0B;
       case 0x0C:
-      return *(rom_bank0C + addr - 0x4000);
+      return (uint8_t *)rom_bank0C;
       case 0x0D:
-      return *(rom_bank0D + addr - 0x4000);
+      return (uint8_t *)rom_bank0D;
       case 0x0E:
-      return *(rom_bank0E + addr - 0x4000);
+      return (uint8_t *)rom_bank0E;
       case 0x0F:
-      return *(rom_bank0F + addr - 0x4000);
+      return (uint8_t *)rom_bank0F;
+
       case 0x10:
       return *(rom_bank10 + addr - 0x4000);
       case 0x11:
@@ -345,13 +318,13 @@ static inline uint8_t* mbc_source_p() {
   }
 }
 
-void dma(uint8_t addr_h) {
+static inline void dma(uint8_t addr_h) {
   uint16_t addr = (uint16_t)addr_h << 8;
   uint8_t *source = get_dma_source_p(addr);
   memcpy(OAM, source, 0x9F);
 }
 
-void switch_rom_bank(uint8_t data) {
+static inline void switch_rom_bank(uint8_t data) {
   rom_bank_num = data;
   if (data == 0x00 || data == 0x20 || data == 0x40 || data == 0x60) {
     rom_bank_num++;

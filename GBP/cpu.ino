@@ -1,6 +1,19 @@
 static inline uint32_t cpu_step() {
 
   uint32_t total_clock = 0;
+  
+  if ((ime || flag_halt) && (IF & IE & 0x1F)) {
+    flag_halt = false;
+    tmp_clock = 0;
+    if (ime) {
+      ime = false;
+      int_check();
+      ppu_update(tmp_clock);
+      timer_update(tmp_clock);
+      total_clock += tmp_clock;
+    }
+  }
+
   tmp_clock = 0;
 
   if (flag_halt) {
@@ -10,54 +23,32 @@ static inline uint32_t cpu_step() {
   }
   total_clock += tmp_clock;
 
-  // mmu.update
-  mmu_update(tmp_clock);
+  ppu_update(tmp_clock);
+  timer_update(tmp_clock);
+  joypad_update_state();
 
-  if (ime) {
-    tmp_clock = 0;
-    int_check();
-    //mmu.update
-    mmu_update(tmp_clock);
-
-    total_clock += tmp_clock;
-  }
   return total_clock;
 }
 
 static inline void int_check() {
   if ((IF & IE) & 0b00001) {
-    IF &= 0b11110;      // reset
-    ime = false;        //割り込み無効化
-    flag_halt = false;
-    call_irpt_40();     // v-blank 実装済み
+    IF &= 0b11110;
+    call_irpt_40();  // v-blank
     return;
   }
   if ((IF & IE) & 0b00010) {
-    IF &= 0b11101;      // reset
-    ime = false;        //割り込み無効化
-    flag_halt = false;
-    call_irpt_48();     // v-blank 実装済み
+    IF &= 0b11101;
+    call_irpt_48();  // LCD_stat
     return;
   }
   if ((IF & IE) & 0b00100) {
-    IF &= 0b11011;      // reset
-    ime = false;        //割り込み無効化
-    flag_halt = false;
-    call_irpt_50();     // v-blank 実装済み
-    return;
-  }
-  if ((IF & IE) & 0b01000) {
-    IF &= 0b10111;      // reset
-    ime = false;        //割り込み無効化
-    flag_halt = false;
-    call_irpt_58();     // v-blank 実装済み
+    IF &= 0b11011;
+    call_irpt_50();  // timer
     return;
   }
   if ((IF & IE) & 0b10000) {
-    IF &= 0b01111;      // reset
-    ime = false;        //割り込み無効化
-    flag_halt = false;
-    call_irpt_60();     // v-blank 実装済み
+    IF &= 0b01111;
+    call_irpt_60();  // joypad
     return;
   }
 }
@@ -67,33 +58,18 @@ static inline void execute() {
   code = mmu_read_pc(pc);
 
   if (pc == 0x100) {
-    //chk_init_regs();
     boot = false;
   }
-  /*
-    if (pc <= 0xC2C1 && pc >= 0xC2A6 && !boot) {
-    sprintf(buf_b1, "pc:%04X->%02X AF:%02X%02X BC:%02X%02X DE:%02X%02X HL:%02X%02X sp:%04X", pc, code, AR, FR, BR, CR, DR, ER, HR, LR, sp);
-    //sprintf(buf_b1, "OAM0:%02X %02X %02X %02X", mmu_read(0xFE00), mmu_read(0xFE01), mmu_read(0xFE02), mmu_read(0xFE03));
-    Serial.println(buf_b1);
-    sprintf(buf_b1, "IE:%02X IF:%02X IME:%d", IE, IF, ime);
-    Serial.println(buf_b1);
-    }
 
-    if (pc == 0xC448) {
-    while(true);
-    }
-  */
   void (*op)();
 
   if (code == 0xCB) {
     code = mmu_read_pc(++pc);
     op = *(pf_op_ptr_array + code);
     op();
-    //pf_op_ptr_array[code]();
   } else {
     op = *(op_ptr_array + code);
     op();
-    //op_ptr_array[code]();
   }
 }
 
@@ -574,7 +550,7 @@ void ld_phld_ar() {
   pc++;
 }
 void nop() {
-  tmp_clock += 4;
+  //tmp_clock += 4;
   pc++;
 }
 
@@ -3362,9 +3338,10 @@ void add_hl_hl() {
 }
 
 void stop_0() {
-  *(IO + 0x04) = 0x00;
-  //tmp_clock += 4; // test rom の解析結果
-  pc += 2;
+  //flag_halt = true;
+  //*(IO + 0x04) = 0x00;
+  tmp_clock += 4;
+  pc += 1;
 }
 
 void jp_nz_d16() {
@@ -4351,10 +4328,10 @@ void inc_phl() {
   pc++;
 }
 void halt() {  //Timer未実装のため、halt後のtimer割り込みがなくループになるので、手抜き中
-  if (ime) {
-    //省電力モード？
-    flag_halt = 1;
-  }
+
+  //省電力モード？
+  flag_halt = 1;
+
   //tmp_clock += 4; // instr timing
   pc++;
 }
@@ -4759,34 +4736,34 @@ void srl_phl() {
 static inline void call_irpt_40() {  ///// not correct push a return address
   mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;
   pc = 0x0040;
 }
 
 static inline void call_irpt_48() {  ///// not correct push a return address
   mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;
   pc = 0x0048;
 }
 
 static inline void call_irpt_50() {  ///// not correct push a return address
   mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;
   pc = 0x0050;
 }
 
 static inline void call_irpt_58() {  ///// not correct push a return address
   mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;
   pc = 0x0058;
 }
 
 static inline void call_irpt_60() {  ///// not correct push a return address
   mmu_write_sp(--sp, (uint8_t)((pc & 0xFF00) >> 8));
   mmu_write_sp(--sp, (uint8_t)(pc & 0x00FF));
-  tmp_clock += 20;  //正しいのか分からないけど、多分これくらい
+  tmp_clock += 20;
   pc = 0x0060;
 }

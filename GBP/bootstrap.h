@@ -20,7 +20,6 @@ const uint8_t bootstrap[] = {
   0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50, // f
 };
 
-//void (* const op_ptr_array[])(void) = {
 void (*op_ptr_array[])(void) = {
     nop,        //0x00
     ld_bc_d16,  //0x01
@@ -255,7 +254,7 @@ void (*op_ptr_array[])(void) = {
     reti,       //0xD9
     jp_c_d16,   //0xDA
     nop,        //0xDB
-    call_c_d16,//0xDC
+    call_c_d16, //0xDC
     nop,        //0xDD
     sbc_ar_d8,  //0xDE
     rst_vec_18, //0xDF
@@ -295,7 +294,6 @@ void (*op_ptr_array[])(void) = {
     rst_vec_38, //0xFF
 };
 
-//void (* const pf_op_ptr_array[])(void) = {
 void (* pf_op_ptr_array[])(void) = {
     rlc_br,     //0x00
     rlc_cr,     //0x01

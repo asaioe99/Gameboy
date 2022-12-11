@@ -12,6 +12,15 @@
 #define PIN_RESET 12
 #define PIN_BL 13
 
+#define KEY_R 20
+#define KEY_L 16
+#define KEY_U 2
+#define KEY_D 18
+#define KEY_A 15
+#define KEY_B 17
+#define KEY_X 19
+#define KEY_Y 21
+
 #define SERIAL_CLK_DIV 2.f
 
 #define MBC_NOT_SUPPORTED  -1
@@ -20,6 +29,8 @@
 #define MBC_2               2
 #define MBC_3               3
 #define MBC_5               5
+
+void callback_joypad_R();
 
 void ld_br_d8();
 void ld_cr_d8();
